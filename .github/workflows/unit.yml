@@ -1,0 +1,42 @@
+name: Unit Tests
+on:
+  workflow_dispatch:
+
+env:
+  DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+  TEST_CHANNEL: ${{ secrets.TEST_CHANNEL }}
+  TEST_CHANNEL_NAME: ${{ secrets.TEST_CHANNEL_NAME }}
+
+jobs:
+  unit-lint:
+    name: PHPUnit and Lint
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'no test')"
+    concurrency: phpunit
+    strategy:
+      matrix:
+        php:
+          - '8.4'
+          - '8.3'
+          - '8.2'
+          - '8.1'
+          - '8.0'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: uv, zlib, mbstring
+          tools: phpunit, phplint
+      - name: Install dependencies
+        run: composer install
+      - name: Redis Server in GitHub Actions
+        uses: supercharge/redis-github-action@1.4.0
+      # - name: Memcached Service
+      #   uses: niden/actions-memcached@v7
+      - name: Run PHPUnit
+        run: phpunit
+      - name: Run PHPLint
+        run: phplint
