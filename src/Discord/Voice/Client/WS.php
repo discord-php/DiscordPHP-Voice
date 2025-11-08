@@ -8,7 +8,7 @@ use Discord\Discord;
 use Discord\Factory\SocketFactory;
 use Discord\Parts\EventData\VoiceSpeaking;
 use Discord\Parts\Voice\UserConnected;
-use Discord\Voice\VoiceClient;
+use Discord\Voice\Client;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\VoicePayload;
 use Ratchet\Client\Connector;
@@ -89,7 +89,7 @@ final class WS
      * This is used to send and receive messages over the WebSocket connection.
      */
     public function __construct(
-        public VoiceClient $vc,
+        public Client $vc,
         protected ?Discord $bot = null,
         public ?array $data = [],
     ) {
@@ -103,8 +103,7 @@ final class WS
         $f = new Connector($this->bot->loop);
 
         /** @var PromiseInterface */
-        $f("wss://" . $this->data['endpoint'] . "?v=" . self::$version)
-            ->then(
+        $f("wss://" . $this->data['endpoint'] . "?v=" . self::$version)->then(
                 fn (WebSocket $ws) => $this->handleConnection($ws),
                 fn (\Throwable $e) => $this->bot->logger->error(
                     'Failed to connect to voice gateway: {error}',
@@ -116,13 +115,13 @@ final class WS
     /**
      * Creates a new instance of the WS class.
      *
-     * @param \Discord\Voice\VoiceClient $vc
+     * @param \Discord\Voice\Client $vc
      * @param null|\Discord\Discord $bot
      * @param null|array $data
      *
      * @return \Discord\Voice\Client\WS
      */
-    public static function make(VoiceClient $vc, ?Discord $bot = null, ?array $data = null): self
+    public static function make(Client $vc, ?Discord $bot = null, ?array $data = null): self
     {
         return new self($vc, $bot, $data);
     }

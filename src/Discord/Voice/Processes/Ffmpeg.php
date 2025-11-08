@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Discord\Voice\Processes;
 
-use Discord\Exceptions\FFmpegNotFoundException;
+use Discord\Voice\Exceptions\Libraries\FFmpegNotFoundException;
 use React\ChildProcess\Process;
 
 /**

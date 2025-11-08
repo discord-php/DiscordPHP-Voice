@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Discord\Voice;
 
-use Discord\Helpers\Buffer;
+use Discord\Voice\Helpers\Buffer;
 use Generator;
 use React\Promise\PromiseInterface;
 

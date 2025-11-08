@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Discord\Voice;
 
-use Discord\Exceptions\BufferTimedOutException;
-use Discord\Helpers\Buffer;
+use Discord\Voice\Exceptions\BufferTimedOutException;
+use Discord\Voice\Helpers\Buffer;
 use React\Promise\PromiseInterface;
 use React\Promise\Promise;
 

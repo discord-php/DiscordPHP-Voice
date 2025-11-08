@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Discord\Voice\Client;
 
-use Discord\Exceptions\LibSodiumNotFoundException;
+use Discord\Voice\Exceptions\Libraries\LibSodiumNotFoundException;
 use Discord\Helpers\ByteBuffer\Buffer;
 use Discord\Helpers\FormatPackEnum;
 use Monolog\Logger;

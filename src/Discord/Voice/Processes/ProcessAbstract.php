@@ -20,7 +20,12 @@ abstract class ProcessAbstract
      */
     abstract public static function encode(?string $filename = null, int|float $volume = 0, int $bitrate = 128000, ?array $preArgs = null): Process;
 
-    public const int DEFAULT_KHZ = 48000;
+    /**
+     * Default KHz value for voice to be decoded after someone talks.
+     *
+     * @var int
+     */
+    public const DEFAULT_KHZ = 48000;
 
     /**
      * Decodes audio from a specific format.
