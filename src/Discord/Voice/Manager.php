@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Discord\Voice;
 
 use Discord\Discord;
-use Discord\Exceptions\Voice\CantJoinMoreThanOneChannelException;
-use Discord\Exceptions\Voice\CantSpeakInChannelException;
-use Discord\Exceptions\Voice\ChannelMustAllowVoiceException;
-use Discord\Exceptions\Voice\ClientMustAllowVoiceException;
-use Discord\Exceptions\Voice\EnterChannelDeniedException;
+use Discord\Voice\Exceptions\Channels\CantJoinMoreThanOneChannelException;
+use Discord\Voice\Exceptions\Channels\CantSpeakInChannelException;
+use Discord\Voice\Exceptions\Channels\ChannelMustAllowVoiceException;
+use Discord\Voice\Exceptions\Channels\ClientMustAllowVoiceException;
+use Discord\Voice\Exceptions\Channels\EnterChannelDeniedException;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\WebSockets\VoiceServerUpdate;
 use Discord\Parts\WebSockets\VoiceStateUpdate;
@@ -21,20 +21,20 @@ use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
 
 /**
- * Manages voice clients for the Discord bot.
+ * Manages many voice clients for the DiscordPHP's bot.
  *
  * @requires libopus - Linux | NOT TESTED - WINDOWS
  * @requires FFMPEG - Linux | NOT TESTED - WINDOWS
  *
  * @since 10.19.0
  */
-final class VoiceManager
+final class Manager
 {
     use EventEmitterTrait;
 
     /**
      * @param Discord $bot
-     * @param array<string, VoiceClient> $clients
+     * @param array<string, Client> $clients
      */
     public function __construct(
         protected Discord $bot,
@@ -50,10 +50,10 @@ final class VoiceManager
      * @param bool $mute
      * @param bool $deaf
      *
-     * @throws \Discord\Exceptions\Voice\ChannelMustAllowVoiceException
-     * @throws \Discord\Exceptions\Voice\EnterChannelDeniedException
-     * @throws \Discord\Exceptions\Voice\CantJoinMoreThanOneChannelException
-     * @throws \Discord\Exceptions\Voice\CantSpeakInChannelException
+     * @throws \Discord\Voice\Exceptions\Channels\ChannelMustAllowVoiceException
+     * @throws \Discord\Voice\Exceptions\Channels\EnterChannelDeniedException
+     * @throws \Discord\Voice\Exceptions\Channels\CantJoinMoreThanOneChannelException
+     * @throws \Discord\Voice\Exceptions\Channels\CantSpeakInChannelException
      *
      * @return \React\Promise\PromiseInterface
      */
@@ -74,7 +74,6 @@ final class VoiceManager
                 throw new CantSpeakInChannelException();
             }
 
-            // TODO: Make this an option for the user instead of being forced
             if (isset($this->clients[$channel->guild_id])) {
                 throw new CantJoinMoreThanOneChannelException();
             }
@@ -83,8 +82,8 @@ final class VoiceManager
             return $deferred->promise();
         }
 
-        // The same as new VoiceClient(...)
-        $this->clients[$channel->guild_id] = VoiceClient::make(
+        // The same as new Client(...)
+        $this->clients[$channel->guild_id] = Client::make(
             $this->bot,
             $channel,
             ['dnsConfig' => $discord->options['dnsConfig']],
@@ -113,13 +112,13 @@ final class VoiceManager
     }
 
     /**
-     * Retrieves the voice client for a specific guild.
+     * Retrieves the voice client for a given guild id.
      *
      * @param string|int $guildId
      *
-     * @return \Discord\Voice\VoiceClient|null
+     * @return \Discord\Voice\Client|null
      */
-    public function getClient(string|int|Channel $guildChannelOrId): ?VoiceClient
+    public function getClient(string|int|Channel $guildChannelOrId): ?Client
     {
         if ($guildChannelOrId instanceof Channel) {
             $guildChannelOrId = $guildChannelOrId->guild_id;

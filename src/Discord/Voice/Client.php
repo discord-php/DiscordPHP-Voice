@@ -15,10 +15,10 @@ namespace Discord\Voice;
 
 use Discord\Discord;
 use Discord\Exceptions\FileNotFoundException;
-use Discord\Exceptions\OutdatedDCAException;
-use Discord\Exceptions\Voice\AudioAlreadyPlayingException;
-use Discord\Exceptions\Voice\ClientNotReadyException;
-use Discord\Helpers\Buffer as RealBuffer;
+use Discord\Voice\Exceptions\Channels\AudioAlreadyPlayingException;
+use Discord\Voice\Exceptions\ClientNotReadyException;
+use Discord\Voice\Exceptions\Libraries\OutdatedDCAException;
+use Discord\Voice\Helpers\Buffer as RealBuffer;
 use Discord\Helpers\Collection;
 use Discord\Helpers\ExCollectionInterface;
 use Discord\Parts\Channel\Channel;
@@ -52,7 +52,7 @@ use function Discord\loop;
  *
  * @since 10.19.0
  */
-class VoiceClient extends EventEmitter
+class Client extends EventEmitter
 {
     /**
      * Is the voice client ready?
@@ -282,7 +282,7 @@ class VoiceClient extends EventEmitter
      * @param bool $deaf Default: false
      * @param bool $mute Default: false
      * @param Deferred|null $deferred
-     * @param VoiceManager|null $manager
+     * @param Manager|null $manager
      */
     public function __construct(
         public Discord $bot,
@@ -291,7 +291,7 @@ class VoiceClient extends EventEmitter
         public bool $deaf = false,
         public bool $mute = false,
         protected ?Deferred $deferred = null,
-        protected ?VoiceManager &$manager = null,
+        protected ?Manager &$manager = null,
         protected bool $shouldBoot = true
     ) {
         $this->deaf = $this->data['deaf'] ?? false;
@@ -1136,7 +1136,7 @@ class VoiceClient extends EventEmitter
         }
 
         if ($decoder->stdin->isWritable() === false) {
-            logger()->warning('Decoder stdin is not writable.', ['ssrc' => $ss->ssrc]);
+            $this->bot->logger->warning('Decoder stdin is not writable.', ['ssrc' => $ss->ssrc]);
             return; // decoder stdin is not writable, cannot write audio data.
             // This should be either restarted or checked if the decoder is still running.
         }
@@ -1152,7 +1152,7 @@ class VoiceClient extends EventEmitter
         $data = OpusFfi::decode($voicePacket->decryptedAudio);
 
         if (empty(trim($data))) {
-            logger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
+            $this->bot->logger->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
             return; // no audio data to write
         }
 
@@ -1167,7 +1167,7 @@ class VoiceClient extends EventEmitter
     protected function createDecoder($ss): void
     {
         $decoder = Ffmpeg::decode((string) $ss->ssrc);
-        $decoder->start(loop());
+        $decoder->start($this->bot->loop);
 
         $decoder->stdout->on('data', function ($data) use ($ss) {
             if (empty($data)) {
@@ -1254,10 +1254,10 @@ class VoiceClient extends EventEmitter
      * @param bool $deaf
      * @param bool $mute
      * @param null|Deferred $deferred
-     * @param null|VoiceManager $manager
+     * @param null|Manager $manager
      * @param bool $shouldBoot Whether the client should boot immediately.
      *
-     * @return \Discord\Voice\VoiceClient
+     * @return \Discord\Voice\Client
      */
     public static function make(): self
     {
