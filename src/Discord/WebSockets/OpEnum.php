@@ -57,7 +57,7 @@ enum OpEnum: int
     /** Used to acknowledge heartbeats. */
     case OP_HEARTBEAT_ACK = 11;
     /** Request soundboard sounds. */
-    case REQUEST_SOUNDBOARD_SOUNDS = 31;
+    case OP_REQUEST_SOUNDBOARD_SOUNDS = 31;
 
     /**
      * Voice Opcodes.
@@ -265,7 +265,7 @@ enum OpEnum: int
             self::OP_INVALID_SESSION,
             self::OP_HELLO,
             self::OP_HEARTBEAT_ACK,
-            self::REQUEST_SOUNDBOARD_SOUNDS,
+            self::OP_REQUEST_SOUNDBOARD_SOUNDS,
         ];
     }
 
