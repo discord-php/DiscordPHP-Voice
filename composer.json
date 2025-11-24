@@ -20,8 +20,8 @@
     },
     "require": {
         "php": "^8.1.2",
-        "team-reflex/discord-php": "^10.40"
-        "ext-ffi": "*",
+        "team-reflex/discord-php": "^10.40",
+        "ext-ffi": "*"
     },
     "require-dev": {
         "symfony/var-dumper": "*",
