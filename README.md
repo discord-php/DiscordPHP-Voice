@@ -1,4 +1,4 @@
-# DiscordPHP Voice
+DiscordPHP Voice
 ====
 [![Latest Stable Version](https://poser.pugx.org/team-reflex/discord-php/v)](https://packagist.org/packages/team-reflex/discord-php) [![Latest Unstable Version](https://poser.pugx.org/team-reflex/discord-php/v/unstable)](https://packagist.org/packages/team-reflex/discord-php) [![Total Downloads](https://poser.pugx.org/team-reflex/discord-php/downloads)](https://packagist.org/packages/team-reflex/discord-php) [![PHP Version Require](https://poser.pugx.org/team-reflex/discord-php/require/php)](https://packagist.org/packages/team-reflex/discord-php)
 
