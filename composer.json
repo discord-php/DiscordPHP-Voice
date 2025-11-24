@@ -1,5 +1,5 @@
 {
-    "name": "discord-php/voice",
+    "name": "discord-php-helpers/voice",
     "description": "A voice library for DiscordPHP",
     "license": "MIT",
     "authors": [
