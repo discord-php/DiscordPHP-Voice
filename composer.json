@@ -20,7 +20,6 @@
     },
     "require": {
         "php": "^8.1.2",
-        "team-reflex/discord-php": "*",
         "ext-ffi": "*"
     },
     "require-dev": {
@@ -30,7 +29,8 @@
         "davidcole1340/reactsh": "dev-main",
         "wyrihaximus/react-cache-redis": "^4.5",
         "symfony/cache": "^5.4",
-        "laravel/pint": "^1.21"
+        "laravel/pint": "^1.21",
+        "team-reflex/discord-php": "dev-voice-dep"
     },
     "autoload": {
         "psr-4": {
