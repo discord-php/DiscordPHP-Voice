@@ -297,12 +297,10 @@ class Client extends EventEmitter
         $this->deaf = $this->data['deaf'] ?? false;
         $this->mute = $this->data['mute'] ?? false;
 
-        $this->data = [
-            'user_id' => $this->bot->id,
-            'deaf' => $this->deaf,
-            'mute' => $this->mute,
-            'session' => $this->data['session'] ?? null,
-        ];
+        $this->data['user_id'] = $this->bot->id;
+        $this->data['deaf'] = $this->deaf;
+        $this->data['mute'] = $this->mute;
+        $this->data['session'] = $this->data['session'] ?? null;
 
         if ($this->shouldBoot) {
             $this->boot();
