@@ -17,6 +17,7 @@ namespace Discord\WebSockets;
  * Contains constants used in websockets.
  *
  * @link https://discord.com/developers/docs/topics/opcodes-and-status-codes
+ * @see Discord\WebSockets\Op
  *
  * @since 3.2.1
  */
