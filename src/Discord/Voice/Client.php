@@ -320,7 +320,7 @@ class Client extends EventEmitter
             return false;
         }
 
-        WS::make($this);
+        WS::make($this, $this->bot, $this->data);
         return true;
     }
 

@@ -100,9 +100,9 @@ final class WS
             throw new \InvalidArgumentException('Endpoint is required for the voice WebSocket connection.');
         }
 
-        $f = new Connector($this->bot->loop);
+        $f = new Connector();
 
-        /** @var PromiseInterface */
+        /** @var PromiseInterface<WebSocket> */
         $f("wss://" . $this->data['endpoint'] . "?v=" . self::$version)->then(
                 fn (WebSocket $ws) => $this->handleConnection($ws),
                 fn (\Throwable $e) => $this->bot->logger->error(
