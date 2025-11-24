@@ -33,9 +33,6 @@
         "laravel/pint": "^1.21"
     },
     "autoload": {
-        "files": [
-            "src/Discord/functions.php"
-        ],
         "psr-4": {
             "Discord\\": "src/Discord"
         }
