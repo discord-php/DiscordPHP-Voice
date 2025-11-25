@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Discord\Voice\Client;
 
-use Discord\Helpers\ByteBuffer\Buffer;
+use Discord\Voice\ByteBuffer\Buffer;
 use Discord\WebSockets\Op;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\TimerInterface;

@@ -13,10 +13,9 @@ declare(strict_types=1);
 
 namespace Discord\Voice\Client;
 
+use Discord\Voice\ByteBuffer\Buffer;
+use Discord\Voice\ByteBuffer\FormatPackEnum;
 use Discord\Voice\Exceptions\Libraries\LibSodiumNotFoundException;
-use Discord\Helpers\ByteBuffer\Buffer;
-use Discord\Helpers\FormatPackEnum;
-use Monolog\Logger;
 
 /**
  * A voice packet received from Discord.
@@ -124,7 +123,7 @@ final class Packet
         $byteHeader = $this->setHeader($message);
 
         if (! $byteHeader) {
-            $this->log->warning('Failed to unpack voice packet Header.', ['message' => $message]);
+            //$this->log->warning('Failed to unpack voice packet Header.', ['message' => $message]);
             return $this;
         }
 
@@ -137,7 +136,7 @@ final class Packet
         $unpackedMessage = unpack('Cfirst/Csecond/nseq/Ntimestamp/Nssrc', $byteHeader);
 
         if (! $unpackedMessage) {
-            $this->log->warning('Failed to unpack voice packet.', ['message' => $message]);
+            //$this->log->warning('Failed to unpack voice packet.', ['message' => $message]);
             return $this;
         }
 
