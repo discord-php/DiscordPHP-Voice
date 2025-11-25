@@ -226,9 +226,9 @@ class Client extends EventEmitter
     /**
      * readopus Timer.
      *
-     * @var TimerInterface Timer
+     * @var TimerInterface|null Timer
      */
-    public TimerInterface $readOpusTimer;
+    public ?TimerInterface $readOpusTimer;
 
     /**
      * Audio Buffer.
@@ -262,6 +262,13 @@ class Client extends EventEmitter
      * @var int
      */
     public int $streamTime = 0;
+
+    /**
+     * Silence Frame Remain Count.
+     *
+     * @var int Amount of silence frames remaining.
+     */
+    protected $silenceRemaining = 5;
 
     /**
      * Whether the current voice client is enabled to record audio.
