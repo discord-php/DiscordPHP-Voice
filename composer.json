@@ -26,7 +26,7 @@
         "symfony/var-dumper": "*",
         "friendsofphp/php-cs-fixer": "^3",
         "phpunit/phpunit": "^9.4.4",
-        "davidcole1340/reactsh": "dev-main",
+        "davidcole1340/reactsh": "dev-master",
         "wyrihaximus/react-cache-redis": "^4.5",
         "symfony/cache": "^5.4",
         "laravel/pint": "^1.21",
