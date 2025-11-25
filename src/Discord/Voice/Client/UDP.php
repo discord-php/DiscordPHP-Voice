@@ -6,11 +6,10 @@ namespace Discord\Voice\Client;
 
 use Discord\Helpers\ByteBuffer\Buffer;
 use Discord\WebSockets\Op;
+use Psr\Log\LoggerInterface;
 use React\EventLoop\TimerInterface;
 use React\Datagram\Socket;
-
-use function Discord\logger;
-use function Discord\loop;
+use React\EventLoop\LoopInterface;
 
 /**
  * Handles the UDP connection & events for Discord voice.
@@ -124,7 +123,7 @@ final class UDP extends Socket
         $buffer[1] = "\x01";
         $buffer[3] = "\x46";
         $buffer->writeUInt32BE($this->ws->vc->ssrc, 4);
-        loop()->addTimer(0.1, fn () => $this->send($buffer->__toString()));
+        $this->getLoop()->addTimer(0.1, fn () => $this->send($buffer->__toString()));
 
         return $this;
     }
@@ -139,12 +138,12 @@ final class UDP extends Socket
             $this->hbInterval = $this->ws->vc->heartbeatInterval;
         }
 
-        if (null === loop()) {
-            logger()->error('No event loop found. Cannot handle heartbeat.');
+        if (null === $this->getLoop()) {
+            $this->getLogger()->error('No event loop found. Cannot handle heartbeat.');
             return $this;
         }
 
-        $this->heartbeat = loop()->addPeriodicTimer(
+        $this->heartbeat = $this->getLoop()->addPeriodicTimer(
             $this->hbInterval / 1000,
             function (): void {
                 $buffer = new Buffer(9);
@@ -155,7 +154,7 @@ final class UDP extends Socket
                 $this->send($buffer->__toString());
                 $this->ws->vc->emit('udp-heartbeat', []);
 
-                logger()->debug('sent UDP heartbeat');
+                $this->getLogger()->debug('sent UDP heartbeat');
             }
         );
 
@@ -190,7 +189,7 @@ final class UDP extends Socket
             $ip = $unpackedMessageArray['Address'];
             $port = $unpackedMessageArray['Port'];
 
-            logger()->debug('received our IP and port', ['ip' => $ip, 'port' => $port]);
+            $this->getLogger()->debug('received our IP and port', ['ip' => $ip, 'port' => $port]);
 
             $this->ws->send([
                 'op' => Op::VOICE_SELECT_PROTOCOL,
@@ -212,7 +211,7 @@ final class UDP extends Socket
     public function handleErrors(): self
     {
         return $this->on('error', function (\Throwable $e): void {
-            logger()->error('UDP error', ['e' => $e->getMessage()]);
+            $this->getLogger()->error('UDP error', ['e' => $e->getMessage()]);
             $this->ws->vc->emit('udp-error', [$e]);
         });
     }
@@ -259,7 +258,7 @@ final class UDP extends Socket
     public function close(): void
     {
         if ($this->heartbeat) {
-            loop()->cancelTimer($this->heartbeat);
+            $this->getLoop()->cancelTimer($this->heartbeat);
             $this->heartbeat = null;
         }
 
@@ -277,5 +276,21 @@ final class UDP extends Socket
         }
 
         $this->silenceRemaining = 5;
+    }
+
+    /**
+     * Gets the logger instance.
+     */
+    private function getLogger(): LoggerInterface
+    {
+        return $this->ws->vc->bot->getLogger();
+    }
+
+    /**
+     * Gets the event loop instance.
+     */
+    private function getLoop(): LoopInterface
+    {
+        return $this->ws->vc->bot->getLoop();
     }
 }
