@@ -732,7 +732,7 @@ class Client extends EventEmitter
         }
 
         $this->mainSend(VoicePayload::new(
-            Op::OP_VOICE_STATE_UPDATE,
+            Op::OP_UPDATE_VOICE_STATE,
             [
                 'guild_id' => $channel->guild_id,
                 'channel_id' => $channel?->id ?? null,
