@@ -66,11 +66,13 @@ final class Manager
                 throw new ChannelMustAllowVoiceException();
             }
 
-            if (! $channel->canJoin()) {
+            $botperms = $channel->getBotPermissions();
+
+            if (! $botperms->connect) {
                 throw new EnterChannelDeniedException();
             }
 
-            if (! $channel->canSpeak() && ! $mute) {
+            if (! $botperms->speak && ! $mute) {
                 throw new CantSpeakInChannelException();
             }
 
