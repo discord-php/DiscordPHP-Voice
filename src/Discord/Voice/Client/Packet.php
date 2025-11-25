@@ -18,8 +18,6 @@ use Discord\Helpers\ByteBuffer\Buffer;
 use Discord\Helpers\FormatPackEnum;
 use Monolog\Logger;
 
-use function Discord\logger;
-
 /**
  * A voice packet received from Discord.
  *
@@ -94,8 +92,7 @@ final class Packet
         public ?int $seq = null,
         public ?int $timestamp = null,
         bool $decrypt = true,
-        protected ?string $key = null,
-        protected ?Logger $log = null
+        protected ?string $key = null
     ) {
         if (! function_exists('sodium_crypto_secretbox')) {
             throw new LibSodiumNotFoundException('libsodium-php could not be found.');
@@ -105,10 +102,6 @@ final class Packet
 
         if ($decrypt) {
             $this->decrypt();
-        }
-
-        if (! $log) {
-            $this->log = logger();
         }
     }
 
