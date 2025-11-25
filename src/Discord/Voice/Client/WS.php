@@ -188,7 +188,7 @@ final class WS
                         fn () => $this->sendHeartbeat()
                     );
                     break;
-                case Op::VOICE_CLIENTS_CONNECT:
+                case Op::VOICE_CLIENT_CONNECT:
                     $this->bot->logger->debug('received clients connected packet', ['data' => json_decode(json_encode($data->d), true)]);
                     # "d" contains an array with ['user_ids' => array<string>]
 
