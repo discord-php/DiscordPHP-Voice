@@ -44,9 +44,6 @@ use React\Promise\PromiseInterface;
 use React\Stream\ReadableResourceStream as Stream;
 use React\Stream\ReadableStreamInterface;
 
-use function Discord\logger;
-use function Discord\loop;
-
 /**
  * The Discord voice client.
  *
@@ -357,7 +354,7 @@ class Client extends EventEmitter
         }
 
         $process = Ffmpeg::encode($file, volume: $this->getDbVolume());
-        $process->start($this->bot->loop);
+        $process->start($this->bot->getLoop());
 
         return $this->playOggStream($process);
     }
@@ -397,7 +394,7 @@ class Client extends EventEmitter
         }
 
         if (is_resource($stream)) {
-            $stream = new Stream($stream, $this->bot->loop);
+            $stream = new Stream($stream, $this->bot->getLoop());
         }
 
         $process = Ffmpeg::encode(volume: $this->getDbVolume(), preArgs: [
@@ -405,7 +402,7 @@ class Client extends EventEmitter
             '-ac', $channels,
             '-ar', $audioRate,
         ]);
-        $process->start($this->bot->loop);
+        $process->start($this->bot->getLoop());
         $stream->pipe($process->stdin);
 
         return $this->playOggStream($process);
@@ -450,7 +447,7 @@ class Client extends EventEmitter
         }
 
         if (is_resource($stream)) {
-            $stream = new Stream($stream, $this->bot->loop);
+            $stream = new Stream($stream, $this->bot->getLoop());
         }
 
         if (! ($stream instanceof ReadableStreamInterface)) {
@@ -459,7 +456,7 @@ class Client extends EventEmitter
             return $deferred->promise();
         }
 
-        $this->buffer = new RealBuffer($this->bot->loop);
+        $this->buffer = new RealBuffer($this->bot->getLoop());
         $stream->on('data', function ($d) {
             $this->buffer->write($d);
         });
@@ -474,7 +471,7 @@ class Client extends EventEmitter
         OggStream::fromBuffer($this->buffer)->then(function (OggStream $os) use ($deferred, &$ogg, &$loops) {
             $ogg = $os;
             $this->startTime = microtime(true) + 0.5;
-            $this->readOpusTimer = $this->bot->loop->addTimer(0.5, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+            $this->readOpusTimer = $this->bot->getLoop()->addTimer(0.5, fn () => $this->readOggOpus($deferred, $ogg, $loops));
         });
 
         return $deferred->promise();
@@ -496,7 +493,7 @@ class Client extends EventEmitter
         // If the client is paused, delay by frame size and check again.
         if ($this->paused) {
             $this->udp->insertSilence();
-            $this->readOpusTimer = $this->bot->loop->addTimer($this->frameSize / 1000, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+            $this->readOpusTimer = $this->bot->getLoop()->addTimer($this->frameSize / 1000, fn () => $this->readOggOpus($deferred, $ogg, $loops));
 
             return;
         }
@@ -527,7 +524,7 @@ class Client extends EventEmitter
             $nextTime = $this->startTime + (20.0 / 1000.0) * $loops;
             $delay = $nextTime - microtime(true);
 
-            $this->readOpusTimer = $this->bot->loop->addTimer($delay, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+            $this->readOpusTimer = $this->bot->getLoop()->addTimer($delay, fn () => $this->readOggOpus($deferred, $ogg, $loops));
         }, function () use ($deferred) {
             $this->reset();
             $deferred->resolve(null);
@@ -574,7 +571,7 @@ class Client extends EventEmitter
         }
 
         if (is_resource($stream)) {
-            $stream = new Stream($stream, $this->bot->loop);
+            $stream = new Stream($stream, $this->bot->getLoop());
         }
 
         if (! ($stream instanceof ReadableStreamInterface)) {
@@ -583,7 +580,7 @@ class Client extends EventEmitter
             return $deferred->promise();
         }
 
-        $this->buffer = new RealBuffer($this->bot->loop);
+        $this->buffer = new RealBuffer($this->bot->getLoop());
         $stream->on('data', function ($d) {
             $this->buffer->write($d);
         });
@@ -609,7 +606,7 @@ class Client extends EventEmitter
             }
 
             $this->startTime = microtime(true) + 0.5;
-            $this->readOpusTimer = $this->bot->loop->addTimer(0.5, fn () => $this->readDCAOpus($deferred));
+            $this->readOpusTimer = $this->bot->getLoop()->addTimer(0.5, fn () => $this->readDCAOpus($deferred));
         });
 
         return $deferred->promise();
@@ -629,7 +626,7 @@ class Client extends EventEmitter
         // If the client is paused, delay by frame size and check again.
         if ($this->paused) {
             $this->udp->insertSilence();
-            $this->readOpusTimer = $this->bot->loop->addTimer($this->frameSize / 1000, fn () => $this->readDCAOpus($deferred));
+            $this->readOpusTimer = $this->bot->getLoop()->addTimer($this->frameSize / 1000, fn () => $this->readDCAOpus($deferred));
 
             return;
         }
@@ -653,7 +650,7 @@ class Client extends EventEmitter
                 $this->timestamp = 0;
             }
 
-            $this->readOpusTimer = $this->bot->loop->addTimer(($this->frameSize - 1) / 1000, fn () => $this->readDCAOpus($deferred));
+            $this->readOpusTimer = $this->bot->getLoop()->addTimer(($this->frameSize - 1) / 1000, fn () => $this->readDCAOpus($deferred));
         }, function () use ($deferred) {
             $this->reset();
             $deferred->resolve(null);
@@ -666,7 +663,7 @@ class Client extends EventEmitter
     protected function reset(): void
     {
         if ($this->readOpusTimer) {
-            $this->bot->loop->cancelTimer($this->readOpusTimer);
+            $this->bot->getLoop()->cancelTimer($this->readOpusTimer);
             $this->readOpusTimer = null;
         }
 
@@ -969,7 +966,7 @@ class Client extends EventEmitter
         $this->heartbeatInterval = null;
 
         if (null !== $this->heartbeat) {
-            $this->bot->loop->cancelTimer($this->heartbeat);
+            $this->bot->getLoop()->cancelTimer($this->heartbeat);
             $this->heartbeat = null;
         }
 
@@ -1100,7 +1097,7 @@ class Client extends EventEmitter
             // We don't have a speaking status for this SSRC
             // Probably a "ping" to the udp socket
             // There's no message or the message threw an error inside the decrypt function
-            $this->bot->logger->warning('No audio data.', ['voicePacket' => $voicePacket]);
+            $this->bot->getLogger()->warning('No audio data.', ['voicePacket' => $voicePacket]);
             return;
         }
 
@@ -1111,7 +1108,7 @@ class Client extends EventEmitter
 
         if (null === $ss) {
             // for some reason we don't have a speaking status
-            $this->bot->logger->warning('Unknown SSRC.', ['ssrc' => $voicePacket->getSSRC(), 't' => $voicePacket->getTimestamp()]);
+            $this->bot->getLogger()->warning('Unknown SSRC.', ['ssrc' => $voicePacket->getSSRC(), 't' => $voicePacket->getTimestamp()]);
             return;
         }
 
@@ -1134,7 +1131,7 @@ class Client extends EventEmitter
         }
 
         if ($decoder->stdin->isWritable() === false) {
-            $this->bot->logger->warning('Decoder stdin is not writable.', ['ssrc' => $ss->ssrc]);
+            $this->bot->getLogger()->warning('Decoder stdin is not writable.', ['ssrc' => $ss->ssrc]);
             return; // decoder stdin is not writable, cannot write audio data.
             // This should be either restarted or checked if the decoder is still running.
         }
@@ -1150,7 +1147,7 @@ class Client extends EventEmitter
         $data = OpusFfi::decode($voicePacket->decryptedAudio);
 
         if (empty(trim($data))) {
-            $this->bot->logger->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
+            $this->bot->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
             return; // no audio data to write
         }
 
@@ -1165,7 +1162,7 @@ class Client extends EventEmitter
     protected function createDecoder($ss): void
     {
         $decoder = Ffmpeg::decode((string) $ss->ssrc);
-        $decoder->start($this->bot->loop);
+        $decoder->start($this->bot->getLoop());
 
         $decoder->stdout->on('data', function ($data) use ($ss) {
             if (empty($data)) {
@@ -1205,14 +1202,14 @@ class Client extends EventEmitter
         // $pid = $process->getPid();
 
         // Check every second if the process is still running
-        $this->monitorProcessTimer = $this->bot->loop->addPeriodicTimer(1.0, function () use ($process, $ss) {
+        $this->monitorProcessTimer = $this->bot->getLoop()->addPeriodicTimer(1.0, function () use ($process, $ss) {
             // Check if the process is still running
             if (!$process->isRunning()) {
                 // Get the exit code
                 $exitCode = $process->getExitCode();
 
                 // Clean up the timer
-                $this->bot->loop->cancelTimer($this->monitorProcessTimer);
+                $this->bot->getLoop()->cancelTimer($this->monitorProcessTimer);
 
                 // If exit code indicates an error, emit event and recreate decoder
                 if ($exitCode > 0) {
