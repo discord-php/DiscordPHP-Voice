@@ -99,7 +99,7 @@ final class Manager
         $discord->on(Event::VOICE_SERVER_UPDATE, fn ($state, Discord $discord) => $this->serverUpdate($state, $channel, $discord, $deferred));
 
         $discord->send(VoicePayload::new(
-            Op::OP_VOICE_STATE_UPDATE,
+            Op::OP_UPDATE_VOICE_STATE,
             [
                 'guild_id' => $channel->guild_id,
                 'channel_id' => $channel->id,

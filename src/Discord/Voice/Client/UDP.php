@@ -193,7 +193,7 @@ final class UDP extends Socket
             logger()->debug('received our IP and port', ['ip' => $ip, 'port' => $port]);
 
             $this->ws->send([
-                'op' => Op::VOICE_SELECT_PROTO,
+                'op' => Op::VOICE_SELECT_PROTOCOL,
                 'd' => [
                     'protocol' => 'udp',
                     'data' => [
