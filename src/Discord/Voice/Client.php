@@ -505,7 +505,7 @@ class Client extends EventEmitter
             return;
         }
 
-        $ogg->getPacket()->then(function ($packet) use (&$loops, $deferred) {
+        $ogg->getPacket()->then(function ($packet) use (&$loops, &$ogg, $deferred) {
             // EOF for Ogg stream.
             if (null === $packet) {
                 $this->reset();
