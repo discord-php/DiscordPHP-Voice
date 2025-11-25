@@ -178,7 +178,7 @@ final class WS
                     $this->bot->logger->debug('received speaking packet', ['data' => json_decode(json_encode($data->d), true)]);
                     $this->vc->emit('speaking', [$data->d->speaking, $data->d->user_id, $this->vc]);
                     $this->vc->emit("speaking.{$data->d->user_id}", [$data->d->speaking, $this->vc]);
-                    $this->vc->speakingStatus[$data->d->user_id] = $this->bot->getFactory()->create(VoiceSpeaking::class, $data->d);
+                    $this->vc->speakingStatus[$data->d->user_id] = $this->bot->getFactory()->part(VoiceSpeaking::class, $data->d);
                     break;
                 case Op::VOICE_HELLO:
                     $this->hbInterval = $this->vc->heartbeatInterval = $data->d->heartbeat_interval;
@@ -192,7 +192,7 @@ final class WS
                     $this->bot->logger->debug('received clients connected packet', ['data' => json_decode(json_encode($data->d), true)]);
                     # "d" contains an array with ['user_ids' => array<string>]
 
-                    $this->vc->users = array_map(fn (int $userId) => $this->bot->getFactory()->create(UserConnected::class, $userId), $data->d->user_ids);
+                    $this->vc->users = array_map(fn (int $userId) => $this->bot->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $data->d->user_ids);
                     break;
                 case Op::VOICE_CLIENT_DISCONNECT:
                     $this->bot->logger->debug('received client disconnected packet', ['data' => json_decode(json_encode($data->d), true)]);
