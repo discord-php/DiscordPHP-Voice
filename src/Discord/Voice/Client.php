@@ -849,7 +849,7 @@ class Client extends EventEmitter
         $this->deaf = $deaf;
 
         $this->mainSend(VoicePayload::new(
-            Op::OP_VOICE_STATE_UPDATE,
+            Op::OP_UPDATE_VOICE_STATE,
             [
                 'guild_id' => $this->channel->guild_id,
                 'channel_id' => $this->channel->id,
@@ -957,7 +957,7 @@ class Client extends EventEmitter
         }
 
         $this->mainSend(VoicePayload::new(
-            Op::OP_VOICE_STATE_UPDATE,
+            Op::OP_UPDATE_VOICE_STATE,
             [
                 'guild_id' => $this->channel->guild_id,
                 'channel_id' => null,

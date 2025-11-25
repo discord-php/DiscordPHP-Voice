@@ -151,7 +151,7 @@ final class WS
                     $this->vc->emit('ws-ping', [$diff]);
                     $this->vc->emit('ws-heartbeat-ack', [$data->d->t]);
                     break;
-                case Op::VOICE_DESCRIPTION: // ready
+                case Op::VOICE_SESSION_DESCRIPTION: // ready
                     $this->vc->ready = true;
                     $this->mode = $data->d->mode === $this->mode ? $this->mode : 'aead_aes256_gcm_rtpsize';
                     $this->secretKey = '';
