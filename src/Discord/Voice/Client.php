@@ -51,6 +51,15 @@ use React\Stream\ReadableStreamInterface;
  */
 class Client extends EventEmitter
 {
+    /** Not speaking. */
+    public const NOT_SPEAKING = 0;
+    /** Normal transmission of voice audio. */
+    public const MICROPHONE = 1 << 0;
+    /** Transmission of context audio for video, no speaking indicator. */
+    public const SOUNDSHARE = 1 << 1;
+    /** Priority speaker, lowering audio of other speakers. */
+    public const PRIORITY_SPEAKER = 1 << 2;
+
     /**
      * Is the voice client ready?
      *
@@ -115,11 +124,10 @@ class Client extends EventEmitter
     public ?int $timestamp = 0;
 
     /**
-     * Are we currently speaking?
      *
-     * @var bool
+     * @var int
      */
-    public bool $speaking = false;
+    public int $speaking = self::NOT_SPEAKING;
 
     /**
      * Whether the voice client is currently paused.
@@ -473,7 +481,7 @@ class Client extends EventEmitter
 
         $loops = 0;
 
-        $this->setSpeaking(true);
+        $this->setSpeaking(self::MICROPHONE);
 
         OggStream::fromBuffer($this->buffer)->then(function (OggStream $os) use ($deferred, &$ogg, &$loops) {
             $ogg = $os;
@@ -592,7 +600,7 @@ class Client extends EventEmitter
             $this->buffer->write($d);
         });
 
-        $this->setSpeaking(true);
+        $this->setSpeaking(self::MICROPHONE);
 
         // Read magic byte header
         $this->buffer->read(4)->then(function ($mb) {
@@ -674,7 +682,7 @@ class Client extends EventEmitter
             $this->readOpusTimer = null;
         }
 
-        $this->setSpeaking(false);
+        $this->setSpeaking(self::NOT_SPEAKING);
         $this->streamTime = 0;
         $this->startTime = 0;
         $this->paused = false;
@@ -684,11 +692,11 @@ class Client extends EventEmitter
     /**
      * Sets the speaking value of the client.
      *
-     * @param bool $speaking Whether the client is speaking or not.
+     * @param int $speaking Whether the client is speaking or not.
      *
      * @throws \RuntimeException
      */
-    public function setSpeaking(bool $speaking = true): void
+    public function setSpeaking(int $speaking = true): void
     {
         if ($this->speaking == $speaking) {
             return;
@@ -932,7 +940,7 @@ class Client extends EventEmitter
 
         if ($this->speaking) {
             $this->stop();
-            $this->setSpeaking(false);
+            $this->setSpeaking(self::NOT_SPEAKING);
         }
 
         $this->ready = false;
@@ -1024,6 +1032,38 @@ class Client extends EventEmitter
         }
 
         $this->removeDecoder($ss);
+    }
+
+    /**
+     * Handles a voice server change.
+     *
+     * @param array $data New voice server information.
+     */
+    public function handleVoiceServerChange(array $data = []): void
+    {
+        $this->bot->getLogger()->debug('voice server has changed, dynamically changing servers in the background', ['data' => $data]);
+        $this->reconnecting = true;
+        $this->sentLoginFrame = false;
+        $this->pause();
+
+        $this->close();
+        $this->ws->close();
+
+        $this->bot->getLoop()->cancelTimer($this->heartbeat);
+        $this->bot->getLoop()->cancelTimer($this->udp->heartbeat);
+
+        $this->on('resumed', function () {
+            $this->bot->getLogger()->debug('voice client resumed');
+            $this->unpause();
+            $this->speaking = self::NOT_SPEAKING;
+            $this->setSpeaking(self::MICROPHONE);
+        });
+
+        $data = array_merge($this->data, $data);
+        $this->data['token'] = $data['token']; // set the token if it changed
+        $this->endpoint = str_replace([':80', ':443'], '', $data['endpoint']);
+
+        WS::make($this, $this->bot, $data);
     }
 
     /**
