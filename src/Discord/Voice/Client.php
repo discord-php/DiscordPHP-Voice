@@ -696,7 +696,7 @@ class Client extends EventEmitter
      *
      * @throws \RuntimeException
      */
-    public function setSpeaking(int $speaking = true): void
+    public function setSpeaking(int $speaking = self::MICROPHONE): void
     {
         if ($this->speaking == $speaking) {
             return;
