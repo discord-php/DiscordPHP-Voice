@@ -160,7 +160,7 @@ final class Packet
     public function decrypt(?string $message = null): string|false|null
     {
         if (! $message) {
-            $message = $this?->rawData ?? null;
+            $message = $this->rawData ?? null;
         }
 
         if (empty($message)) {
@@ -174,7 +174,6 @@ final class Packet
         // 2. Extract the header
         $header = $this->getHeader();
         if (! $header) {
-            $this->log->warning('Invalid Voice Header.', ['message' => $message]);
             return false;
         }
 
@@ -207,7 +206,8 @@ final class Packet
             // If decryption fails, log the error and return
             // Most of the time, the length is 20 bytes either for a ping, or an empty voice/udp packet
             if ($resultMessage === false && strlen($cipherText) !== 20) {
-                $this->log->warning('Failed to decode voice packet.', ['ssrc' => $this->ssrc]);
+                //$this->log->warning('Failed to decode voice packet.', ['ssrc' => $this->ssrc]);
+                return false;
             }
             // Check if the message contains an extension and remove it
             elseif (substr($message, 12, 2) === "\xBE\xDE") {
@@ -219,8 +219,9 @@ final class Packet
                 $resultMessage = substr($resultMessage, 4 * $headerExtensionLength);
             }
         } catch (\Throwable $e) {
-            $this->log->error('Exception occurred when decoding voice packet: ' . $e->getMessage());
-            $this->log->error('Trace: ' . $e->getTraceAsString());
+            //$this->log->error('Exception occurred when decoding voice packet: ' . $e->getMessage());
+            //$this->log->error('Trace: ' . $e->getTraceAsString());
+            return false;
         } finally {
             return $this->decryptedAudio = $resultMessage;
         }
@@ -278,7 +279,7 @@ final class Packet
     public function setHeader(?string $message = null): ?string
     {
         if (null === $message) {
-            $message = $this?->rawData;
+            $message = $this->rawData ?? null;
         }
 
         if (empty($message)) {
@@ -300,7 +301,7 @@ final class Packet
      */
     public function getHeader(): ?string
     {
-        return $this?->header ?? null;
+        return $this->header ?? null;
     }
 
     /**
@@ -370,7 +371,7 @@ final class Packet
      */
     public function __toString(): string
     {
-        return (string) $this?->buffer ?? $this->decryptedAudio ?? '';
+        return (string) $this->buffer ?? $this->decryptedAudio ?? '';
     }
 
     /**
@@ -379,6 +380,6 @@ final class Packet
      */
     public function getAudioData(): string|false|null
     {
-        return $this?->decryptedAudio;
+        return $this->decryptedAudio ?? null;
     }
 }
