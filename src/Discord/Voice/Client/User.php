@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Discord\Voice\Client;
 
 use Discord\Discord;
-use Discord\Parts\EventData\VoiceSpeaking;
 use Discord\Voice\ReceiveStream;
+use Discord\Voice\Speaking;
 use Discord\Voice\VoiceClient;
 use React\ChildProcess\Process;
 
@@ -21,7 +21,7 @@ final class User
         protected int $ssrc,
         protected Process $decoder,
         protected ReceiveStream $stream,
-        protected ?VoiceSpeaking $part = null,
+        protected ?Speaking $part = null,
     ) {
     }
 }

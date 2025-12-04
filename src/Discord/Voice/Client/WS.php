@@ -6,9 +6,9 @@ namespace Discord\Voice\Client;
 
 use Discord\Discord;
 use Discord\Factory\SocketFactory;
-use Discord\Parts\EventData\VoiceSpeaking;
 use Discord\Parts\Voice\UserConnected;
 use Discord\Voice\Client;
+use Discord\Voice\Speaking;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\VoicePayload;
 use Ratchet\Client\Connector;
@@ -176,7 +176,7 @@ final class WS
                     $this->bot->logger->debug('received speaking packet', ['data' => json_decode(json_encode($data->d), true)]);
                     $this->vc->emit('speaking', [$data->d->speaking, $data->d->user_id, $this->vc]);
                     $this->vc->emit("speaking.{$data->d->user_id}", [$data->d->speaking, $this->vc]);
-                    $this->vc->speakingStatus[$data->d->user_id] = $this->bot->getFactory()->part(VoiceSpeaking::class, $data->d);
+                    $this->vc->speakingStatus[$data->d->user_id] = $this->bot->getFactory()->part(Speaking::class, $data->d);
                     break;
                 case Op::VOICE_HELLO:
                     $this->hbInterval = $this->vc->heartbeatInterval = $data->d->heartbeat_interval;

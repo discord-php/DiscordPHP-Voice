@@ -22,7 +22,6 @@ use Discord\Voice\Helpers\Buffer as RealBuffer;
 use Discord\Helpers\Collection;
 use Discord\Helpers\ExCollectionInterface;
 use Discord\Parts\Channel\Channel;
-use Discord\Parts\EventData\VoiceSpeaking;
 use Discord\Voice\Client\Packet;
 use Discord\Voice\Client\UDP;
 use Discord\Voice\Client\User;
@@ -30,6 +29,7 @@ use Discord\Voice\Client\WS;
 use Discord\Voice\Processes\Dca;
 use Discord\Voice\Processes\Ffmpeg;
 use Discord\Voice\Processes\OpusFfi;
+use Discord\Voice\Speaking;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
@@ -160,7 +160,7 @@ class Client extends EventEmitter
     /**
      * Collection of the status of people speaking.
      *
-     * @var ExCollectionInterface<VoiceSpeaking> Status of people speaking.
+     * @var ExCollectionInterface<Speaking> Status of people speaking.
      */
     public $speakingStatus;
 
