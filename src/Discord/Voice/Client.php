@@ -299,6 +299,7 @@ class Client extends EventEmitter
     public function __construct(
         public Discord $bot,
         public Channel $channel,
+        public array &$voice_sessions,
         public array $data = [],
         public bool $deaf = false,
         public bool $mute = false,
