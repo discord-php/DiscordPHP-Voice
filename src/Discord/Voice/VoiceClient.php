@@ -1154,10 +1154,15 @@ class VoiceClient extends EventEmitter
     /**
      * Handles raw opus data from the UDP server.
      *
-     * @param Packet $voicePacket The data from the UDP server.
+     * @param Packet|string $voicePacket The data from the UDP server.
      */
-    public function handleAudioData(Packet $voicePacket): void
+    public function handleAudioData(Packet|string $voicePacket): void
     {
+        if (is_string($voicePacket)) {
+            // We don't handle non-decrypted packets here.
+            return;
+        }
+
         if (! $this->shouldRecord) {
             // If we are not recording, we don't need to handle audio data.
             return;
