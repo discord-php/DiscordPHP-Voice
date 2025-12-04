@@ -300,7 +300,7 @@ final class WS
             $this->vc->reconnecting = false;
             $this->vc->emit('resumed', [$this->vc]);
             # TODO: check if this can fix the reconnect issue
-            $this->vc->emit('ready', [$this->vc]);
+            //$this->vc->emit('ready', [$this->vc]);
         }
 
         if (! $this->vc->deaf && $this->secretKey) {
