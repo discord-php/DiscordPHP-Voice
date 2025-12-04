@@ -551,6 +551,7 @@ final class WS
         // Don't reconnect on a critical opcode or if closed by user.
         if (in_array($op, Op::getCriticalVoiceCloseCodes()) || $this?->vc->userClose) {
             $this->discord->logger->warning('received critical opcode - not reconnecting', ['op' => $op, 'reason' => $reason]);
+            $this->vc->voice_sessions[$this->vc->channel->guild_id] = null;
             $this->vc->close();
             $this->vc->emit('close');
 
