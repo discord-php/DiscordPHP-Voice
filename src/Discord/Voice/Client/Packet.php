@@ -66,7 +66,7 @@ final class Packet
     public ?string $secretKey;
 
     /**
-     * The raw data
+     * The raw data.
      */
     protected string $rawData;
 
@@ -266,6 +266,7 @@ final class Packet
         $header = new Buffer(HeaderValuesEnum::RTP_HEADER_OR_NONCE_LENGTH->value);
         $header[HeaderValuesEnum::RTP_VERSION_PAD_EXTEND_INDEX->value] = pack(FormatPackEnum::C->value, HeaderValuesEnum::RTP_VERSION_PAD_EXTEND->value);
         $header[HeaderValuesEnum::RTP_PAYLOAD_INDEX->value] = pack(FormatPackEnum::C->value, HeaderValuesEnum::RTP_PAYLOAD_TYPE->value);
+
         return $header->writeShort($this->seq, HeaderValuesEnum::SEQ_INDEX->value)
             ->writeUInt($this->timestamp, HeaderValuesEnum::TIMESTAMP_OR_NONCE_INDEX->value)
             ->writeUInt($this->ssrc, HeaderValuesEnum::SSRC_INDEX->value);

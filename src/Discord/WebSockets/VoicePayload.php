@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Discord\WebSockets;
 
-use JsonSerializable;
-
 /**
  * Represents a Gateway event payload with a voice token.
  *
@@ -44,8 +42,7 @@ class VoicePayload extends Payload
         ?int $s = null,
         ?string $t = null,
         ?string $token = null
-    ): self
-    {
+    ): self {
         return new self($op, $d, $s, $t, $token);
     }
 

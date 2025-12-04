@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is a part of the DiscordPHP project.
+ *
+ * Copyright (c) 2015-present David Cole <david.cole1340@gmail.com>
+ *
+ * This file is subject to the MIT license that is bundled
+ * with this source code in the LICENSE.md file.
+ */
+
 namespace Discord\Voice\Processes;
 
 use React\ChildProcess\Process;
@@ -45,9 +54,9 @@ final class DCA extends ProcessAbstract
      * Encodes audio to DCA format.
      *
      * @param string|null $filename The input filename, or null for pipe input.
-     * @param int|float $volume The volume adjustment in dB.
-     * @param int $bitrate The bitrate for the output audio.
-     * @param array|null $preArgs Additional arguments to pass before the main flags.
+     * @param int|float   $volume   The volume adjustment in dB.
+     * @param int         $bitrate  The bitrate for the output audio.
+     * @param array|null  $preArgs  Additional arguments to pass before the main flags.
      *
      * @TODO Implement function, was not in original code.
      *
@@ -66,7 +75,7 @@ final class DCA extends ProcessAbstract
 
         $flags = implode(' ', $flags);
 
-        return new Process(self::$exec . " $flags");
+        return new Process(self::$exec." $flags");
     }
 
     public static function decode(
@@ -86,6 +95,6 @@ final class DCA extends ProcessAbstract
 
         $flags = implode(' ', $flags);
 
-        return new Process(self::$exec . " $flags");
+        return new Process(self::$exec." $flags");
     }
 }

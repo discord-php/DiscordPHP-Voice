@@ -2,13 +2,21 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is a part of the DiscordPHP project.
+ *
+ * Copyright (c) 2015-present David Cole <david.cole1340@gmail.com>
+ *
+ * This file is subject to the MIT license that is bundled
+ * with this source code in the LICENSE.md file.
+ */
+
 namespace Discord\Voice;
 
 use Discord\Discord;
 use Discord\Voice\Exceptions\Channels\CantJoinMoreThanOneChannelException;
 use Discord\Voice\Exceptions\Channels\CantSpeakInChannelException;
 use Discord\Voice\Exceptions\Channels\ChannelMustAllowVoiceException;
-use Discord\Voice\Exceptions\Channels\ClientMustAllowVoiceException;
 use Discord\Voice\Exceptions\Channels\EnterChannelDeniedException;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\WebSockets\VoiceServerUpdate;
@@ -33,7 +41,7 @@ final class Manager
     use EventEmitterTrait;
 
     /**
-     * @param Discord $bot
+     * @param Discord               $bot
      * @param array<string, Client> $clients
      */
     public function __construct(
@@ -46,9 +54,9 @@ final class Manager
      * Handles the creation of a new voice client and joins the specified channel.
      *
      * @param \Discord\Parts\Channel\Channel $channel
-     * @param \Discord\Discord $discord
-     * @param bool $mute
-     * @param bool $deaf
+     * @param \Discord\Discord               $discord
+     * @param bool                           $mute
+     * @param bool                           $deaf
      *
      * @throws \Discord\Voice\Exceptions\Channels\ChannelMustAllowVoiceException
      * @throws \Discord\Voice\Exceptions\Channels\EnterChannelDeniedException
@@ -81,6 +89,7 @@ final class Manager
             }
         } catch (\Throwable $th) {
             $deferred->reject($th);
+
             return $deferred->promise();
         }
 
@@ -137,9 +146,7 @@ final class Manager
      * Handles the voice state update event to update session information for the voice client.
      *
      * @param \Discord\Parts\WebSockets\VoiceStateUpdate $state
-     * @param \Discord\Parts\Channel\Channel $channel
-     *
-     * @return void
+     * @param \Discord\Parts\Channel\Channel             $channel
      */
     protected function stateUpdate(VoiceStateUpdate $state, Channel $channel): void
     {
@@ -157,11 +164,9 @@ final class Manager
      * Handles the voice server update event to create a new voice client with the provided state.
      *
      * @param \Discord\Parts\WebSockets\VoiceServerUpdate $state
-     * @param \Discord\Parts\Channel\Channel $channel
-     * @param \Discord\Discord $discord
-     * @param \React\Promise\Deferred $deferred
-     *
-     * @return void
+     * @param \Discord\Parts\Channel\Channel              $channel
+     * @param \Discord\Discord                            $discord
+     * @param \React\Promise\Deferred                     $deferred
      */
     protected function serverUpdate(VoiceServerUpdate $state, Channel $channel, Discord $discord, Deferred $deferred): void
     {
@@ -172,20 +177,21 @@ final class Manager
         $this->bot->getLogger()->info('received token and endpoint for voice session', [
             'guild' => $channel->guild_id,
             'token' => $state->token,
-            'endpoint' => $state->endpoint
+            'endpoint' => $state->endpoint,
         ]);
 
         $client = $this->getClient($channel);
 
-        $client->setData(array_merge(
-            $client->data,
-            [
+        $client->setData(
+            array_merge(
+                $client->data,
+                [
                 'token' => $state->token,
                 'endpoint' => $state->endpoint,
                 'session' => $client->data['session'] ?? null,
             ],
-            ['dnsConfig' => $discord->options['dnsConfig']])
+                ['dnsConfig' => $discord->options['dnsConfig']]
+            )
         );
     }
-
 }

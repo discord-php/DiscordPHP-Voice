@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is a part of the DiscordPHP project.
+ *
+ * Copyright (c) 2015-present David Cole <david.cole1340@gmail.com>
+ *
+ * This file is subject to the MIT license that is bundled
+ * with this source code in the LICENSE.md file.
+ */
+
 namespace Discord\Voice\Client;
 
 use Discord\Discord;
@@ -103,13 +112,13 @@ final class WS
         $f = new Connector();
 
         /** @var PromiseInterface<WebSocket> */
-        $f("wss://" . $this->data['endpoint'] . "?v=" . self::$version)->then(
-                fn (WebSocket $ws) => $this->handleConnection($ws),
-                fn (\Throwable $e) => $this->bot->logger->error(
-                    'Failed to connect to voice gateway: {error}',
-                    ['error' => $e->getMessage()]
-                ) && $this->vc->emit('error', arguments: [$e])
-            );
+        $f('wss://'.$this->data['endpoint'].'?v='.self::$version)->then(
+            fn (WebSocket $ws) => $this->handleConnection($ws),
+            fn (\Throwable $e) => $this->bot->logger->error(
+                'Failed to connect to voice gateway: {error}',
+                ['error' => $e->getMessage()]
+            ) && $this->vc->emit('error', arguments: [$e])
+        );
     }
 
     /**
@@ -117,7 +126,7 @@ final class WS
      *
      * @param \Discord\Voice\Client $vc
      * @param null|\Discord\Discord $bot
-     * @param null|array $data
+     * @param null|array            $data
      *
      * @return \Discord\Voice\Client\WS
      */
@@ -245,7 +254,7 @@ final class WS
                     $this->bot->logger->debug('received voice ready packet', ['data' => json_decode(json_encode($data->d), true)]);
 
                     /** @var PromiseInterface */
-                    $udpfac->createClient("{$data->d->ip}:" . $data->d->port)->then(function (UDP $client) use ($data): void {
+                    $udpfac->createClient("{$data->d->ip}:".$data->d->port)->then(function (UDP $client) use ($data): void {
                         $this->vc->udp = $client;
                         $client->handleSsrcSending()
                             ->handleHeartbeat()
@@ -397,7 +406,7 @@ final class WS
     /**
      * Handles the close event of the WebSocket connection.
      *
-     * @param int $op The opcode of the close event.
+     * @param int    $op     The opcode of the close event.
      * @param string $reason The reason for closing the connection.
      */
     public function handleClose(int $op, string $reason): void

@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is a part of the DiscordPHP project.
+ *
+ * Copyright (c) 2015-present David Cole <david.cole1340@gmail.com>
+ *
+ * This file is subject to the MIT license that is bundled
+ * with this source code in the LICENSE.md file.
+ */
+
 namespace Discord\Voice\Client;
 
 use Discord\Voice\ByteBuffer\Buffer;
@@ -75,9 +84,9 @@ final class UDP extends Socket
 
     /**
      * @param \React\EventLoop\LoopInterface $loop
-     * @param resource $socket
-     * @param null|Buffer$buffer
-     * @param null|WS $ws
+     * @param resource                       $socket
+     * @param null|Buffer                    $buffer
+     * @param null|WS                        $ws
      */
     public function __construct($loop, $socket, $buffer = null, ?WS $ws = null)
     {
@@ -100,7 +109,6 @@ final class UDP extends Socket
     public function handleMessages(string $secret): self
     {
         return $this->on('message', function (string $message) use ($secret) {
-
             if (strlen($message) <= 8) {
                 return null;
             }
@@ -140,6 +148,7 @@ final class UDP extends Socket
 
         if (null === $this->getLoop()) {
             $this->getLogger()->error('No event loop found. Cannot handle heartbeat.');
+
             return $this;
         }
 
@@ -183,7 +192,7 @@ final class UDP extends Socket
              * @see https://www.php.net/manual/en/function.unpack.php
              * @see https://www.php.net/manual/en/function.pack.php For the formats
              */
-            $unpackedMessageArray = \unpack("C2Type/nLength/ISSRC/A64Address/nPort", $message);
+            $unpackedMessageArray = \unpack('C2Type/nLength/ISSRC/A64Address/nPort', $message);
 
             $this->ws->vc->ssrc = $unpackedMessageArray['SSRC'];
             $ip = $unpackedMessageArray['Address'];

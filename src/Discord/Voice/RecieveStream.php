@@ -124,7 +124,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
      */
     public function isReadable()
     {
-        return !$this->isPaused && !$this->isClosed;
+        return ! $this->isPaused && ! $this->isClosed;
     }
 
     /**

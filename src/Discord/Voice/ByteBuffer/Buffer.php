@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Discord\Voice\ByteBuffer;
 
-use Discord\Voice\ByteBuffer\FormatPackEnum;
-
 /**
  * Helper class for handling binary data.
  *
@@ -33,7 +31,7 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
         is_string($argument)
             ? $this->initializeStructs(strlen($argument), $argument)
             : (is_int($argument)
-                ? $this->initializeStructs($argument, pack(FormatPackEnum::x->value . "$argument"))
+                ? $this->initializeStructs($argument, pack(FormatPackEnum::x->value."$argument"))
                 : throw new \InvalidArgumentException('Constructor argument must be an binary string or integer'));
     }
 
@@ -58,10 +56,10 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
     /**
      * Inserts a value into the buffer at the specified offset.
      *
-     * @param FormatPackEnum|string $format
-     * @param mixed $value
-     * @param int $offset
-     * @param ?int $length
+     * @param  FormatPackEnum|string $format
+     * @param  mixed                 $value
+     * @param  int                   $offset
+     * @param  ?int                  $length
      * @return Buffer
      */
     protected function insert($format, $value, int $offset, ?int $length = null): self
@@ -82,9 +80,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
     /**
      * Extracts a value from the buffer at the specified offset.
      *
-     * @param FormatPackEnum|string $format
-     * @param int $offset
-     * @param int $length
+     * @param  FormatPackEnum|string $format
+     * @param  int                   $offset
+     * @param  int                   $length
      * @return mixed
      */
     protected function extract(FormatPackEnum|string $format, int $offset, int $length)
@@ -110,15 +108,15 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
     /**
      * Checks if the actual value exceeds the expected maximum size.
      *
-     * @param mixed $excpectedMax
-     * @param mixed $actual
+     * @param  mixed                     $excpectedMax
+     * @param  mixed                     $actual
      * @throws \InvalidArgumentException
      * @return static
      */
     protected function checkForOverSize($expectedMax, string|int $actual): self
     {
         if ($actual > $expectedMax) {
-            throw new \InvalidArgumentException("actual exceeded expectedMax limit");
+            throw new \InvalidArgumentException('actual exceeded expectedMax limit');
         }
 
         return $this;
@@ -131,7 +129,7 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
 
     public function getLastEmptyPosition(): int
     {
-        foreach($this->buffer as $key => $value) {
+        foreach ($this->buffer as $key => $value) {
             if (empty(trim($value))) {
                 return $key;
             }
@@ -143,8 +141,8 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
     /**
      * Writes a string to the buffer at the specified offset.
      *
-     * @param string $value  The value that will be written.
-     * @param int|null $offset The offset that the value will be written at.
+     * @param  string   $value  The value that will be written.
+     * @param  int|null $offset The offset that the value will be written at.
      * @return static
      */
     public function write($value, ?int $offset = null): self
@@ -154,7 +152,7 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
         }
 
         $length = strlen($value);
-        $this->insert('a' . $length, $value, $offset, $length);
+        $this->insert('a'.$length, $value, $offset, $length);
 
         return $this;
     }
@@ -162,8 +160,8 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
     /**
      * Writes an 8-bit signed integer to the buffer at the specified offset.
      *
-     * @param int $value  The value that will be written.
-     * @param int|null $offset The offset that the value will be written at.
+     * @param  int      $value  The value that will be written.
+     * @param  int|null $offset The offset that the value will be written at.
      * @return static
      */
     public function writeInt8($value, ?int $offset = null): self
@@ -182,8 +180,8 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
     /**
      * Writes a 16-bit signed integer to the buffer at the specified offset.
      *
-     * @param int $value  The value that will be written.
-     * @param int|null $offset The offset that the value will be written at.
+     * @param  int      $value  The value that will be written.
+     * @param  int|null $offset The offset that the value will be written at.
      * @return static
      */
     public function writeInt16BE($value, ?int $offset = null): self
@@ -199,11 +197,11 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
         return $this;
     }
 
-     /**
+    /**
      * Writes a 16-bit signed integer to the buffer at the specified offset.
      *
-     * @param int $value  The value that will be written.
-     * @param int|null $offset The offset that the value will be written at.
+     * @param  int      $value  The value that will be written.
+     * @param  int|null $offset The offset that the value will be written at.
      * @return static
      */
     public function writeInt16LE($value, ?int $offset = null): self
@@ -222,8 +220,8 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
     /**
      * Writes a 32-bit signed integer to the buffer at the specified offset.
      *
-     * @param int $value  The value that will be written.
-     * @param int|null $offset The offset that the value will be written at.
+     * @param  int      $value  The value that will be written.
+     * @param  int|null $offset The offset that the value will be written at.
      * @return static
      */
     public function writeInt32BE($value, ?int $offset = null): self
@@ -242,8 +240,8 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
     /**
      * Writes a 32-bit signed integer to the buffer at the specified offset.
      *
-     * @param int $value  The value that will be written.
-     * @param int|null $offset The offset that the value will be written at.
+     * @param  int      $value  The value that will be written.
+     * @param  int|null $offset The offset that the value will be written at.
      * @return static
      */
     #[\Override]
@@ -263,42 +261,47 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
     /**
      * Reads a string from the buffer at the specified offset.
      *
-     * @param int $offset The offset to read from.
-     * @param int $length The length of the string to read.
+     * @param  int    $offset The offset to read from.
+     * @param  int    $length The length of the string to read.
      * @return string The data read.
      */
     public function read(int $offset, int $length)
     {
-        return $this->extract('a' . $length, $offset, $length);
+        return $this->extract('a'.$length, $offset, $length);
     }
 
     public function readInt8(int $offset)
     {
         $format = FormatPackEnum::C;
+
         return $this->extract($format, $offset, $format->getLength());
     }
 
     public function readInt16BE(int $offset)
     {
         $format = FormatPackEnum::n;
+
         return $this->extract($format, $offset, $format->getLength());
     }
 
     public function readInt16LE(int $offset)
     {
         $format = FormatPackEnum::v;
+
         return $this->extract($format, $offset, $format->getLength());
     }
 
     public function readInt32BE(int $offset)
     {
         $format = FormatPackEnum::N;
+
         return $this->extract($format, $offset, $format->getLength());
     }
 
     public function readInt32LE(int $offset)
     {
         $format = FormatPackEnum::V;
+
         return $this->extract($format, $offset, $format->getLength());
     }
 }

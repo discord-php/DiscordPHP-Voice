@@ -29,5 +29,4 @@ interface ReadableBuffer
     public function readInt32BE(int $offset);
 
     public function readInt32LE(int $offset);
-
 }

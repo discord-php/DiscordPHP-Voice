@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Discord\Voice\ByteBuffer;
 
-use Discord\Voice\ByteBuffer\FormatPackEnum;
-
 /**
  * @author Valithor Obsidion <valithor@discordphp.org>
  */

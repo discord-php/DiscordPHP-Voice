@@ -322,10 +322,9 @@ enum OpEnum: int
         ?self $code = null,
         bool $snakeCase = false,
         bool $pluckVoicePrefix = true
-    ): string
-    {
+    ): string {
         $code ??= $code?->value;
-        if (!$code instanceof self && !self::isVoiceCode($code)) {
+        if (! $code instanceof self && ! self::isVoiceCode($code)) {
             return '';
         }
         $name = self::from($code)->name;

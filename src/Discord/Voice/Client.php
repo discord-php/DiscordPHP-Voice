@@ -29,7 +29,6 @@ use Discord\Voice\Client\WS;
 use Discord\Voice\Processes\Dca;
 use Discord\Voice\Processes\Ffmpeg;
 use Discord\Voice\Processes\OpusFfi;
-use Discord\Voice\Speaking;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
@@ -124,7 +123,6 @@ class Client extends EventEmitter
     public ?int $timestamp = 0;
 
     /**
-     *
      * @var int
      */
     public int $speaking = self::NOT_SPEAKING;
@@ -246,7 +244,7 @@ class Client extends EventEmitter
     public null|RealBuffer $buffer;
 
     /**
-     * Current clients connected to the voice chat
+     * Current clients connected to the voice chat.
      *
      * @var array
      */
@@ -286,16 +284,16 @@ class Client extends EventEmitter
     protected bool $shouldRecord = false;
 
     /**
-     * Constructs the Voice client instance
+     * Constructs the Voice client instance.
      *
-     * @param Discord $bot The Discord instance.
-     * @param Channel $channel
-     * @param string[] $voice_sessions
-     * @param array $data
-     * @param bool $deaf Default: false
-     * @param bool $mute Default: false
+     * @param Discord       $bot            The Discord instance.
+     * @param Channel       $channel
+     * @param string[]      $voice_sessions
+     * @param array         $data
+     * @param bool          $deaf           Default: false
+     * @param bool          $mute           Default: false
      * @param Deferred|null $deferred
-     * @param Manager|null $manager
+     * @param Manager|null  $manager
      */
     public function __construct(
         public Discord $bot,
@@ -333,6 +331,7 @@ class Client extends EventEmitter
         }
 
         WS::make($this, $this->bot, $this->data);
+
         return true;
     }
 
@@ -497,9 +496,9 @@ class Client extends EventEmitter
     /**
      * Reads Ogg Opus packets and sends them to the voice server.
      *
-     * @param Deferred $deferred The deferred promise.
-     * @param OggStream $ogg The Ogg stream to read packets from.
-     * @param int &$loops The number of loops that have been executed.
+     * @param Deferred  $deferred The deferred promise.
+     * @param OggStream $ogg      The Ogg stream to read packets from.
+     * @param int       &$loops   The number of loops that have been executed.
      */
     protected function readOggOpus(Deferred $deferred, OggStream &$ogg, int &$loops): void
     {
@@ -633,8 +632,6 @@ class Client extends EventEmitter
      * Reads and processes a single Opus audio frame from a DCA (Discord Compressed Audio) stream.
      *
      * @param Deferred $deferred A promise that will be resolved when the reading process completes or fails.
-     *
-     * @return void
      */
     protected function readDCAOpus(Deferred $deferred): void
     {
@@ -1006,7 +1003,7 @@ class Client extends EventEmitter
      */
     public function isSpeaking($id = null): bool
     {
-        return match(true) {
+        return match (true) {
             ! isset($id) => $this->speaking,
             $user = $this->speakingStatus->get('user_id', $id) => $user->speaking,
             $ssrc = $this->speakingStatus->get('ssrc', $id) => $ssrc->speaking,
@@ -1073,8 +1070,6 @@ class Client extends EventEmitter
      *
      * @param object $ss An object containing the SSRC (Synchronization Source identifier).
      *                   Expected to have a property 'ssrc'.
-     *
-     * @return void
      */
     protected function removeDecoder($ss): void
     {
@@ -1147,6 +1142,7 @@ class Client extends EventEmitter
             // Probably a "ping" to the udp socket
             // There's no message or the message threw an error inside the decrypt function
             $this->bot->getLogger()->warning('No audio data.', ['voicePacket' => $voicePacket]);
+
             return;
         }
 
@@ -1158,6 +1154,7 @@ class Client extends EventEmitter
         if (null === $ss) {
             // for some reason we don't have a speaking status
             $this->bot->getLogger()->warning('Unknown SSRC.', ['ssrc' => $voicePacket->getSSRC(), 't' => $voicePacket->getTimestamp()]);
+
             return;
         }
 
@@ -1181,6 +1178,7 @@ class Client extends EventEmitter
 
         if ($decoder->stdin->isWritable() === false) {
             $this->bot->getLogger()->warning('Decoder stdin is not writable.', ['ssrc' => $ss->ssrc]);
+
             return; // decoder stdin is not writable, cannot write audio data.
             // This should be either restarted or checked if the decoder is still running.
         }
@@ -1197,6 +1195,7 @@ class Client extends EventEmitter
 
         if (empty(trim($data))) {
             $this->bot->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
+
             return; // no audio data to write
         }
 
@@ -1239,10 +1238,10 @@ class Client extends EventEmitter
     }
 
     /**
-     * Monitor a process for exit and trigger callbacks when it exits
+     * Monitor a process for exit and trigger callbacks when it exits.
      *
-     * @param Process $process The process to monitor
-     * @param object $ss The speaking status object
+     * @param Process  $process       The process to monitor
+     * @param object   $ss            The speaking status object
      * @param callable $createDecoder Function to create a new decoder if needed
      */
     protected function monitorProcessExit(Process $process, $ss): void
@@ -1253,7 +1252,7 @@ class Client extends EventEmitter
         // Check every second if the process is still running
         $this->monitorProcessTimer = $this->bot->getLoop()->addPeriodicTimer(1.0, function () use ($process, $ss) {
             // Check if the process is still running
-            if (!$process->isRunning()) {
+            if (! $process->isRunning()) {
                 // Get the exit code
                 $exitCode = $process->getExitCode();
 
@@ -1282,7 +1281,7 @@ class Client extends EventEmitter
 
     public function getDbVolume(): float|int
     {
-        return match($this->volume) {
+        return match ($this->volume) {
             0 => -100,
             100 => 0,
             default => -40 + ($this->volume / 100) * 40,
@@ -1290,16 +1289,16 @@ class Client extends EventEmitter
     }
 
     /**
-     * Creates a new voice client instance statically
+     * Creates a new voice client instance statically.
      *
-     * @param \Discord\Discord $bot
+     * @param \Discord\Discord               $bot
      * @param \Discord\Parts\Channel\Channel $channel
-     * @param array $data
-     * @param bool $deaf
-     * @param bool $mute
-     * @param null|Deferred $deferred
-     * @param null|Manager $manager
-     * @param bool $shouldBoot Whether the client should boot immediately.
+     * @param array                          $data
+     * @param bool                           $deaf
+     * @param bool                           $mute
+     * @param null|Deferred                  $deferred
+     * @param null|Manager                   $manager
+     * @param bool                           $shouldBoot Whether the client should boot immediately.
      *
      * @return \Discord\Voice\Client
      */

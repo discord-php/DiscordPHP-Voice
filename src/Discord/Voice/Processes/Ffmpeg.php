@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is a part of the DiscordPHP project.
+ *
+ * Copyright (c) 2015-present David Cole <david.cole1340@gmail.com>
+ *
+ * This file is subject to the MIT license that is bundled
+ * with this source code in the LICENSE.md file.
+ */
+
 namespace Discord\Voice\Processes;
 
 use Discord\Voice\Exceptions\Libraries\FFmpegNotFoundException;
@@ -18,7 +27,7 @@ final class Ffmpeg extends ProcessAbstract
 
     public function __construct()
     {
-        if (!$this->checkForFFmpeg()) {
+        if (! $this->checkForFFmpeg()) {
             throw new FFmpegNotFoundException('FFmpeg binary not found.');
         }
     }
@@ -33,7 +42,7 @@ final class Ffmpeg extends ProcessAbstract
             return self::$name(...$arguments);
         }
 
-        throw new \BadMethodCallException("Method {$name} does not exist in " . __CLASS__);
+        throw new \BadMethodCallException("Method {$name} does not exist in ".__CLASS__);
     }
 
     public static function checkForFFmpeg(): bool
@@ -79,7 +88,7 @@ final class Ffmpeg extends ProcessAbstract
         }
 
         $flags = implode(' ', $flags);
-        $cmd = self::$exec . " {$flags}";
+        $cmd = self::$exec." {$flags}";
 
         return new Process(
             $cmd,
@@ -96,16 +105,16 @@ final class Ffmpeg extends ProcessAbstract
      *
      * TODO: Add support for Windows, currently only tested and ran on WSL2
      *
-     * @param mixed $filename If there's no name, it will output to stdout
-     *                        (pipe:1). If a name is given, it will save the file
-     *                        with the given name. If the name does not end with
-     *                        .ogg, it will append .ogg to the name.
-     *                        If null, it will use 'pipe:1' as the filename.
-     * @param int|float $volume Default: 0
-     * @param int $bitrate Default: 128000
-     * @param int $channels Default: 2
-     * @param null|int $frameSize
-     * @param null|array $preArgs
+     * @param  mixed      $filename  If there's no name, it will output to stdout
+     *                               (pipe:1). If a name is given, it will save the file
+     *                               with the given name. If the name does not end with
+     *                               .ogg, it will append .ogg to the name.
+     *                               If null, it will use 'pipe:1' as the filename.
+     * @param  int|float  $volume    Default: 0
+     * @param  int        $bitrate   Default: 128000
+     * @param  int        $channels  Default: 2
+     * @param  null|int   $frameSize
+     * @param  null|array $preArgs
      * @return Process
      */
     public static function decode(
@@ -121,8 +130,8 @@ final class Ffmpeg extends ProcessAbstract
         }
 
         if ($filename) {
-            $filename = date('Y-m-d_H-i') . '-' . $filename;
-            if (!str_ends_with($filename, '.ogg')) {
+            $filename = date('Y-m-d_H-i').'-'.$filename;
+            if (! str_ends_with($filename, '.ogg')) {
                 $filename .= '.ogg';
             }
         } elseif (null === $filename) {
@@ -141,7 +150,7 @@ final class Ffmpeg extends ProcessAbstract
             '-ar', parent::DEFAULT_KHZ,
             '-ac', $channels,
             '-b:a', $bitrate,
-            $filename
+            $filename,
         ];
 
         if (null !== $preArgs) {
@@ -150,6 +159,6 @@ final class Ffmpeg extends ProcessAbstract
 
         $flags = implode(' ', $flags);
 
-        return new Process(self::$exec . " {$flags}");
+        return new Process(self::$exec." {$flags}");
     }
 }

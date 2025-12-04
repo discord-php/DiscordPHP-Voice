@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is a part of the DiscordPHP project.
+ *
+ * Copyright (c) 2015-present David Cole <david.cole1340@gmail.com>
+ *
+ * This file is subject to the MIT license that is bundled
+ * with this source code in the LICENSE.md file.
+ */
+
 namespace Discord\Voice\Processes;
 
 use FFI;
@@ -60,17 +69,19 @@ final class OpusFfi
 
         if ($dataLength < 0) {
             $ffi->opus_decoder_destroy($decoder);
+
             return '';
         }
 
         // Prepare output buffer for PCM samples
-        $pcm = $ffi->new("opus_int16[" . $frameSize * $channels * 2 . "]", false);
+        $pcm = $ffi->new('opus_int16['.$frameSize * $channels * 2 .']', false);
 
         // Decode
         $ret = $ffi->opus_decode($decoder, $dataBuffer, $dataLength, $pcm, $frameSize, 0);
 
         if ($ret < 0) {
             $ffi->opus_decoder_destroy($decoder);
+
             // TODO: Handle decoding error
             return ''; // Or handle error
         }
