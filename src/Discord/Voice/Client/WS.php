@@ -596,20 +596,18 @@ final class WS
             return;
         }
 
+        $data = [
+            'server_id' => $this->vc->channel->guild_id,
+            'user_id' => $this->data['user_id'],
+            'token' => $this->data['token'],
+            'max_dave_protocol_version' => self::MAX_DAVE_PROTOCOL_VERSION,
+        ];
         if (isset($this->discord->voice_sessions[$this->vc->channel->guild_id])) {
             $this->data['session'] = $this->discord->voice_sessions[$this->vc->channel->guild_id];
+            $data['session_id'] = $this->data['session'];
         }
 
-        $payload = VoicePayload::new(
-            Op::VOICE_IDENTIFY,
-            [
-                'server_id' => $this->vc->channel->guild_id,
-                'user_id' => $this->data['user_id'],
-                'session_id' => $this->data['session'],
-                'token' => $this->data['token'],
-                'max_dave_protocol_version' => self::MAX_DAVE_PROTOCOL_VERSION,
-            ],
-        );
+        $payload = VoicePayload::new(Op::VOICE_IDENTIFY, $data);
 
         $this->discord->logger->debug('sending identify', ['packet' => $payload->__debugInfo()]);
 
