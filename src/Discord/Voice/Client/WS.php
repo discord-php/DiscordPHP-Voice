@@ -470,6 +470,10 @@ final class WS
             return;
         }
 
+        if (isset($this->bot->voice_sessions[$this->vc->channel->guild_id])) {
+            $this->data['session'] = $this->bot->voice_sessions[$this->vc->channel->guild_id];
+        }
+
         $payload = VoicePayload::new(
             Op::VOICE_IDENTIFY,
             [
