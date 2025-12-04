@@ -303,7 +303,7 @@ class Client extends EventEmitter
         public bool $deaf = false,
         public bool $mute = false,
         protected ?Deferred $deferred = null,
-        protected ?Manager &$manager = null,
+        public ?Manager &$manager = null,
         protected bool $shouldBoot = true
     ) {
         $this->deaf = $this->data['deaf'] ?? false;
