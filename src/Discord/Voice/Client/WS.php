@@ -19,6 +19,7 @@ use Discord\Parts\Voice\UserConnected;
 use Discord\Voice\Any;
 use Discord\Voice\Client;
 use Discord\Voice\Flags;
+use Discord\Voice\Platform;
 use Discord\Voice\Resumed;
 use Discord\Voice\SessionDescription;
 use Discord\Voice\Speaking;
@@ -205,15 +206,10 @@ final class WS
                 $handler = self::VOICE_OP_HANDLERS[$data->op];
                 $this->$handler($data);
             }
-            //$this->discord->getLogger()->debug('unknown voice op', ['op' => $data->op]);
-            //$this->handleUndocumented($data);
+            $this->discord->getLogger()->debug('unknown voice op', ['op' => $data->op]);
+            $this->handleUndocumented($data);
             
             switch ($data->op) {
-                case Op::VOICE_CLIENT_PLATFORM:
-                    $this->discord->logger->debug('received platform packet', ['data' => json_decode(json_encode($data->d), true)]);
-                    # handlePlatformPerUser
-                    # platform = 0 assumed to be Desktop
-                    break;
                 case Op::VOICE_DAVE_PREPARE_TRANSITION:
                     $this->handleDavePrepareTransition($data);
                     break;
@@ -380,7 +376,7 @@ final class WS
      *
      * @param Payload $data
      */
-    protected function handleResumed(object $data): void
+    protected function handleResumed(Payload $data): void
     {
         /** @var Resumed */
         $resumed = $this->discord->factory(Resumed::class, (array) $data->d, true);
@@ -404,7 +400,7 @@ final class WS
      *
      * @param Payload $data
      */
-    protected function handleClientDisconnect(object $data): void
+    protected function handleClientDisconnect(Payload $data): void
     {
         $this->discord->logger->debug('received client disconnected packet', ['data' => $data]);
         unset($this->vc->clientsConnected[$data->d->user_id]);
@@ -415,7 +411,7 @@ final class WS
      *
      * @param Payload $data
      */
-    public function handleAny(object $data): void
+    public function handleAny(Payload $data): void
     {
         $any = $this->discord->factory(Any::class, (array) $data->d, true);
 
@@ -427,11 +423,32 @@ final class WS
      *
      * @param Payload $data
      */
-    protected function handleFlags(object $data): void
+    protected function handleFlags(Payload $data): void
     {
         $flags = $this->discord->factory(Flags::class, (array) $data->d, true);
 
         $this->discord->logger->debug('received flags packet', ['data' => $flags->__debugInfo()]);
+    }
+
+    /**
+     * Handles the platform event from the voice server.
+     *
+     * @param Payload $data
+     */
+    protected function handlePlatform(Payload $data): void
+    {
+        $platform = $this->discord->factory(Platform::class, (array) $data->d, true);
+
+        $this->discord->logger->debug('received platform packet', ['data' => $platform->__debugInfo()]);
+    }
+
+    /**
+     * Handles undocumented voice opcodes not intended for use by bots.
+     *
+     * @param Payload $data
+     */
+    protected function handleUndocumented(Payload $data): void
+    {
     }
 
     protected function handleDavePrepareTransition($data): void
