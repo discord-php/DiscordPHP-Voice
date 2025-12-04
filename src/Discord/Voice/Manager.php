@@ -57,6 +57,7 @@ final class Manager
      * @param \Discord\Discord               $discord
      * @param bool                           $mute
      * @param bool                           $deaf
+     * @param array                          &$voice_sessions
      *
      * @throws \Discord\Voice\Exceptions\Channels\ChannelMustAllowVoiceException
      * @throws \Discord\Voice\Exceptions\Channels\EnterChannelDeniedException
@@ -65,7 +66,7 @@ final class Manager
      *
      * @return \React\Promise\PromiseInterface
      */
-    public function joinChannel(Channel $channel, Discord $discord, bool $mute = false, bool $deaf = true): PromiseInterface
+    public function joinChannel(Channel $channel, Discord $discord, bool $mute = false, bool $deaf = true, array &$voice_sessions): PromiseInterface
     {
         $deferred = new Deferred();
 
@@ -97,6 +98,7 @@ final class Manager
         $this->clients[$channel->guild_id] = Client::make(
             $this->discord,
             $channel,
+            $voice_sessions,
             ['dnsConfig' => $discord->options['dnsConfig']],
             $deaf,
             $mute,
