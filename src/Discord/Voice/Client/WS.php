@@ -37,6 +37,11 @@ use React\Promise\PromiseInterface;
 final class WS
 {
     /**
+     * The maximum DAVE protocol version supported.
+     */
+    public const MAX_DAVE_PROTOCOL_VERSION = 0;
+
+    /**
      * The WebSocket instance for the voice connection.
      */
     protected WebSocket $socket;
@@ -456,6 +461,8 @@ final class WS
      *
      * This method sends the initial identification payload to the voice gateway
      * to establish the voice connection.
+     * 
+     * @link https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-identify-payload
      */
     public function handleSendingOfLoginFrame(): void
     {
@@ -470,6 +477,7 @@ final class WS
                 'user_id' => $this->data['user_id'],
                 'session_id' => $this->data['session'],
                 'token' => $this->data['token'],
+                'max_dave_protocol_version' => self::MAX_DAVE_PROTOCOL_VERSION,
             ],
         );
 
