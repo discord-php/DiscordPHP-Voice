@@ -52,7 +52,7 @@ final class WS
         Op::VOICE_READY => 'handleReady',
         Op::VOICE_SESSION_DESCRIPTION => 'handleSessionDescription',
         Op::VOICE_SPEAKING => 'handleSpeaking',
-        Op::VOICE_HEARTBEAT_ACK => 'heartbeatAck',
+        Op::VOICE_HEARTBEAT_ACK => 'handleHeartbeatAck',
         Op::VOICE_HELLO => 'handleHello',
         Op::VOICE_RESUMED => 'handleResumed',
         Op::VOICE_CLIENT_CONNECT => 'handleClientConnect',
@@ -207,13 +207,6 @@ final class WS
             }
 
             switch ($data->op) {
-                case Op::VOICE_HEARTBEAT_ACK: // keepalive response
-                    $diff = (microtime(true) - $data->d->t) * 1000;
-
-                    $this->bot->logger->debug('received heartbeat ack', ['response_time' => $diff]);
-                    $this->vc->emit('ws-ping', [$diff]);
-                    $this->vc->emit('ws-heartbeat-ack', [$data->d->t]);
-                    break;
                 case Op::VOICE_HELLO:
                     $this->hbInterval = $this->vc->heartbeatInterval = $data->d->heartbeat_interval;
                     $this->sendHeartbeat();
@@ -372,6 +365,19 @@ final class WS
         $this->vc->emit('speaking', [$data->d->speaking, $data->d->user_id, $this->vc]);
         $this->vc->emit("speaking.{$data->d->user_id}", [$data->d->speaking, $this->vc]);
         $this->vc->speakingStatus[$data->d->user_id] = $this->bot->getFactory()->part(Speaking::class, $data->d);
+    }
+
+    /**
+     * Handles the heartbeat acknowledgement from the voice WebSocket connection.
+     *
+     * @param Payload $data
+     */
+    public function handleHeartbeatAck(Payload $data): void
+    {
+        $diff = (microtime(true) - $data->d->t) * 1000;
+        $this->bot->logger->debug('received heartbeat ack', ['response_time' => $diff]);
+        $this->vc->emit('ws-ping', [$diff]);
+        $this->vc->emit('ws-heartbeat-ack', [$data->d->t]);
     }
 
     protected function handleDavePrepareTransition($data): void
