@@ -292,7 +292,7 @@ final class UDP extends Socket
      */
     private function getLogger(): LoggerInterface
     {
-        return $this->ws->vc->bot->getLogger();
+        return $this->ws->vc->discord->getLogger();
     }
 
     /**
@@ -300,6 +300,6 @@ final class UDP extends Socket
      */
     private function getLoop(): LoopInterface
     {
-        return $this->ws->vc->bot->getLoop();
+        return $this->ws->vc->discord->getLoop();
     }
 }

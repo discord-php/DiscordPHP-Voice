@@ -143,11 +143,11 @@ final class WS
      */
     public function __construct(
         public Client $vc,
-        protected ?Discord $bot = null,
+        protected ?Discord $discord = null,
         public ?array $data = [],
     ) {
         $this->data ??= $this->vc->data;
-        $this->bot ??= $this->vc->bot;
+        $this->discord ??= $this->vc->discord;
 
         if (! isset($this->data['endpoint'])) {
             throw new \InvalidArgumentException('Endpoint is required for the voice WebSocket connection.');
@@ -158,7 +158,7 @@ final class WS
         /** @var PromiseInterface<WebSocket> */
         $f('wss://'.$this->data['endpoint'].'?v='.self::$version)->then(
             fn (WebSocket $ws) => $this->handleConnection($ws),
-            fn (\Throwable $e) => $this->bot->logger->error(
+            fn (\Throwable $e) => $this->discord->logger->error(
                 'Failed to connect to voice gateway: {error}',
                 ['error' => $e->getMessage()]
             ) && $this->vc->emit('error', arguments: [$e])
@@ -169,14 +169,14 @@ final class WS
      * Creates a new instance of the WS class.
      *
      * @param \Discord\Voice\Client $vc
-     * @param null|\Discord\Discord $bot
+     * @param null|\Discord\Discord $discord
      * @param null|array            $data
      *
      * @return \Discord\Voice\Client\WS
      */
-    public static function make(Client $vc, ?Discord $bot = null, ?array $data = null): self
+    public static function make(Client $vc, ?Discord $discord = null, ?array $data = null): self
     {
-        return new self($vc, $bot, $data);
+        return new self($vc, $discord, $data);
     }
 
     /**
@@ -184,9 +184,9 @@ final class WS
      */
     public function handleConnection(WebSocket $ws): void
     {
-        $this->bot->logger->debug('connected to voice websocket');
+        $this->discord->logger->debug('connected to voice websocket');
 
-        $this->udpfac = new SocketFactory($this->bot->loop, ws: $this);
+        $this->udpfac = new SocketFactory($this->discord->loop, ws: $this);
 
         $this->socket = $this->vc->ws = $ws;
 
@@ -201,36 +201,35 @@ final class WS
             if (isset(self::VOICE_OP_HANDLERS[$data->op])) {
                 $handler = self::VOICE_OP_HANDLERS[$data->op];
                 $this->$handler($data);
-            } else {
-                //$this->bot->getLogger()->debug('unknown voice op', ['op' => $data->op]);
-                //$this->handleUndocumented($data);
             }
-
+            //$this->discord->getLogger()->debug('unknown voice op', ['op' => $data->op]);
+            //$this->handleUndocumented($data);
+            
             switch ($data->op) {
                 case Op::VOICE_HELLO:
                     $this->hbInterval = $this->vc->heartbeatInterval = $data->d->heartbeat_interval;
                     $this->sendHeartbeat();
-                    $this->heartbeat = $this->bot->loop->addPeriodicTimer(
+                    $this->heartbeat = $this->discord->loop->addPeriodicTimer(
                         $this->hbInterval / 1000,
                         fn () => $this->sendHeartbeat()
                     );
                     break;
                 case Op::VOICE_CLIENT_CONNECT:
-                    $this->bot->logger->debug('received clients connected packet', ['data' => json_decode(json_encode($data->d), true)]);
+                    $this->discord->logger->debug('received clients connected packet', ['data' => json_decode(json_encode($data->d), true)]);
                     # "d" contains an array with ['user_ids' => array<string>]
 
-                    $this->vc->users = array_map(fn (int $userId) => $this->bot->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $data->d->user_ids);
+                    $this->vc->users = array_map(fn (int $userId) => $this->discord->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $data->d->user_ids);
                     break;
                 case Op::VOICE_CLIENT_DISCONNECT:
-                    $this->bot->logger->debug('received client disconnected packet', ['data' => json_decode(json_encode($data->d), true)]);
+                    $this->discord->logger->debug('received client disconnected packet', ['data' => json_decode(json_encode($data->d), true)]);
                     unset($this->vc->clientsConnected[$data->d->user_id]);
                     break;
                 case Op::VOICE_CLIENT_UNKNOWN_15:
                 case Op::VOICE_CLIENT_UNKNOWN_18:
-                    $this->bot->logger->debug('received unknown opcode', ['data' => json_decode(json_encode($data), true)]);
+                    $this->discord->logger->debug('received unknown opcode', ['data' => json_decode(json_encode($data), true)]);
                     break;
                 case Op::VOICE_CLIENT_PLATFORM:
-                    $this->bot->logger->debug('received platform packet', ['data' => json_decode(json_encode($data->d), true)]);
+                    $this->discord->logger->debug('received platform packet', ['data' => json_decode(json_encode($data->d), true)]);
                     # handlePlatformPerUser
                     # platform = 0 assumed to be Desktop
                     break;
@@ -269,13 +268,13 @@ final class WS
                     break;
 
                 default:
-                    $this->bot->logger->warning('Unknown opcode.', $data->__debugInfo());
+                    $this->discord->logger->warning('Unknown opcode.', $data->__debugInfo());
                     break;
             }
         });
 
         $ws->on('error', function ($e): void {
-            $this->bot->logger->error('error with voice websocket', ['e' => $e->getMessage()]);
+            $this->discord->logger->error('error with voice websocket', ['e' => $e->getMessage()]);
             $this->vc->emit('ws-error', [$e]);
         });
 
@@ -304,7 +303,7 @@ final class WS
     protected function handleReady(Payload $data): void
     {
         $this->vc->ssrc = $data->d->ssrc;
-        $this->bot->logger->debug('received voice ready packet', ['data' => json_decode(json_encode($data->d), true)]);
+        $this->discord->logger->debug('received voice ready packet', ['data' => json_decode(json_encode($data->d), true)]);
 
         /** @var PromiseInterface */
         $this->udpfac->createClient("{$data->d->ip}:".$data->d->port)->then(function (UDP $client) use ($data): void {
@@ -318,7 +317,7 @@ final class WS
             $client->port = $data->d->port;
             $client->ssrc = $data->d->ssrc;
         }, function (\Throwable $e): void {
-            $this->bot->logger->error('error while connecting to udp', ['e' => $e->getMessage()]);
+            $this->discord->logger->error('error while connecting to udp', ['e' => $e->getMessage()]);
             $this->vc->emit('error', [$e]);
         });
     }
@@ -331,14 +330,14 @@ final class WS
     protected function handleSessionDescription(Payload $data): void
     {
         /** @var SessionDescription */
-        $sd = $this->bot->factory(SessionDescription::class, (array) $data->d, true);
+        $sd = $this->discord->factory(SessionDescription::class, (array) $data->d, true);
         
         $this->vc->ready = true;
         $this->mode = $sd->mode === $this->mode ? $this->mode : 'aead_aes256_gcm_rtpsize';
         $this->rawKey = $data->d->secret_key;
         $this->secretKey = $sd->secret_key;
 
-        $this->bot->logger->debug('received description packet, vc ready', ['data' => $sd->__debugInfo()]);
+        $this->discord->logger->debug('received description packet, vc ready', ['data' => $sd->__debugInfo()]);
 
         if (! $this->vc->reconnecting) {
             $this->vc->emit('ready', [$this->vc]);
@@ -361,10 +360,10 @@ final class WS
      */
     protected function handleSpeaking(Payload $data): void
     {
-        $this->bot->logger->debug('received speaking packet', ['data' => json_decode(json_encode($data->d), true)]);
+        $this->discord->logger->debug('received speaking packet', ['data' => json_decode(json_encode($data->d), true)]);
         $this->vc->emit('speaking', [$data->d->speaking, $data->d->user_id, $this->vc]);
         $this->vc->emit("speaking.{$data->d->user_id}", [$data->d->speaking, $this->vc]);
-        $this->vc->speakingStatus[$data->d->user_id] = $this->bot->getFactory()->part(Speaking::class, $data->d);
+        $this->vc->speakingStatus[$data->d->user_id] = $this->discord->getFactory()->part(Speaking::class, $data->d);
     }
 
     /**
@@ -375,14 +374,14 @@ final class WS
     public function handleHeartbeatAck(Payload $data): void
     {
         $diff = (microtime(true) - $data->d->t) * 1000;
-        $this->bot->logger->debug('received heartbeat ack', ['response_time' => $diff]);
+        $this->discord->logger->debug('received heartbeat ack', ['response_time' => $diff]);
         $this->vc->emit('ws-ping', [$diff]);
         $this->vc->emit('ws-heartbeat-ack', [$data->d->t]);
     }
 
     protected function handleDavePrepareTransition($data): void
     {
-        $this->bot->logger->debug('DAVE Prepare Transition', ['data' => $data]);
+        $this->discord->logger->debug('DAVE Prepare Transition', ['data' => $data]);
         // Prepare local state necessary to perform the transition
         $this->send(VoicePayload::new(
             Op::VOICE_DAVE_TRANSITION_READY,
@@ -392,20 +391,20 @@ final class WS
 
     protected function handleDaveExecuteTransition($data): void
     {
-        $this->bot->logger->debug('DAVE Execute Transition', ['data' => $data]);
+        $this->discord->logger->debug('DAVE Execute Transition', ['data' => $data]);
         // Execute the transition
         // Update local state to reflect the new protocol context
     }
 
     protected function handleDaveTransitionReady($data): void
     {
-        $this->bot->logger->debug('DAVE Transition Ready', ['data' => $data]);
+        $this->discord->logger->debug('DAVE Transition Ready', ['data' => $data]);
         // Handle transition ready state
     }
 
     protected function handleDavePrepareEpoch($data): void
     {
-        $this->bot->logger->debug('DAVE Prepare Epoch', ['data' => $data]);
+        $this->discord->logger->debug('DAVE Prepare Epoch', ['data' => $data]);
         // Prepare local MLS group with parameters appropriate for the DAVE protocol version
         $this->send(VoicePayload::new(
             Op::VOICE_DAVE_MLS_KEY_PACKAGE,
@@ -418,19 +417,19 @@ final class WS
 
     protected function handleDaveMlsExternalSender($data): void
     {
-        $this->bot->logger->debug('DAVE MLS External Sender', ['data' => $data]);
+        $this->discord->logger->debug('DAVE MLS External Sender', ['data' => $data]);
         // Handle external sender public key and credential
     }
 
     protected function handleDaveMlsKeyPackage($data): void
     {
-        $this->bot->logger->debug('DAVE MLS Key Package', ['data' => $data]);
+        $this->discord->logger->debug('DAVE MLS Key Package', ['data' => $data]);
         // Handle MLS key package
     }
 
     protected function handleDaveMlsProposals($data): void
     {
-        $this->bot->logger->debug('DAVE MLS Proposals', ['data' => $data]);
+        $this->discord->logger->debug('DAVE MLS Proposals', ['data' => $data]);
         // Handle MLS proposals
         $this->send(VoicePayload::new(
             Op::VOICE_DAVE_MLS_COMMIT_WELCOME,
@@ -443,25 +442,25 @@ final class WS
 
     protected function handleDaveMlsCommitWelcome($data): void
     {
-        $this->bot->logger->debug('DAVE MLS Commit Welcome', ['data' => $data]);
+        $this->discord->logger->debug('DAVE MLS Commit Welcome', ['data' => $data]);
         // Handle MLS commit and welcome messages
     }
 
     protected function handleDaveMlsAnnounceCommitTransition($data)
     {
         // Handle MLS announce commit transition
-        $this->bot->logger->debug('DAVE MLS Announce Commit Transition', ['data' => $data]);
+        $this->discord->logger->debug('DAVE MLS Announce Commit Transition', ['data' => $data]);
     }
 
     protected function handleDaveMlsWelcome($data)
     {
         // Handle MLS welcome message
-        $this->bot->logger->debug('DAVE MLS Welcome', ['data' => $data]);
+        $this->discord->logger->debug('DAVE MLS Welcome', ['data' => $data]);
     }
 
     protected function handleDaveMlsInvalidCommitWelcome($data)
     {
-        $this->bot->logger->debug('DAVE MLS Invalid Commit Welcome', ['data' => $data]);
+        $this->discord->logger->debug('DAVE MLS Invalid Commit Welcome', ['data' => $data]);
         // Handle invalid commit or welcome message
         // Reset local group state and generate a new key package
         $this->send(VoicePayload::new(
@@ -484,7 +483,7 @@ final class WS
                 'seq_ack' => ++$this->hbSequence,
             ]
         ));
-        $this->bot->logger->debug('sending heartbeat');
+        $this->discord->logger->debug('sending heartbeat');
         $this->vc->emit('ws-heartbeat', []);
     }
 
@@ -496,39 +495,39 @@ final class WS
      */
     public function handleClose(int $op, string $reason): void
     {
-        $this->bot->logger->warning('voice websocket closed', ['op' => $op, 'reason' => $reason]);
+        $this->discord->logger->warning('voice websocket closed', ['op' => $op, 'reason' => $reason]);
         $this->vc->emit('ws-close', [$op, $reason, $this]);
 
         $this->vc->clientsConnected = [];
 
         // Cancel heartbeat timers
         if (null !== $this->vc->heartbeat) {
-            $this->bot->loop->cancelTimer($this->vc->heartbeat);
+            $this->discord->loop->cancelTimer($this->vc->heartbeat);
             $this->vc->heartbeat = null;
         }
 
         // Close UDP socket.
         if (isset($this->vc->udp)) {
-            $this->bot->logger->warning('closing UDP client');
+            $this->discord->logger->warning('closing UDP client');
             $this->vc->udp->close();
         }
 
         $this->socket->close();
-        unset($this->bot->voice_sessions[$this->vc->channel->guild_id]);
+        unset($this->discord->voice_sessions[$this->vc->channel->guild_id]);
 
         // Don't reconnect on a critical opcode or if closed by user.
         if (in_array($op, Op::getCriticalVoiceCloseCodes()) || $this?->vc->userClose) {
-            $this->bot->logger->warning('received critical opcode - not reconnecting', ['op' => $op, 'reason' => $reason]);
+            $this->discord->logger->warning('received critical opcode - not reconnecting', ['op' => $op, 'reason' => $reason]);
             $this->vc->close();
             $this->vc->emit('close');
 
             return;
         }
 
-        $this->bot->logger->warning('reconnecting in 2 seconds');
+        $this->discord->logger->warning('reconnecting in 2 seconds');
 
         // Retry connect after 2 seconds
-        $this->bot->loop->addTimer(2, function (): void {
+        $this->discord->loop->addTimer(2, function (): void {
             $this->vc->reconnecting = true;
             $this->vc->sentLoginFrame = false;
             $this->sentLoginFrame = false;
@@ -542,7 +541,7 @@ final class WS
      *
      * This method sends the initial identification payload to the voice gateway
      * to establish the voice connection.
-     * 
+     *
      * @link https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-identify-payload
      */
     public function handleSendingOfLoginFrame(): void
@@ -551,8 +550,8 @@ final class WS
             return;
         }
 
-        if (isset($this->bot->voice_sessions[$this->vc->channel->guild_id])) {
-            $this->data['session'] = $this->bot->voice_sessions[$this->vc->channel->guild_id];
+        if (isset($this->discord->voice_sessions[$this->vc->channel->guild_id])) {
+            $this->data['session'] = $this->discord->voice_sessions[$this->vc->channel->guild_id];
         }
 
         $payload = VoicePayload::new(
@@ -566,7 +565,7 @@ final class WS
             ],
         );
 
-        $this->bot->logger->debug('sending identify', ['packet' => $payload->__debugInfo()]);
+        $this->discord->logger->debug('sending identify', ['packet' => $payload->__debugInfo()]);
 
         $this->send($payload);
         $this->sentLoginFrame = true;

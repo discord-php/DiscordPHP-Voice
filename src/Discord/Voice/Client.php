@@ -286,7 +286,7 @@ class Client extends EventEmitter
     /**
      * Constructs the Voice client instance.
      *
-     * @param Discord       $bot            The Discord instance.
+     * @param Discord       $discord        The Discord instance.
      * @param Channel       $channel
      * @param string[]      $voice_sessions
      * @param array         $data
@@ -296,7 +296,7 @@ class Client extends EventEmitter
      * @param Manager|null  $manager
      */
     public function __construct(
-        public Discord $bot,
+        public Discord $discord,
         public Channel $channel,
         public array &$voice_sessions,
         public array $data = [],
@@ -309,7 +309,7 @@ class Client extends EventEmitter
         $this->deaf = $this->data['deaf'] ?? false;
         $this->mute = $this->data['mute'] ?? false;
 
-        $this->data['user_id'] = $this->bot->id;
+        $this->data['user_id'] = $this->discord->id;
         $this->data['deaf'] = $this->deaf;
         $this->data['mute'] = $this->mute;
         $this->data['session'] = $this->data['session'] ?? null;
@@ -330,7 +330,7 @@ class Client extends EventEmitter
             return false;
         }
 
-        WS::make($this, $this->bot, $this->data);
+        WS::make($this, $this->discord, $this->data);
 
         return true;
     }
@@ -370,7 +370,7 @@ class Client extends EventEmitter
         }
 
         $process = Ffmpeg::encode($file, volume: $this->getDbVolume());
-        $process->start($this->bot->getLoop());
+        $process->start($this->discord->getLoop());
 
         return $this->playOggStream($process);
     }
@@ -410,7 +410,7 @@ class Client extends EventEmitter
         }
 
         if (is_resource($stream)) {
-            $stream = new Stream($stream, $this->bot->getLoop());
+            $stream = new Stream($stream, $this->discord->getLoop());
         }
 
         $process = Ffmpeg::encode(volume: $this->getDbVolume(), preArgs: [
@@ -418,7 +418,7 @@ class Client extends EventEmitter
             '-ac', $channels,
             '-ar', $audioRate,
         ]);
-        $process->start($this->bot->getLoop());
+        $process->start($this->discord->getLoop());
         $stream->pipe($process->stdin);
 
         return $this->playOggStream($process);
@@ -463,7 +463,7 @@ class Client extends EventEmitter
         }
 
         if (is_resource($stream)) {
-            $stream = new Stream($stream, $this->bot->getLoop());
+            $stream = new Stream($stream, $this->discord->getLoop());
         }
 
         if (! ($stream instanceof ReadableStreamInterface)) {
@@ -472,7 +472,7 @@ class Client extends EventEmitter
             return $deferred->promise();
         }
 
-        $this->buffer = new RealBuffer($this->bot->getLoop());
+        $this->buffer = new RealBuffer($this->discord->getLoop());
         $stream->on('data', function ($d) {
             $this->buffer->write($d);
         });
@@ -487,7 +487,7 @@ class Client extends EventEmitter
         OggStream::fromBuffer($this->buffer)->then(function (OggStream $os) use ($deferred, &$ogg, &$loops) {
             $ogg = $os;
             $this->startTime = microtime(true) + 0.5;
-            $this->readOpusTimer = $this->bot->getLoop()->addTimer(0.5, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+            $this->readOpusTimer = $this->discord->getLoop()->addTimer(0.5, fn () => $this->readOggOpus($deferred, $ogg, $loops));
         });
 
         return $deferred->promise();
@@ -509,7 +509,7 @@ class Client extends EventEmitter
         // If the client is paused, delay by frame size and check again.
         if ($this->paused) {
             $this->udp->insertSilence();
-            $this->readOpusTimer = $this->bot->getLoop()->addTimer($this->frameSize / 1000, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+            $this->readOpusTimer = $this->discord->getLoop()->addTimer($this->frameSize / 1000, fn () => $this->readOggOpus($deferred, $ogg, $loops));
 
             return;
         }
@@ -540,7 +540,7 @@ class Client extends EventEmitter
             $nextTime = $this->startTime + (20.0 / 1000.0) * $loops;
             $delay = $nextTime - microtime(true);
 
-            $this->readOpusTimer = $this->bot->getLoop()->addTimer($delay, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+            $this->readOpusTimer = $this->discord->getLoop()->addTimer($delay, fn () => $this->readOggOpus($deferred, $ogg, $loops));
         }, function () use ($deferred) {
             $this->reset();
             $deferred->resolve(null);
@@ -587,7 +587,7 @@ class Client extends EventEmitter
         }
 
         if (is_resource($stream)) {
-            $stream = new Stream($stream, $this->bot->getLoop());
+            $stream = new Stream($stream, $this->discord->getLoop());
         }
 
         if (! ($stream instanceof ReadableStreamInterface)) {
@@ -596,7 +596,7 @@ class Client extends EventEmitter
             return $deferred->promise();
         }
 
-        $this->buffer = new RealBuffer($this->bot->getLoop());
+        $this->buffer = new RealBuffer($this->discord->getLoop());
         $stream->on('data', function ($d) {
             $this->buffer->write($d);
         });
@@ -622,7 +622,7 @@ class Client extends EventEmitter
             }
 
             $this->startTime = microtime(true) + 0.5;
-            $this->readOpusTimer = $this->bot->getLoop()->addTimer(0.5, fn () => $this->readDCAOpus($deferred));
+            $this->readOpusTimer = $this->discord->getLoop()->addTimer(0.5, fn () => $this->readDCAOpus($deferred));
         });
 
         return $deferred->promise();
@@ -640,7 +640,7 @@ class Client extends EventEmitter
         // If the client is paused, delay by frame size and check again.
         if ($this->paused) {
             $this->udp->insertSilence();
-            $this->readOpusTimer = $this->bot->getLoop()->addTimer($this->frameSize / 1000, fn () => $this->readDCAOpus($deferred));
+            $this->readOpusTimer = $this->discord->getLoop()->addTimer($this->frameSize / 1000, fn () => $this->readDCAOpus($deferred));
 
             return;
         }
@@ -664,7 +664,7 @@ class Client extends EventEmitter
                 $this->timestamp = 0;
             }
 
-            $this->readOpusTimer = $this->bot->getLoop()->addTimer(($this->frameSize - 1) / 1000, fn () => $this->readDCAOpus($deferred));
+            $this->readOpusTimer = $this->discord->getLoop()->addTimer(($this->frameSize - 1) / 1000, fn () => $this->readDCAOpus($deferred));
         }, function () use ($deferred) {
             $this->reset();
             $deferred->resolve(null);
@@ -677,7 +677,7 @@ class Client extends EventEmitter
     protected function reset(): void
     {
         if ($this->readOpusTimer) {
-            $this->bot->getLoop()->cancelTimer($this->readOpusTimer);
+            $this->discord->getLoop()->cancelTimer($this->readOpusTimer);
             $this->readOpusTimer = null;
         }
 
@@ -752,7 +752,7 @@ class Client extends EventEmitter
     }
 
     /**
-     * Disconnects the bot from the current voice channel.
+     * Disconnects the discord from the current voice channel.
      *
      * @return \Discord\Voice\VoiceClient
      */
@@ -835,7 +835,7 @@ class Client extends EventEmitter
      */
     protected function mainSend($data): void
     {
-        $this->bot->send($data);
+        $this->discord->send($data);
     }
 
     /**
@@ -980,7 +980,7 @@ class Client extends EventEmitter
         $this->heartbeatInterval = null;
 
         if (null !== $this->heartbeat) {
-            $this->bot->getLoop()->cancelTimer($this->heartbeat);
+            $this->discord->getLoop()->cancelTimer($this->heartbeat);
             $this->heartbeat = null;
         }
 
@@ -997,7 +997,7 @@ class Client extends EventEmitter
     /**
      * Checks if the user is speaking.
      *
-     * @param string|int|null $id Either the User ID or SSRC (if null, return bots speaking status).
+     * @param string|int|null $id Either the User ID or SSRC (if null, return discords speaking status).
      *
      * @return bool Whether the user is speaking.
      */
@@ -1040,7 +1040,7 @@ class Client extends EventEmitter
      */
     public function handleVoiceServerChange(array $data = []): void
     {
-        $this->bot->getLogger()->debug('voice server has changed, dynamically changing servers in the background', ['data' => $data]);
+        $this->discord->getLogger()->debug('voice server has changed, dynamically changing servers in the background', ['data' => $data]);
         $this->reconnecting = true;
         $this->sentLoginFrame = false;
         $this->pause();
@@ -1048,11 +1048,11 @@ class Client extends EventEmitter
         $this->close();
         $this->ws->close();
 
-        $this->bot->getLoop()->cancelTimer($this->heartbeat);
-        $this->bot->getLoop()->cancelTimer($this->udp->heartbeat);
+        $this->discord->getLoop()->cancelTimer($this->heartbeat);
+        $this->discord->getLoop()->cancelTimer($this->udp->heartbeat);
 
         $this->on('resumed', function () {
-            $this->bot->getLogger()->debug('voice client resumed');
+            $this->discord->getLogger()->debug('voice client resumed');
             $this->unpause();
             $this->speaking = self::NOT_SPEAKING;
             $this->setSpeaking(self::MICROPHONE);
@@ -1062,7 +1062,7 @@ class Client extends EventEmitter
         $this->data['token'] = $data['token']; // set the token if it changed
         $this->endpoint = str_replace([':80', ':443'], '', $data['endpoint']);
 
-        WS::make($this, $this->bot, $data);
+        WS::make($this, $this->discord, $data);
     }
 
     /**
@@ -1141,7 +1141,7 @@ class Client extends EventEmitter
             // We don't have a speaking status for this SSRC
             // Probably a "ping" to the udp socket
             // There's no message or the message threw an error inside the decrypt function
-            $this->bot->getLogger()->warning('No audio data.', ['voicePacket' => $voicePacket]);
+            $this->discord->getLogger()->warning('No audio data.', ['voicePacket' => $voicePacket]);
 
             return;
         }
@@ -1153,7 +1153,7 @@ class Client extends EventEmitter
 
         if (null === $ss) {
             // for some reason we don't have a speaking status
-            $this->bot->getLogger()->warning('Unknown SSRC.', ['ssrc' => $voicePacket->getSSRC(), 't' => $voicePacket->getTimestamp()]);
+            $this->discord->getLogger()->warning('Unknown SSRC.', ['ssrc' => $voicePacket->getSSRC(), 't' => $voicePacket->getTimestamp()]);
 
             return;
         }
@@ -1177,7 +1177,7 @@ class Client extends EventEmitter
         }
 
         if ($decoder->stdin->isWritable() === false) {
-            $this->bot->getLogger()->warning('Decoder stdin is not writable.', ['ssrc' => $ss->ssrc]);
+            $this->discord->getLogger()->warning('Decoder stdin is not writable.', ['ssrc' => $ss->ssrc]);
 
             return; // decoder stdin is not writable, cannot write audio data.
             // This should be either restarted or checked if the decoder is still running.
@@ -1194,7 +1194,7 @@ class Client extends EventEmitter
         $data = OpusFfi::decode($voicePacket->decryptedAudio);
 
         if (empty(trim($data))) {
-            $this->bot->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
+            $this->discord->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
 
             return; // no audio data to write
         }
@@ -1210,7 +1210,7 @@ class Client extends EventEmitter
     protected function createDecoder($ss): void
     {
         $decoder = Ffmpeg::decode((string) $ss->ssrc);
-        $decoder->start($this->bot->getLoop());
+        $decoder->start($this->discord->getLoop());
 
         $decoder->stdout->on('data', function ($data) use ($ss) {
             if (empty($data)) {
@@ -1250,14 +1250,14 @@ class Client extends EventEmitter
         // $pid = $process->getPid();
 
         // Check every second if the process is still running
-        $this->monitorProcessTimer = $this->bot->getLoop()->addPeriodicTimer(1.0, function () use ($process, $ss) {
+        $this->monitorProcessTimer = $this->discord->getLoop()->addPeriodicTimer(1.0, function () use ($process, $ss) {
             // Check if the process is still running
             if (! $process->isRunning()) {
                 // Get the exit code
                 $exitCode = $process->getExitCode();
 
                 // Clean up the timer
-                $this->bot->getLoop()->cancelTimer($this->monitorProcessTimer);
+                $this->discord->getLoop()->cancelTimer($this->monitorProcessTimer);
 
                 // If exit code indicates an error, emit event and recreate decoder
                 if ($exitCode > 0) {
@@ -1291,7 +1291,7 @@ class Client extends EventEmitter
     /**
      * Creates a new voice client instance statically.
      *
-     * @param \Discord\Discord               $bot
+     * @param \Discord\Discord               $discord
      * @param \Discord\Parts\Channel\Channel $channel
      * @param array                          $data
      * @param bool                           $deaf
@@ -1315,7 +1315,7 @@ class Client extends EventEmitter
     public function boot(): bool
     {
         return $this->once('ready', function () {
-            $this->bot->getLogger()->info('voice client is ready');
+            $this->discord->getLogger()->info('voice client is ready');
             if (isset($this->manager->clients[$this->channel->guild_id])) {
                 $this->disconnect();
             }
@@ -1324,17 +1324,17 @@ class Client extends EventEmitter
 
             $this->setBitrate($this->channel->bitrate);
 
-            $this->bot->getLogger()->info('set voice client bitrate', ['bitrate' => $this->channel->bitrate]);
+            $this->discord->getLogger()->info('set voice client bitrate', ['bitrate' => $this->channel->bitrate]);
             $this->deferred->resolve($this);
         })
         ->once('error', function ($e) {
             $this->disconnect();
-            $this->bot->getLogger()->error('error initializing voice client', ['e' => $e->getMessage()]);
+            $this->discord->getLogger()->error('error initializing voice client', ['e' => $e->getMessage()]);
             $this->deferred->reject($e);
         })
         ->once('close', function () {
             $this->disconnect();
-            $this->bot->getLogger()->warning('voice client closed');
+            $this->discord->getLogger()->warning('voice client closed');
             unset($this->manager->clients[$this->channel->guild_id]);
         })
         ->start();
@@ -1347,7 +1347,7 @@ class Client extends EventEmitter
         }
 
         $this->shouldRecord = true;
-        $this->bot->getLogger()->info('Started recording audio.');
+        $this->discord->getLogger()->info('Started recording audio.');
 
         $this->udp->on('message', [$this, 'handleAudioData']);
     }
@@ -1359,7 +1359,7 @@ class Client extends EventEmitter
         }
 
         $this->shouldRecord = false;
-        $this->bot->getLogger()->info('Stopped recording audio.');
+        $this->discord->getLogger()->info('Stopped recording audio.');
 
         $this->udp->removeListener('message', [$this, 'handleAudioData']);
         $this->reset();
@@ -1380,7 +1380,7 @@ class Client extends EventEmitter
         if (isset($this->data['token'], $this->data['endpoint'], $this->data['session'], $this->data['dnsConfig'])) {
             $this->endpoint = str_replace([':80', ':443'], '', $this->data['endpoint']);
             $this->dnsConfig = $this->data['dnsConfig'];
-            $this->data['user_id'] ??= $this->bot->id;
+            $this->data['user_id'] ??= $this->discord->id;
             $this->boot();
         }
 

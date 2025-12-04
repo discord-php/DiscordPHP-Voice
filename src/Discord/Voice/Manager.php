@@ -29,7 +29,7 @@ use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
 
 /**
- * Manages many voice clients for the DiscordPHP's bot.
+ * Manages many voice clients for the bot.
  *
  * @requires libopus - Linux | NOT TESTED - WINDOWS
  * @requires FFMPEG - Linux | NOT TESTED - WINDOWS
@@ -41,11 +41,11 @@ final class Manager
     use EventEmitterTrait;
 
     /**
-     * @param Discord               $bot
+     * @param Discord               $discord
      * @param array<string, Client> $clients
      */
     public function __construct(
-        protected Discord $bot,
+        protected Discord $discord,
         public array $clients = [],
     ) {
     }
@@ -95,7 +95,7 @@ final class Manager
 
         // The same as new Client(...)
         $this->clients[$channel->guild_id] = Client::make(
-            $this->bot,
+            $this->discord,
             $channel,
             ['dnsConfig' => $discord->options['dnsConfig']],
             $deaf,
@@ -157,7 +157,7 @@ final class Manager
         $this->getClient($channel)
             ->setData(['session' => $state->session_id, 'deaf' => $state->deaf, 'mute' => $state->mute]);
 
-        $this->bot->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id, 'session_id' => $state->session_id]);
+        $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id, 'session_id' => $state->session_id]);
     }
 
     /**
@@ -174,7 +174,7 @@ final class Manager
             return; // This voice server update isn't for our guild.
         }
 
-        $this->bot->getLogger()->info('received token and endpoint for voice session', [
+        $this->discord->getLogger()->info('received token and endpoint for voice session', [
             'guild' => $channel->guild_id,
             'token' => $state->token,
             'endpoint' => $state->endpoint,
