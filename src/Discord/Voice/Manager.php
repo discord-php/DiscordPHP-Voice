@@ -164,6 +164,7 @@ final class Manager
             ]);
 
         $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id, 'session_id' => $state->session_id]);
+        $this->discord->voice_sessions[$channel->guild_id] = $state->session_id;
     }
 
     /**
@@ -200,6 +201,7 @@ final class Manager
         $client->once('close', function () use ($channel) {
             $this->discord->logger->warning('voice manager closed');
             unset($this->discord->voiceClients[$channel->guild_id]);
+            unset($this->discord->voice_sessions[$channel->guild_id]);
         });
 
         $client->setData(
