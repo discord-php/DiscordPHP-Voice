@@ -1369,7 +1369,7 @@ class Client extends EventEmitter
 
         $this->voiceDecoders = [];
         $this->receiveStreams = [];
-        $this->speakingStatus = Collection::for(VoiceSpeaking::class, 'ssrc');
+        $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
     }
 
     public function setData(array $data): self
