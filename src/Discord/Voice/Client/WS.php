@@ -19,6 +19,7 @@ use Discord\Parts\Voice\UserConnected;
 use Discord\Voice\Client;
 use Discord\Voice\Speaking;
 use Discord\WebSockets\Op;
+use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
 use Ratchet\Client\Connector;
 use Ratchet\Client\WebSocket;
@@ -40,6 +41,43 @@ final class WS
      * The maximum DAVE protocol version supported.
      */
     public const MAX_DAVE_PROTOCOL_VERSION = 0;
+
+    /**
+     * Dispatch table mapping Discord Voice Gateway opcodes to handler methods.
+     *
+     * @var array<int,string> Method name indexed by opcode constant.
+     */
+    public const VOICE_OP_HANDLERS = [
+        Op::VOICE_READY => 'handleReady',
+        Op::VOICE_SESSION_DESCRIPTION => 'handleSessionDescription',
+        Op::VOICE_SPEAKING => 'handleSpeaking',
+        Op::VOICE_HEARTBEAT_ACK => 'heartbeatAck',
+        Op::VOICE_HELLO => 'handleHello',
+        Op::VOICE_RESUMED => 'handleResumed',
+        Op::VOICE_CLIENT_CONNECT => 'handleClientConnect',
+        Op::VOICE_CLIENT_DISCONNECT => 'handleClientDisconnect',
+        Op::VOICE_CLIENT_UNKNOWN_15 => 'handleAny',
+        Op::VOICE_CLIENT_UNKNOWN_18 => 'handleFlags',
+        Op::VOICE_CLIENT_PLATFORM => 'handlePlatform',
+        Op::VOICE_DAVE_PREPARE_TRANSITION => 'handleDavePrepareTransition',
+        Op::VOICE_DAVE_EXECUTE_TRANSITION => 'handleDaveExecuteTransition',
+        Op::VOICE_DAVE_TRANSITION_READY => 'handleDaveTransitionReady',
+        Op::VOICE_DAVE_PREPARE_EPOCH => 'handleDavePrepareEpoch',
+        Op::VOICE_DAVE_MLS_EXTERNAL_SENDER => 'handleDaveMlsExternalSender',
+        Op::VOICE_DAVE_MLS_KEY_PACKAGE => 'handleDaveMlsKeyPackage',
+        Op::VOICE_DAVE_MLS_PROPOSALS => 'handleDaveMlsProposals',
+        Op::VOICE_DAVE_MLS_COMMIT_WELCOME => 'handleDaveMlsCommitWelcome',
+        Op::VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION => 'handleDaveMlsAnnounceCommitTransition',
+        Op::VOICE_DAVE_MLS_WELCOME => 'handleDaveMlsWelcome',
+        Op::VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME => 'handleDaveMlsInvalidCommitWelcome',
+
+        Op::CLOSE_VOICE_DISCONNECTED => 'handleCloseVoiceDisconnected',
+    ];
+
+    /**
+     * The SocketFactory instance for creating UDP sockets.
+     */
+    protected SocketFactory $udpfac;
 
     /**
      * The WebSocket instance for the voice connection.
@@ -147,13 +185,25 @@ final class WS
     {
         $this->bot->logger->debug('connected to voice websocket');
 
-        $udpfac = new SocketFactory($this->bot->loop, ws: $this);
+        $this->udpfac = new SocketFactory($this->bot->loop, ws: $this);
 
         $this->socket = $this->vc->ws = $ws;
 
-        $ws->on('message', function (Message $message) use ($udpfac): void {
-            $data = json_decode($message->getPayload());
+        $ws->on('message', function (Message $message): void {
+            if (($data = json_decode($message->getPayload(), true)) === false) {
+                return;
+            }
+            $data = Payload::fromArray($data);
+
             $this->vc->emit('ws-message', [$message, $this->vc]);
+
+            if (isset(self::VOICE_OP_HANDLERS[$data->op])) {
+                $handler = self::VOICE_OP_HANDLERS[$data->op];
+                $this->$handler($data);
+            } else {
+                //$this->bot->getLogger()->debug('unknown voice op', ['op' => $data->op]);
+                //$this->handleUndocumented($data);
+            }
 
             switch ($data->op) {
                 case Op::VOICE_HEARTBEAT_ACK: // keepalive response
@@ -253,28 +303,6 @@ final class WS
                     $this->handleDaveMlsInvalidCommitWelcome($data);
                     break;
 
-                case Op::VOICE_READY: {
-                    $this->vc->ssrc = $data->d->ssrc;
-
-                    $this->bot->logger->debug('received voice ready packet', ['data' => json_decode(json_encode($data->d), true)]);
-
-                    /** @var PromiseInterface */
-                    $udpfac->createClient("{$data->d->ip}:".$data->d->port)->then(function (UDP $client) use ($data): void {
-                        $this->vc->udp = $client;
-                        $client->handleSsrcSending()
-                            ->handleHeartbeat()
-                            ->handleErrors()
-                            ->decodeOnce();
-
-                        $client->ip = $data->d->ip;
-                        $client->port = $data->d->port;
-                        $client->ssrc = $data->d->ssrc;
-                    }, function (\Throwable $e): void {
-                        $this->bot->logger->error('error while connecting to udp', ['e' => $e->getMessage()]);
-                        $this->vc->emit('error', [$e]);
-                    });
-                    break;
-                }
                 default:
                     $this->bot->logger->warning('Unknown opcode.', $data);
                     break;
@@ -297,6 +325,28 @@ final class WS
     public function send(VoicePayload|array $data): void
     {
         $this->socket->send(json_encode($data));
+    }
+
+    protected function handleReady(object $data): void
+    {
+        $this->vc->ssrc = $data->d->ssrc;
+        $this->bot->logger->debug('received voice ready packet', ['data' => json_decode(json_encode($data->d), true)]);
+
+        /** @var PromiseInterface */
+        $this->udpfac->createClient("{$data->d->ip}:".$data->d->port)->then(function (UDP $client) use ($data): void {
+            $this->vc->udp = $client;
+            $client->handleSsrcSending()
+                ->handleHeartbeat()
+                ->handleErrors()
+                ->decodeOnce();
+
+            $client->ip = $data->d->ip;
+            $client->port = $data->d->port;
+            $client->ssrc = $data->d->ssrc;
+        }, function (\Throwable $e): void {
+            $this->bot->logger->error('error while connecting to udp', ['e' => $e->getMessage()]);
+            $this->vc->emit('error', [$e]);
+        });
     }
 
     protected function handleDavePrepareTransition($data): void
