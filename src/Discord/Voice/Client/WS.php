@@ -19,7 +19,9 @@ use Discord\Parts\Voice\UserConnected;
 use Discord\Voice\Any;
 use Discord\Voice\Client;
 use Discord\Voice\Flags;
+use Discord\Voice\Hello;
 use Discord\Voice\Platform;
+use Discord\Voice\Ready;
 use Discord\Voice\Resumed;
 use Discord\Voice\SessionDescription;
 use Discord\Voice\Speaking;
@@ -240,20 +242,23 @@ final class WS
      */
     protected function handleReady(Payload $data): void
     {
-        $this->vc->ssrc = $data->d->ssrc;
+        /** @var Ready */
+        $ready = $this->discord->factory(Ready::class, (array) $data->d, true);
+
+        $this->vc->ssrc = $ready->ssrc;
         $this->discord->logger->debug('received voice ready packet', ['data' => json_decode(json_encode($data->d), true)]);
 
         /** @var PromiseInterface */
-        $this->udpfac->createClient("{$data->d->ip}:".$data->d->port)->then(function (UDP $client) use ($data): void {
+        $this->udpfac->createClient("{$ready->ip}:".$ready->port)->then(function (UDP $client) use ($ready): void {
             $this->vc->udp = $client;
             $client->handleSsrcSending()
                 ->handleHeartbeat()
                 ->handleErrors()
                 ->decodeOnce();
 
-            $client->ip = $data->d->ip;
-            $client->port = $data->d->port;
-            $client->ssrc = $data->d->ssrc;
+            $client->ip = $ready->ip;
+            $client->port = $ready->port;
+            $client->ssrc = $ready->ssrc;
         }, function (\Throwable $e): void {
             $this->discord->logger->error('error while connecting to udp', ['e' => $e->getMessage()]);
             $this->vc->emit('error', [$e]);
@@ -272,7 +277,7 @@ final class WS
         
         $this->vc->ready = true;
         $this->mode = $sd->mode === $this->mode ? $this->mode : 'aead_aes256_gcm_rtpsize';
-        $this->rawKey = $data->d->secret_key;
+        $this->rawKey = $data->d['secret_key'];
         $this->secretKey = $sd->secret_key;
 
         $this->discord->logger->debug('received description packet, vc ready', ['data' => $sd->__debugInfo()]);
@@ -298,10 +303,13 @@ final class WS
      */
     protected function handleSpeaking(Payload $data): void
     {
+        /** @var Speaking */
+        $speaking = $this->discord->factory(Speaking::class, (array) $data->d, true);
+
         $this->discord->logger->debug('received speaking packet', ['data' => json_decode(json_encode($data->d), true)]);
-        $this->vc->emit('speaking', [$data->d->speaking, $data->d->user_id, $this->vc]);
-        $this->vc->emit("speaking.{$data->d->user_id}", [$data->d->speaking, $this->vc]);
-        $this->vc->speakingStatus[$data->d->user_id] = $this->discord->getFactory()->part(Speaking::class, $data->d);
+        $this->vc->speakingStatus[$speaking->user_id] = $speaking;
+        $this->vc->emit('speaking', [$speaking->speaking, $speaking->user_id, $this->vc]);
+        $this->vc->emit("speaking.{$speaking->user_id}", [$speaking->speaking, $this->vc]);
     }
 
     /**
@@ -325,7 +333,10 @@ final class WS
      */
     protected function handleHello(Payload $data): void
     {
-        $this->hbInterval = $this->vc->heartbeatInterval = $data->d->heartbeat_interval;
+        /** @var Hello */
+        $hello = $this->discord->factory(Hello::class, (array) $data->d, true);
+        
+        $this->hbInterval = $this->vc->heartbeatInterval = $hello->heartbeat_interval;
         $this->sendHeartbeat();
         $this->heartbeat = $this->discord->loop->addPeriodicTimer(
             $this->hbInterval / 1000,
@@ -354,7 +365,7 @@ final class WS
     {
         $this->discord->getLogger()->debug('received client connect packet', ['data' => $data]);
         // "d" contains an array with ['user_ids' => array<string>]
-        $this->vc->users = array_map(fn (int $userId) => $this->discord->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $data->d->user_ids);
+        $this->vc->users = array_map(fn (int $userId) => $this->discord->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $data->d['user_ids']);
     }
 
     /**
@@ -365,7 +376,7 @@ final class WS
     protected function handleClientDisconnect(Payload $data): void
     {
         $this->discord->logger->debug('received client disconnected packet', ['data' => $data]);
-        unset($this->vc->clientsConnected[$data->d->user_id]);
+        unset($this->vc->clientsConnected[$data->d['user_id']]);
     }
 
     /**
@@ -419,7 +430,7 @@ final class WS
         // Prepare local state necessary to perform the transition
         $this->send(VoicePayload::new(
             Op::VOICE_DAVE_TRANSITION_READY,
-            ['transition_id' => $data->d->transition_id],
+            ['transition_id' => $data->d['transition_id']],
         ));
     }
 
@@ -443,7 +454,7 @@ final class WS
         $this->send(VoicePayload::new(
             Op::VOICE_DAVE_MLS_KEY_PACKAGE,
             [
-                'epoch_id' => $data->d->epoch_id,
+                'epoch_id' => $data->d['epoch_id'],
                 //'key_package' => $this->generateKeyPackage(),
             ],
         ));
