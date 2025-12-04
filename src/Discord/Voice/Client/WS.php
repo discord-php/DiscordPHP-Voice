@@ -159,6 +159,8 @@ final class WS
             throw new \InvalidArgumentException('Endpoint is required for the voice WebSocket connection.');
         }
 
+        $this->discord->logger->debug('Creating new voice websocket', ['endpoint' => $this->data['endpoint']]);
+
         $f = new Connector();
 
         /** @var PromiseInterface<WebSocket> */
@@ -192,7 +194,7 @@ final class WS
     {
         $this->discord->logger->debug('connected to voice websocket');
 
-        $this->udpfac = new SocketFactory($this->discord->loop, ws: $this);
+        $this->udpfac = new SocketFactory(ws: $this);
 
         $this->socket = $this->vc->ws = $ws;
 
