@@ -733,14 +733,14 @@ class VoiceClient extends EventEmitter
             throw new \RuntimeException('Voice Client is not ready.');
         }
 
-        $this->ws->send(VoicePayload::new(
+        $this->ws->send(json_encode(VoicePayload::new(
             Op::VOICE_SPEAKING,
             [
                 'speaking' => $speaking,
                 'delay' => 0,
                 'ssrc' => $this->ssrc,
             ],
-        ));
+        )));
 
         $this->speaking = $speaking;
     }
