@@ -160,7 +160,7 @@ final class Manager
             ->setData([
                 'session' => $state->session_id,
                 'deaf' => $state->deaf,
-                'mute' => $state->mute
+                'mute' => $state->mute,
             ]);
 
         $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id, 'session_id' => $state->session_id]);

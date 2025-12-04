@@ -286,12 +286,12 @@ class VoiceClient extends EventEmitter
     /**
      * Constructs the Voice client instance.
      *
-     * @param Discord       $discord        The Discord instance.
+     * @param Discord       $discord         The Discord instance.
      * @param Channel       $channel
      * @param string[]      &$voice_sessions
      * @param array         $data
-     * @param bool          $deaf           Default: false
-     * @param bool          $mute           Default: false
+     * @param bool          $deaf            Default: false
+     * @param bool          $mute            Default: false
      * @param Deferred|null $deferred
      * @param Manager|null  $manager
      */
@@ -805,9 +805,9 @@ class VoiceClient extends EventEmitter
             throw new \DomainException("{$bitrate} is not a valid option. The bitrate must be between 8,000 bps and 384,000 bps.");
         }
 
-        if ($this->speaking) {
+        /*if ($this->speaking) {
             throw new \RuntimeException('Cannot change bitrate while playing.');
-        }
+        }*/
 
         $this->bitrate = $bitrate;
     }
