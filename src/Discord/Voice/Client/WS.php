@@ -143,9 +143,7 @@ final class WS
 
             switch ($data->op) {
                 case Op::VOICE_HEARTBEAT_ACK: // keepalive response
-                    $end = microtime(true);
-                    $start = $data->d->t;
-                    $diff = ($end - $start) * 1000;
+                    $diff = (microtime(true) - $data->d->t) * 1000;
 
                     $this->bot->logger->debug('received heartbeat ack', ['response_time' => $diff]);
                     $this->vc->emit('ws-ping', [$diff]);
