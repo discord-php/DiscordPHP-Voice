@@ -314,6 +314,8 @@ class VoiceClient extends EventEmitter
         $this->data['mute'] = $this->mute;
         $this->data['session'] = $this->data['session'] ?? null;
 
+        $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
+
         if ($this->shouldBoot) {
             $this->boot();
         }
@@ -985,7 +987,7 @@ class VoiceClient extends EventEmitter
             }
         }
 
-        if (count($this?->speakingStatus ?? Collection::for(Speaking::class, 'ssrc')) > 0) {
+        if (count($this->speakingStatus) > 0) {
             foreach ($this->speakingStatus as $ss) {
                 $this->removeDecoder($ss);
             }
