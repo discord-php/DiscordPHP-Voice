@@ -182,6 +182,20 @@ final class Manager
 
         $client = $this->getClient($channel);
 
+        $client->once('ready', function () use (&$client, $deferred, $channel) {
+            $this->discord->logger->info('voice manager is ready');
+            $this->discord->voiceClients[$channel->guild_id] = $client;
+            $deferred->resolve($client);
+        });
+        $client->once('error', function ($e) use ($deferred) {
+            $this->discord->logger->error('error initializing voice manager', ['e' => $e->getMessage()]);
+            $deferred->reject($e);
+        });
+        $client->once('close', function () use ($channel) {
+            $this->discord->logger->warning('voice manager closed');
+            unset($this->discord->voiceClients[$channel->guild_id]);
+        });
+
         $client->setData(
             array_merge(
                 $client->data,
