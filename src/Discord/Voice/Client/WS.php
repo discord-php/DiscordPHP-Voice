@@ -17,6 +17,7 @@ use Discord\Discord;
 use Discord\Factory\SocketFactory;
 use Discord\Parts\Voice\UserConnected;
 use Discord\Voice\Client;
+use Discord\Voice\SessionDescription;
 use Discord\Voice\Speaking;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
@@ -213,35 +214,6 @@ final class WS
                     $this->vc->emit('ws-ping', [$diff]);
                     $this->vc->emit('ws-heartbeat-ack', [$data->d->t]);
                     break;
-                case Op::VOICE_SESSION_DESCRIPTION: // ready
-                    $this->vc->ready = true;
-                    $this->mode = $data->d->mode === $this->mode ? $this->mode : 'aead_aes256_gcm_rtpsize';
-                    $this->secretKey = '';
-                    $this->rawKey = $data->d->secret_key;
-                    $this->secretKey = implode('', array_map(static fn ($value) => pack('C', $value), $this->rawKey));
-
-                    $this->bot->logger->debug('received description packet, vc ready', ['data' => json_decode(json_encode($data->d), true)]);
-
-                    if (! $this->vc->reconnecting) {
-                        $this->vc->emit('ready', [$this->vc]);
-                    } else {
-                        $this->vc->reconnecting = false;
-                        $this->vc->emit('resumed', [$this->vc]);
-                        # TODO: check if this can fix the reconnect issue
-                        $this->vc->emit('ready', [$this->vc]);
-                    }
-
-                    if (! $this->vc->deaf && $this->secretKey) {
-                        $this->vc->udp->handleMessages($this->secretKey);
-                    }
-
-                    break;
-                case Op::VOICE_SPEAKING: // currently connected users
-                    $this->bot->logger->debug('received speaking packet', ['data' => json_decode(json_encode($data->d), true)]);
-                    $this->vc->emit('speaking', [$data->d->speaking, $data->d->user_id, $this->vc]);
-                    $this->vc->emit("speaking.{$data->d->user_id}", [$data->d->speaking, $this->vc]);
-                    $this->vc->speakingStatus[$data->d->user_id] = $this->bot->getFactory()->part(Speaking::class, $data->d);
-                    break;
                 case Op::VOICE_HELLO:
                     $this->hbInterval = $this->vc->heartbeatInterval = $data->d->heartbeat_interval;
                     $this->sendHeartbeat();
@@ -327,7 +299,16 @@ final class WS
         $this->socket->send(json_encode($data));
     }
 
-    protected function handleReady(object $data): void
+    /**
+     * Handles the "ready" event for the voice client, initializing UDP connection and heartbeat.
+     *
+     * @param Payload $data The data object containing voice server connection details:
+     *                      - $data->d['ssrc']:  The synchronization source identifier.
+     *                      - $data->d['ip']:    The IP address for the UDP connection.
+     *                      - $data->d['port']:  The port for the UDP connection.
+     *                      - $data->d['modes']: Supported encryption modes.
+     */
+    protected function handleReady(Payload $data): void
     {
         $this->vc->ssrc = $data->d->ssrc;
         $this->bot->logger->debug('received voice ready packet', ['data' => json_decode(json_encode($data->d), true)]);
@@ -347,6 +328,50 @@ final class WS
             $this->bot->logger->error('error while connecting to udp', ['e' => $e->getMessage()]);
             $this->vc->emit('error', [$e]);
         });
+    }
+
+    /**
+     * Handles the session description packet received from the Discord voice server.
+     *
+     * @param Payload $data
+     */
+    protected function handleSessionDescription(Payload $data): void
+    {
+        /** @var SessionDescription */
+        $sd = $this->bot->factory(SessionDescription::class, (array) $data->d, true);
+        
+        $this->vc->ready = true;
+        $this->mode = $sd->mode === $this->mode ? $this->mode : 'aead_aes256_gcm_rtpsize';
+        $this->rawKey = $data->d->secret_key;
+        $this->secretKey = $sd->secret_key;
+
+        $this->bot->logger->debug('received description packet, vc ready', ['data' => $sd->__debugInfo()]);
+
+        if (! $this->vc->reconnecting) {
+            $this->vc->emit('ready', [$this->vc]);
+        } else {
+            $this->vc->reconnecting = false;
+            $this->vc->emit('resumed', [$this->vc]);
+            # TODO: check if this can fix the reconnect issue
+            $this->vc->emit('ready', [$this->vc]);
+        }
+
+        if (! $this->vc->deaf && $this->secretKey) {
+            $this->vc->udp->handleMessages($this->secretKey);
+        }
+    }
+
+    /**
+     * Handles the speaking state of a user.
+     *
+     * @param Payload $data The data object received from the WebSocket.
+     */
+    protected function handleSpeaking(Payload $data): void
+    {
+        $this->bot->logger->debug('received speaking packet', ['data' => json_decode(json_encode($data->d), true)]);
+        $this->vc->emit('speaking', [$data->d->speaking, $data->d->user_id, $this->vc]);
+        $this->vc->emit("speaking.{$data->d->user_id}", [$data->d->speaking, $this->vc]);
+        $this->vc->speakingStatus[$data->d->user_id] = $this->bot->getFactory()->part(Speaking::class, $data->d);
     }
 
     protected function handleDavePrepareTransition($data): void
