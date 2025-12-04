@@ -205,48 +205,9 @@ final class WS
             if (isset(self::VOICE_OP_HANDLERS[$data->op])) {
                 $handler = self::VOICE_OP_HANDLERS[$data->op];
                 $this->$handler($data);
-            }
-            $this->discord->getLogger()->debug('unknown voice op', ['op' => $data->op]);
-            $this->handleUndocumented($data);
-            
-            switch ($data->op) {
-                case Op::VOICE_DAVE_PREPARE_TRANSITION:
-                    $this->handleDavePrepareTransition($data);
-                    break;
-                case Op::VOICE_DAVE_EXECUTE_TRANSITION:
-                    $this->handleDaveExecuteTransition($data);
-                    break;
-                case Op::VOICE_DAVE_TRANSITION_READY:
-                    $this->handleDaveTransitionReady($data);
-                    break;
-                case Op::VOICE_DAVE_PREPARE_EPOCH:
-                    $this->handleDavePrepareEpoch($data);
-                    break;
-                case Op::VOICE_DAVE_MLS_EXTERNAL_SENDER:
-                    $this->handleDaveMlsExternalSender($data);
-                    break;
-                case Op::VOICE_DAVE_MLS_KEY_PACKAGE:
-                    $this->handleDaveMlsKeyPackage($data);
-                    break;
-                case Op::VOICE_DAVE_MLS_PROPOSALS:
-                    $this->handleDaveMlsProposals($data);
-                    break;
-                case Op::VOICE_DAVE_MLS_COMMIT_WELCOME:
-                    $this->handleDaveMlsCommitWelcome($data);
-                    break;
-                case Op::VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION:
-                    $this->handleDaveMlsAnnounceCommitTransition($data);
-                    break;
-                case Op::VOICE_DAVE_MLS_WELCOME:
-                    $this->handleDaveMlsWelcome($data);
-                    break;
-                case Op::VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME:
-                    $this->handleDaveMlsInvalidCommitWelcome($data);
-                    break;
-
-                default:
-                    $this->discord->logger->warning('Unknown opcode.', $data->__debugInfo());
-                    break;
+            } else {
+                $this->discord->getLogger()->debug('unknown voice op', ['op' => $data->op]);
+                $this->handleUndocumented($data);
             }
         });
 
