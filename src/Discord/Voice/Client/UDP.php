@@ -32,7 +32,7 @@ final class UDP extends Socket
     /**
      * The Parent Voice WebSocket Client.
      */
-    protected WS $ws;
+    public WS $ws;
 
     /**
      * Silence Frame Remain Count.

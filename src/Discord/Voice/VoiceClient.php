@@ -1161,7 +1161,7 @@ class VoiceClient extends EventEmitter
     public function handleAudioData(Packet|string $voicePacket): void
     {
         if (is_string($voicePacket)) {
-            // We don't handle non-decrypted packets here.
+            $voicePacket = new Packet($voicePacket, key: $this->udp->ws->secretKey);
             return;
         }
 
