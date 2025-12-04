@@ -288,7 +288,7 @@ class Client extends EventEmitter
      *
      * @param Discord       $discord        The Discord instance.
      * @param Channel       $channel
-     * @param string[]      $voice_sessions
+     * @param string[]      &$voice_sessions
      * @param array         $data
      * @param bool          $deaf           Default: false
      * @param bool          $mute           Default: false

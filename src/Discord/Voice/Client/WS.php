@@ -558,7 +558,7 @@ final class WS
         }
 
         $this->socket->close();
-        unset($this->discord->voice_sessions[$this->vc->channel->guild_id]);
+        $this->discord->voice_sessions[$this->vc->channel->guild_id] = null;
 
         // Don't reconnect on a critical opcode or if closed by user.
         if (in_array($op, Op::getCriticalVoiceCloseCodes()) || $this?->vc->userClose) {
