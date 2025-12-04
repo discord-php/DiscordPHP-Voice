@@ -288,8 +288,9 @@ class Client extends EventEmitter
     /**
      * Constructs the Voice client instance
      *
-     * @param \Discord\Discord $bot The Discord instance.
-     * @param \Discord\Parts\Channel\Channel $channel
+     * @param Discord $bot The Discord instance.
+     * @param Channel $channel
+     * @param string[] $voice_sessions
      * @param array $data
      * @param bool $deaf Default: false
      * @param bool $mute Default: false
