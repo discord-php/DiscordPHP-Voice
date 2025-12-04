@@ -985,7 +985,7 @@ class VoiceClient extends EventEmitter
             }
         }
 
-        if (count($this?->speakingStatus ?? []) > 0) {
+        if (count($this?->speakingStatus ?? Collection::for(Speaking::class, 'ssrc')) > 0) {
             foreach ($this->speakingStatus as $ss) {
                 $this->removeDecoder($ss);
             }
@@ -1017,7 +1017,7 @@ class VoiceClient extends EventEmitter
         $this->sentLoginFrame = false;
         $this->startTime = null;
         $this->streamTime = 0;
-        $this->speakingStatus = new Collection([], 'ssrc');
+        $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
 
         $this->emit('close');
     }
