@@ -341,7 +341,7 @@ class Client extends EventEmitter
      * @param  string      $executable
      * @return string|null
      */
-    protected static function checkForExecutable(string $executable): ?string
+    public static function checkForExecutable(string $executable): ?string
     {
         $systemOs = substr(PHP_OS, 0, 3);
         $which = 'command -v';
