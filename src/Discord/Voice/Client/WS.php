@@ -207,12 +207,6 @@ final class WS
             //$this->handleUndocumented($data);
             
             switch ($data->op) {
-                case Op::VOICE_CLIENT_CONNECT:
-                    $this->discord->logger->debug('received clients connected packet', ['data' => json_decode(json_encode($data->d), true)]);
-                    # "d" contains an array with ['user_ids' => array<string>]
-
-                    $this->vc->users = array_map(fn (int $userId) => $this->discord->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $data->d->user_ids);
-                    break;
                 case Op::VOICE_CLIENT_DISCONNECT:
                     $this->discord->logger->debug('received client disconnected packet', ['data' => json_decode(json_encode($data->d), true)]);
                     unset($this->vc->clientsConnected[$data->d->user_id]);
@@ -397,6 +391,18 @@ final class WS
         /** @var Resumed */
         $resumed = $this->discord->factory(Resumed::class, (array) $data->d, true);
         $this->discord->getLogger()->debug('received resumed packet', ['data' => $resumed]);
+    }
+
+    /**
+     * Handles the event when a client connects to the voice server.
+     *
+     * @param Payload $data
+     */
+    protected function handleClientConnect(Payload $data): void
+    {
+        $this->discord->getLogger()->debug('received client connect packet', ['data' => $data]);
+        // "d" contains an array with ['user_ids' => array<string>]
+        $this->vc->users = array_map(fn (int $userId) => $this->discord->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $data->d->user_ids);
     }
 
     protected function handleDavePrepareTransition($data): void
