@@ -165,7 +165,7 @@ class Client extends EventEmitter
     /**
      * Collection of voice decoders.
      *
-     * @var ExCollectionInterface Voice decoders.
+     * @var ExCollectionInterface<Process> Voice decoders.
      */
     public $voiceDecoders;
 
