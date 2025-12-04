@@ -148,14 +148,18 @@ final class Manager
      * @param \Discord\Parts\WebSockets\VoiceStateUpdate $state
      * @param \Discord\Parts\Channel\Channel             $channel
      */
-    protected function stateUpdate(VoiceStateUpdate $state, Channel $channel): void
+    public function stateUpdate(VoiceStateUpdate $state, Channel $channel): void
     {
         if ($state->guild_id != $channel->guild_id) {
             return; // This voice state update isn't for our guild.
         }
 
         $this->getClient($channel)
-            ->setData(['session' => $state->session_id, 'deaf' => $state->deaf, 'mute' => $state->mute]);
+            ->setData([
+                'session' => $state->session_id,
+                'deaf' => $state->deaf,
+                'mute' => $state->mute
+            ]);
 
         $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id, 'session_id' => $state->session_id]);
     }
