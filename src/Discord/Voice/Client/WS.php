@@ -311,10 +311,11 @@ final class WS
      */
     public function handleHeartbeatAck(Payload $data): void
     {
-        $diff = (microtime(true) - $data->d->t) * 1000;
+        $diff = (microtime(true) - $data->d['t']) * 1000;
+
         $this->discord->logger->debug('received heartbeat ack', ['response_time' => $diff]);
         $this->vc->emit('ws-ping', [$diff]);
-        $this->vc->emit('ws-heartbeat-ack', [$data->d->t]);
+        $this->vc->emit('ws-heartbeat-ack', [$data->d['t']]);
     }
 
     /**
