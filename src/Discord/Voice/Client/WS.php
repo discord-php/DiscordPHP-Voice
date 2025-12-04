@@ -276,7 +276,7 @@ final class WS
                     break;
 
                 default:
-                    $this->bot->logger->warning('Unknown opcode.', $data);
+                    $this->bot->logger->warning('Unknown opcode.', $data->__debugInfo());
                     break;
             }
         });
