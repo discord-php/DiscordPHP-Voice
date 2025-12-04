@@ -434,6 +434,7 @@ final class WS
         }
 
         $this->socket->close();
+        unset($this->bot->voice_sessions[$this->vc->channel->guild_id]);
 
         // Don't reconnect on a critical opcode or if closed by user.
         if (in_array($op, Op::getCriticalVoiceCloseCodes()) || $this?->vc->userClose) {
