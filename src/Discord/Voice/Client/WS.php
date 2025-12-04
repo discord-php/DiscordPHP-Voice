@@ -207,10 +207,6 @@ final class WS
             //$this->handleUndocumented($data);
             
             switch ($data->op) {
-                case Op::VOICE_CLIENT_DISCONNECT:
-                    $this->discord->logger->debug('received client disconnected packet', ['data' => json_decode(json_encode($data->d), true)]);
-                    unset($this->vc->clientsConnected[$data->d->user_id]);
-                    break;
                 case Op::VOICE_CLIENT_UNKNOWN_15:
                 case Op::VOICE_CLIENT_UNKNOWN_18:
                     $this->discord->logger->debug('received unknown opcode', ['data' => json_decode(json_encode($data), true)]);
@@ -403,6 +399,17 @@ final class WS
         $this->discord->getLogger()->debug('received client connect packet', ['data' => $data]);
         // "d" contains an array with ['user_ids' => array<string>]
         $this->vc->users = array_map(fn (int $userId) => $this->discord->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $data->d->user_ids);
+    }
+
+    /**
+     * Handles the event when a client disconnects from the voice server.
+     *
+     * @param Payload $data
+     */
+    protected function handleClientDisconnect(object $data): void
+    {
+        $this->discord->logger->debug('received client disconnected packet', ['data' => $data]);
+        unset($this->vc->clientsConnected[$data->d->user_id]);
     }
 
     protected function handleDavePrepareTransition($data): void
