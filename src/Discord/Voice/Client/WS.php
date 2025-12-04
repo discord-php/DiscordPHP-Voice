@@ -206,14 +206,6 @@ final class WS
             //$this->handleUndocumented($data);
             
             switch ($data->op) {
-                case Op::VOICE_HELLO:
-                    $this->hbInterval = $this->vc->heartbeatInterval = $data->d->heartbeat_interval;
-                    $this->sendHeartbeat();
-                    $this->heartbeat = $this->discord->loop->addPeriodicTimer(
-                        $this->hbInterval / 1000,
-                        fn () => $this->sendHeartbeat()
-                    );
-                    break;
                 case Op::VOICE_CLIENT_CONNECT:
                     $this->discord->logger->debug('received clients connected packet', ['data' => json_decode(json_encode($data->d), true)]);
                     # "d" contains an array with ['user_ids' => array<string>]
@@ -377,6 +369,21 @@ final class WS
         $this->discord->logger->debug('received heartbeat ack', ['response_time' => $diff]);
         $this->vc->emit('ws-ping', [$diff]);
         $this->vc->emit('ws-heartbeat-ack', [$data->d->t]);
+    }
+
+    /**
+     * Handles the "Hello" event from the Discord voice server.
+     *
+     * @param Payload $data
+     */
+    protected function handleHello(Payload $data): void
+    {
+        $this->hbInterval = $this->vc->heartbeatInterval = $data->d->heartbeat_interval;
+        $this->sendHeartbeat();
+        $this->heartbeat = $this->discord->loop->addPeriodicTimer(
+            $this->hbInterval / 1000,
+            fn () => $this->sendHeartbeat()
+        );
     }
 
     protected function handleDavePrepareTransition($data): void
