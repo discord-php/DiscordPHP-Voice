@@ -172,11 +172,11 @@ final class WS
     /**
      * Creates a new instance of the WS class.
      *
-     * @param \Discord\Voice\Client $vc
-     * @param null|\Discord\Discord $discord
-     * @param null|array            $data
+     * @param Client       $vc
+     * @param null|Discord $discord
+     * @param null|array   $data
      *
-     * @return \Discord\Voice\Client\WS
+     * @return WS
      */
     public static function make(Client $vc, ?Discord $discord = null, ?array $data = null): self
     {
