@@ -296,8 +296,7 @@ final class WS
      */
     public function send(VoicePayload|array $data): void
     {
-        $json = json_encode($data);
-        $this->socket->send($json);
+        $this->socket->send(json_encode($data));
     }
 
     protected function handleDavePrepareTransition($data): void
