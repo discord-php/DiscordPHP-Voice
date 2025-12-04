@@ -17,6 +17,7 @@ use Discord\Discord;
 use Discord\Factory\SocketFactory;
 use Discord\Parts\Voice\UserConnected;
 use Discord\Voice\Client;
+use Discord\Voice\Resumed;
 use Discord\Voice\SessionDescription;
 use Discord\Voice\Speaking;
 use Discord\WebSockets\Op;
@@ -384,6 +385,18 @@ final class WS
             $this->hbInterval / 1000,
             fn () => $this->sendHeartbeat()
         );
+    }
+
+    /**
+     * Handles the 'resumed' event for the voice client.
+     *
+     * @param Payload $data
+     */
+    protected function handleResumed(object $data): void
+    {
+        /** @var Resumed */
+        $resumed = $this->discord->factory(Resumed::class, (array) $data->d, true);
+        $this->discord->getLogger()->debug('received resumed packet', ['data' => $resumed]);
     }
 
     protected function handleDavePrepareTransition($data): void
