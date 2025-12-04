@@ -220,7 +220,19 @@ final class WS
 
         $ws->on('close', [$this, 'handleClose']);
 
-        $this->handleSendingOfLoginFrame();
+        if (! $this->sentLoginFrame) {
+            $this->handleSendingOfLoginFrame();
+            $this->sentLoginFrame = true;
+        } elseif (isset(
+            $this->data['token'],
+            $this->data['seq'],
+            $this->discord->voice_sessions[$this->vc->channel->guild_id]
+        )) {
+            $this->handleResume();
+        } else {
+            $this->discord->getLogger()->debug('existing voice session or data not found, re-sending identify', ['guild_id' => $this->vc->channel->guild_id]);
+            $this->handleSendingOfLoginFrame();
+        }
     }
 
     /**
@@ -614,5 +626,25 @@ final class WS
         $this->send($payload);
         $this->sentLoginFrame = true;
         $this->vc->sentLoginFrame = true;
+    }
+
+    /**
+     * Resumes a previously established voice connection.
+     */
+    protected function handleResume(): void
+    {
+        $payload = Payload::new(
+            Op::VOICE_RESUME,
+            [
+                'server_id' => $this->vc->channel->guild_id,
+                'session_id' => $this->discord->voice_sessions[$this->vc->channel->guild_id],
+                'token' => $this->data['token'],
+                'seq_ack' => $this->data['seq'],
+            ]
+        );
+
+        $this->discord->logger->debug('sending identify (resume)', ['packet' => $payload->__debugInfo()]);
+
+        $this->send($payload);
     }
 }
