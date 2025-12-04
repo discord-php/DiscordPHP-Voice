@@ -176,7 +176,7 @@ final class Manager
 
         $this->discord->getLogger()->info('received token and endpoint for voice session', [
             'guild' => $channel->guild_id,
-            'token' => $state->token,
+            'token' => '*****',
             'endpoint' => $state->endpoint,
         ]);
 
