@@ -334,6 +334,34 @@ class Client extends EventEmitter
 
         return true;
     }
+    
+    /**
+     * Checks if an executable exists on the system.
+     *
+     * @param  string      $executable
+     * @return string|null
+     */
+    protected static function checkForExecutable(string $executable): ?string
+    {
+        $systemOs = substr(PHP_OS, 0, 3);
+        $which = 'command -v';
+        if (strtoupper($systemOs) === 'WIN') {
+            $which = 'where';
+        }
+
+        $shellExecutable = shell_exec("$which $executable");
+        if ($shellExecutable === false) {
+            // Unable to establish pipe
+            return null;
+        }
+        if ($shellExecutable === null) {
+            // Error or the command produced no output
+            return null;
+        }
+        $executable = rtrim((string) explode(PHP_EOL, $shellExecutable)[0]);
+
+        return is_executable($executable) ? $executable : null;
+    }
 
     /**
      * Plays a file/url on the voice stream.
