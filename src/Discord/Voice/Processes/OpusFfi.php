@@ -11,31 +11,30 @@ declare(strict_types=1);
  * with this source code in the LICENSE.md file.
  */
 
-namespace Discord\Voice\Processes;
+namespace Discord\Voice;
 
 use FFI;
 
 /**
  * Handles the decoding of Opus audio data using FFI (Foreign Function Interface).
  *
- * @since 10.19.0
+ * @todo
+ *
+ * @property FFI   $ffi
+ * @method   int   opus_packet_get_nb_frames(mixed $packet, int $len)
+ * @method   int   opus_packet_get_samples_per_frame(mixed $data, int $Fs)
+ * @method   mixed opus_decoder_create(int $Fs, int $channels, mixed $error)
+ * @method   int   opus_decode(mixed $st, mixed $data, int $len, mixed $pcm, int $frame_size, int $decode_fec)
+ * @method   void  opus_decoder_destroy(mixed $st)
  */
-final class OpusFfi
+class OpusFFI
 {
-    /**
-     * Creates a FFI instance (code in C) to decode Opus audio data.
-     * By using the libopus library, this function decodes Opus-encoded audio data
-     * into PCM samples.
-     * This is useful for processing audio data in Discord voice channels.
-     * @param string|mixed $data
-     *
-     * @return string Returns the decoded PCM audio data as a string/binary.
-     */
-    public static function decode($data): string
+    protected FFI $ffi;
+
+    public function __construct()
     {
         // Load libopus and define needed functions/types
-        // TODO: Move this to a separate file or class if needed.
-        $ffi = FFI::cdef('
+        $this->ffi = FFI::cdef('
         typedef struct OpusDecoder OpusDecoder;
         typedef short opus_int16;
         typedef int opus_int32;
@@ -47,51 +46,62 @@ final class OpusFfi
         int opus_decode(OpusDecoder *st, const unsigned char *data, opus_int32 len, opus_int16 *pcm, int frame_size, int decode_fec);
         void opus_decoder_destroy(OpusDecoder *st);
         ', 'libopus.so.0');
+    }
 
-        // Parameters
-        $sampleRate = 48000;
-        $channels = 2;
-
+    /**
+     * Creates a FFI instance (code in C) to decode Opus audio data.
+     * By using the libopus library, this function decodes Opus-encoded audio data
+     * into PCM samples.
+     *
+     * @param string|mixed $data The Opus-encoded audio data to decode.
+     *
+     * @return string The decoded PCM audio data as a string/binary.
+     */
+    public function decode($data, int $channels = 2, int $audioRate = 48000): string
+    {
         $dataLength = strlen($data);
-
-        $dataBuffer = $ffi->new("const unsigned char[$dataLength]", false);
-        FFI::memcpy($dataBuffer, $data, $dataLength);
-
-        $frames = $ffi->opus_packet_get_nb_frames($dataBuffer, $dataLength);
-        $samplesPerFrame = $ffi->opus_packet_get_samples_per_frame($dataBuffer, $sampleRate);
-        $frameSize = $frames * $samplesPerFrame;
-
-        // Create decoder
-        $error = $ffi->new('int');
-        $decoder = $ffi->opus_decoder_create($sampleRate, $channels, FFI::addr($error));
-
-        // Prepare input data (Opus-encoded)
-
         if ($dataLength < 0) {
-            $ffi->opus_decoder_destroy($decoder);
-
             return '';
         }
 
+        $dataBuffer = $this->ffi->new("const unsigned char[$dataLength]", false);
+        FFI::memcpy($dataBuffer, $data, $dataLength);
+
+        $frames = $this->opus_packet_get_nb_frames($dataBuffer, $dataLength);
+        $samplesPerFrame = $this->opus_packet_get_samples_per_frame($dataBuffer, $audioRate);
+        $frameSize = $frames * $samplesPerFrame;
+
+        // Create decoder
+        $error = $this->ffi->new('int');
+        $decoder = $this->opus_decoder_create($audioRate, $channels, FFI::addr($error));
+
         // Prepare output buffer for PCM samples
-        $pcm = $ffi->new('opus_int16['.$frameSize * $channels * 2 .']', false);
+        $pcm = $this->ffi->new('opus_int16['.$frameSize * $channels * 2 .']', false);
 
         // Decode
-        $ret = $ffi->opus_decode($decoder, $dataBuffer, $dataLength, $pcm, $frameSize, 0);
-
-        if ($ret < 0) {
-            $ffi->opus_decoder_destroy($decoder);
-
-            // TODO: Handle decoding error
-            return ''; // Or handle error
-        }
-
-        // Get PCM bytes
-        $pcm_bytes = FFI::string($pcm, $ret * $channels * 2); // 2 bytes per sample
+        $ret = $this->opus_decode($decoder, $dataBuffer, $dataLength, $pcm, $frameSize, 0);
 
         // Clean up
-        $ffi->opus_decoder_destroy($decoder);
+        $this->opus_decoder_destroy($decoder);
 
-        return $pcm_bytes;
+        if ($ret < 0) {
+            /** @todo Handle decoding error */
+            return '';
+        }
+
+        // 2 bytes per sample
+        return FFI::string($pcm, $ret * $channels * 2);
+    }
+
+    /**
+     * Magic method to redirect method calls to the FFI instance.
+     *
+     * @param  string $name
+     * @param  array  $arguments
+     * @return mixed
+     */
+    public function __call(string $name, array $arguments)
+    {
+        return $this->ffi->$name(...$arguments);
     }
 }
