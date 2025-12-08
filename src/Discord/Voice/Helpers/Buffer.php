@@ -15,6 +15,7 @@ namespace Discord\Voice\Helpers;
 
 use Discord\Voice\Exceptions\BufferTimedOutException;
 use Evenement\EventEmitter;
+use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
@@ -56,7 +57,7 @@ class Buffer extends EventEmitter implements WritableStreamInterface
 
     public function __construct(?LoopInterface $loop = null)
     {
-        $this->loop = $loop;
+        $this->loop = $loop ?? Loop::get();
     }
 
     /**

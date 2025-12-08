@@ -410,7 +410,7 @@ class VoiceClient extends EventEmitter
         }
 
         $process = Ffmpeg::encode($file, volume: $this->getDbVolume());
-        $process->start($this->discord->getLoop());
+        $process->start();
 
         return $this->playOggStream($process);
     }
@@ -450,7 +450,7 @@ class VoiceClient extends EventEmitter
         }
 
         if (is_resource($stream)) {
-            $stream = new Stream($stream, $this->discord->getLoop());
+            $stream = new Stream($stream);
         }
 
         $process = Ffmpeg::encode(volume: $this->getDbVolume(), preArgs: [
@@ -458,7 +458,7 @@ class VoiceClient extends EventEmitter
             '-ac', $channels,
             '-ar', $audioRate,
         ]);
-        $process->start($this->discord->getLoop());
+        $process->start();
         $stream->pipe($process->stdin);
 
         return $this->playOggStream($process);
@@ -503,7 +503,7 @@ class VoiceClient extends EventEmitter
         }
 
         if (is_resource($stream)) {
-            $stream = new Stream($stream, $this->discord->getLoop());
+            $stream = new Stream($stream);
         }
 
         if (! ($stream instanceof ReadableStreamInterface)) {
@@ -512,7 +512,7 @@ class VoiceClient extends EventEmitter
             return $deferred->promise();
         }
 
-        $this->buffer = new RealBuffer($this->discord->getLoop());
+        $this->buffer = new RealBuffer();
         $stream->on('data', function ($d) {
             $this->buffer->write($d);
         });
@@ -1255,7 +1255,7 @@ class VoiceClient extends EventEmitter
     protected function createDecoder($ss): void
     {
         $decoder = Ffmpeg::decode((string) $ss->ssrc);
-        $decoder->start($this->discord->getLoop());
+        $decoder->start();
 
         $decoder->stdout->on('data', function ($data) use ($ss) {
             if (empty($data)) {
