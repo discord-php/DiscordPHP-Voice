@@ -22,6 +22,7 @@ use Discord\Voice\Helpers\Buffer as RealBuffer;
 use Discord\Helpers\Collection;
 use Discord\Helpers\ExCollectionInterface;
 use Discord\Parts\Channel\Channel;
+use Discord\Parts\WebSockets\VoiceStateUpdate;
 use Discord\Voice\Client\Packet;
 use Discord\Voice\Client\UDP;
 use Discord\Voice\Client\User;
@@ -79,6 +80,13 @@ class VoiceClient extends EventEmitter
      * @var null|Socket|\Discord\Voice\Client\UDP
      */
     public ?UDP $udp;
+
+    /**
+     * The Opus FFI instance.
+     * 
+     * @var OpusFFI The Opus FFI instance used for decoding audio.
+     */
+    public OpusFFI $opusffi;
 
     /**
      * The Voice WebSocket endpoint.
@@ -315,6 +323,8 @@ class VoiceClient extends EventEmitter
         $this->data['session'] = $this->data['session'] ?? null;
 
         $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
+
+        $this->opusffi = new OpusFFI();
 
         if ($this->shouldBoot) {
             $this->boot();
@@ -1046,7 +1056,7 @@ class VoiceClient extends EventEmitter
      * NOTE: This object contains the data as the VoiceStateUpdate Part.
      * @see \Discord\Parts\WebSockets\VoiceStateUpdate
      *
-     * @param object $data The WebSocket data.
+     * @param VoiceStateUpdate $data The WebSocket data.
      */
     public function handleVoiceStateUpdate(object $data): void
     {
@@ -1226,7 +1236,7 @@ class VoiceClient extends EventEmitter
             return; // no audio data to write
         }
 
-        $data = OpusFfi::decode($voicePacket->decryptedAudio);
+        $data = $this->opusffi->decode($voicePacket->decryptedAudio);
 
         if (empty(trim($data))) {
             $this->discord->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
