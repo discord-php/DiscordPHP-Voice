@@ -23,7 +23,7 @@
         "ext-ffi": "*"
     },
     "require-dev": {
-        "team-reflex/discord-php": "^10.41.0"
+        "team-reflex/discord-php": "^10.42.0"
     },
     "autoload": {
         "psr-4": {
