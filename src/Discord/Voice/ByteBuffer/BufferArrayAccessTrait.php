@@ -26,7 +26,7 @@ trait BufferArrayAccessTrait
      */
     public function writeUInt32BE(int $value, int $offset): self
     {
-        return $this->insert(FormatPackEnum::I, $value, $offset, 3);
+        return $this->insert(FormatPackEnum::N, $value, $offset, 3);
     }
 
     /**

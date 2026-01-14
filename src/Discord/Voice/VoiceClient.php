@@ -83,7 +83,7 @@ class VoiceClient extends EventEmitter
 
     /**
      * The Opus FFI instance.
-     * 
+     *
      * @var OpusFFI The Opus FFI instance used for decoding audio.
      */
     public OpusFFI $opusffi;
@@ -346,7 +346,7 @@ class VoiceClient extends EventEmitter
 
         return true;
     }
-    
+
     /**
      * Checks if an executable exists on the system.
      *
@@ -772,7 +772,6 @@ class VoiceClient extends EventEmitter
 
         // We allow the user to switch to null, which will disconnect them from the voice channel.
         if (! isset($channel)) {
-            $channel = $this->channel;
             $this->userClose = true;
         } else {
             $this->channel = $channel;
@@ -781,8 +780,8 @@ class VoiceClient extends EventEmitter
         $this->mainSend(VoicePayload::new(
             Op::OP_UPDATE_VOICE_STATE,
             [
-                'guild_id' => $channel->guild_id,
-                'channel_id' => $channel?->id ?? null,
+                'guild_id' => $this->channel->guild_id,
+                'channel_id' => $channel?->id,
                 'self_mute' => $this->mute,
                 'self_deaf' => $this->deaf,
             ],
@@ -961,7 +960,9 @@ class VoiceClient extends EventEmitter
             throw new \RuntimeException('Audio must be playing to stop it.');
         }
 
-        $this->buffer->end();
+        if (isset($this->buffer)) {
+            $this->buffer->end();
+        }
         $this->udp->insertSilence();
         $this->reset();
     }
@@ -1003,15 +1004,11 @@ class VoiceClient extends EventEmitter
             }
         }
 
-        $this->mainSend(VoicePayload::new(
-            Op::OP_UPDATE_VOICE_STATE,
-            [
-                'guild_id' => $this->channel->guild_id,
-                'channel_id' => null,
-                'self_mute' => true,
-                'self_deaf' => true,
-            ],
-        ));
+        // Only disconnect if we weren't disconnected by discord
+        if (!$this->udp->isClosed())
+        {
+            $this->disconnect();
+        }
 
         $this->userClose = true;
         $this->ws->close();
