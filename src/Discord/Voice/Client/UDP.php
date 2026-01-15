@@ -192,7 +192,7 @@ final class UDP extends Socket
              * @see https://www.php.net/manual/en/function.unpack.php
              * @see https://www.php.net/manual/en/function.pack.php For the formats
              */
-            $unpackedMessageArray = \unpack('C2Type/nLength/ISSRC/A64Address/nPort', $message);
+            $unpackedMessageArray = \unpack('C2Type/nLength/NSSRC/A64Address/nPort', $message);
 
             $this->ws->vc->ssrc = $unpackedMessageArray['SSRC'];
             $ip = $unpackedMessageArray['Address'];
@@ -251,10 +251,10 @@ final class UDP extends Socket
             $this->ws->vc->ssrc,
             $this->ws->vc->seq,
             $this->ws->vc->timestamp,
-            true,
+            false,
             $this->ws->secretKey,
         );
-        $this->send($packet->__toString());
+        $this->send($packet->getEncryptedMessage());
 
         $this->streamTime = (int) microtime(true);
 
@@ -272,6 +272,14 @@ final class UDP extends Socket
         }
 
         parent::close();
+    }
+
+    /**
+     * Whether the socket is already closed.
+     */
+    public function isClosed(): bool
+    {
+        return !$this->socket;
     }
 
     /**

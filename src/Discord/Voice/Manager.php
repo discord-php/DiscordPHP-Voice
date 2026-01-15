@@ -156,12 +156,16 @@ final class Manager
             return; // This voice state update isn't for our guild.
         }
 
-        $this->getClient($channel)
-            ->setData([
-                'session' => $state->session_id,
-                'deaf' => $state->deaf,
-                'mute' => $state->mute,
-            ]);
+        $client = $this->getClient($channel);
+        if (!$client) {
+            return; // We might have left the voice channel already.
+        }
+
+        $client->setData([
+            'session' => $state->session_id,
+            'deaf' => $state->deaf,
+            'mute' => $state->mute,
+        ]);
 
         $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id, 'session_id' => $state->session_id]);
         $this->discord->voice_sessions[$channel->guild_id] = $state->session_id;
@@ -181,17 +185,20 @@ final class Manager
             return; // This voice server update isn't for our guild.
         }
 
+        $client = $this->getClient($channel);
+        if (!$client) {
+            return; // We might have left the voice channel already.
+        }
+
         $this->discord->getLogger()->info('received token and endpoint for voice session', [
             'guild' => $channel->guild_id,
             'token' => '*****',
             'endpoint' => $state->endpoint,
         ]);
 
-        $client = $this->getClient($channel);
-
         $client->once('ready', function () use (&$client, $deferred, $channel) {
             $this->discord->logger->info('voice manager is ready');
-            $this->discord->voiceClients[$channel->guild_id] = $client;
+            $this->discord->voice->clients[$channel->guild_id] = $client;
             $deferred->resolve($client);
         });
         $client->once('error', function ($e) use ($deferred) {
@@ -200,7 +207,7 @@ final class Manager
         });
         $client->once('close', function () use ($channel) {
             $this->discord->logger->warning('voice manager closed');
-            unset($this->discord->voiceClients[$channel->guild_id]);
+            unset($this->discord->voice->clients[$channel->guild_id]);
             unset($this->discord->voice_sessions[$channel->guild_id]);
         });
 

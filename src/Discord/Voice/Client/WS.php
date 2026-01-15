@@ -288,7 +288,7 @@ final class WS
     {
         /** @var SessionDescription */
         $sd = $this->discord->factory(SessionDescription::class, (array) $data->d, true);
-        
+
         $this->vc->ready = true;
         $this->mode = $sd->mode === $this->mode ? $this->mode : 'aead_aes256_gcm_rtpsize';
         $this->rawKey = $data->d['secret_key'];
@@ -349,7 +349,7 @@ final class WS
     {
         /** @var Hello */
         $hello = $this->discord->factory(Hello::class, (array) $data->d, true);
-        
+
         $this->hbInterval = $this->vc->heartbeatInterval = $hello->heartbeat_interval;
         $this->sendHeartbeat();
         $this->heartbeat = $this->discord->loop->addPeriodicTimer(
@@ -581,8 +581,10 @@ final class WS
                 $this->discord->logger->debug('sessions', ['voice_sessions' => $this->discord->voice_sessions]);
             }
             $this->vc->voice_sessions[$this->vc->channel->guild_id] = null;
-            $this->vc->close();
-            $this->vc->emit('close');
+            // prevent race conditions
+            if ($this->vc->ready) {
+                $this->vc->close();
+            }
 
             return;
         }

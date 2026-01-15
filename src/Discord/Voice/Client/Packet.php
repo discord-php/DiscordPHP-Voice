@@ -56,7 +56,7 @@ final class Packet
     public ?string $encryptedAudio;
 
     /**
-     * The dencrypted audio.
+     * The decrypted audio.
      */
     public null|false|string $decryptedAudio;
 
@@ -97,10 +97,14 @@ final class Packet
             throw new LibSodiumNotFoundException('libsodium-php could not be found.');
         }
 
-        $this->unpack($data);
 
         if ($decrypt) {
+            $this->unpack($data);
             $this->decrypt();
+        } else {
+            $this->decryptedAudio = $data;
+            $this->header = $this->buildHeader()->__toString();
+            $this->encrypt();
         }
     }
 
@@ -226,6 +230,21 @@ final class Packet
         }
     }
 
+    public function encrypt()
+    {
+        $header = $this->getHeader();
+
+        // pad nonce to 12 bytes for AES 256 GCM
+        $nonce = pack("V", $this->seq - 1);
+        $paddedNonce = str_pad($nonce, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES, "\0", STR_PAD_RIGHT);
+
+        // encrypt the audio
+        $this->encryptedAudio = sodium_crypto_aead_aes256gcm_encrypt($this->decryptedAudio, $header, $paddedNonce, $this->key);
+
+        // set the raw encrypted data with header prepended and nonce appended
+        $this->rawData = $header . $this->encryptedAudio . $nonce;
+    }
+
     /**
      * Initilizes the buffer with no encryption.
      *
@@ -268,8 +287,8 @@ final class Packet
         $header[HeaderValuesEnum::RTP_PAYLOAD_INDEX->value] = pack(FormatPackEnum::C->value, HeaderValuesEnum::RTP_PAYLOAD_TYPE->value);
 
         return $header->writeShort($this->seq, HeaderValuesEnum::SEQ_INDEX->value)
-            ->writeUInt($this->timestamp, HeaderValuesEnum::TIMESTAMP_OR_NONCE_INDEX->value)
-            ->writeUInt($this->ssrc, HeaderValuesEnum::SSRC_INDEX->value);
+            ->writeUInt32BE($this->timestamp, HeaderValuesEnum::TIMESTAMP_OR_NONCE_INDEX->value)
+            ->writeUInt32BE($this->ssrc, HeaderValuesEnum::SSRC_INDEX->value);
     }
 
     /**
@@ -367,19 +386,20 @@ final class Packet
     }
 
     /**
-     * Handles to string casting of object.
-     */
-    public function __toString(): string
-    {
-        return (string) $this->buffer ?? $this->decryptedAudio ?? '';
-    }
-
-    /**
      * Retrieves the decrypted audio data.
      * Will return null if the audio data is not decrypted and false on error.
      */
     public function getAudioData(): string|false|null
     {
         return $this->decryptedAudio ?? null;
+    }
+
+    /**
+     * Retrieves the encrypted audio data with header, ready for sending.
+     * Will return null if the audio data is not encrypted.
+     */
+    public function getEncryptedMessage(): string|null
+    {
+        return $this->rawData ?? null;
     }
 }
