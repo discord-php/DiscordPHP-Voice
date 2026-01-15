@@ -30,6 +30,7 @@ use Discord\Voice\Client\WS;
 use Discord\Voice\Processes\Dca;
 use Discord\Voice\Processes\Ffmpeg;
 use Discord\Voice\Processes\OpusDecoderInterface;
+use Discord\Voice\Processes\OpusFfi;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
@@ -323,6 +324,10 @@ class VoiceClient extends EventEmitter
         $this->data['session'] = $this->data['session'] ?? null;
 
         $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
+
+        if (extension_loaded('ffi')) {
+            $this->setDecoder(OpusFfi::new());
+        }
 
         if ($this->shouldBoot) {
             $this->boot();
