@@ -48,6 +48,11 @@ class OpusFfi implements OpusDecoderInterface
         ', 'libopus.so.0');
     }
 
+    public static function new(): self
+    {
+        return new self();
+    }
+
     /**
      * Creates a FFI instance (code in C) to decode Opus audio data.
      * By using the libopus library, this function decodes Opus-encoded audio data
