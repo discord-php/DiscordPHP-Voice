@@ -22,8 +22,9 @@
         "php": "^8.1.2"
     },
     "require-dev": {
-        "team-reflex/discord-php": "^10.45.7",
-        "ext-ffi": "*"
+        "team-reflex/discord-php": "dev-master",
+        "ext-ffi": "*",
+        "friendsofphp/php-cs-fixer": "^3"
     },
     "autoload": {
         "psr-4": {

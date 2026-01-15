@@ -279,7 +279,7 @@ final class UDP extends Socket
      */
     public function isClosed(): bool
     {
-        return !$this->socket;
+        return ! $this->socket;
     }
 
     /**

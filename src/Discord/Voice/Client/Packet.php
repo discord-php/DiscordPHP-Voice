@@ -97,7 +97,6 @@ final class Packet
             throw new LibSodiumNotFoundException('libsodium-php could not be found.');
         }
 
-
         if ($decrypt) {
             $this->unpack($data);
             $this->decrypt();
@@ -235,14 +234,14 @@ final class Packet
         $header = $this->getHeader();
 
         // pad nonce to 12 bytes for AES 256 GCM
-        $nonce = pack("V", $this->seq - 1);
+        $nonce = pack('V', $this->seq - 1);
         $paddedNonce = str_pad($nonce, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES, "\0", STR_PAD_RIGHT);
 
         // encrypt the audio
         $this->encryptedAudio = sodium_crypto_aead_aes256gcm_encrypt($this->decryptedAudio, $header, $paddedNonce, $this->key);
 
         // set the raw encrypted data with header prepended and nonce appended
-        $this->rawData = $header . $this->encryptedAudio . $nonce;
+        $this->rawData = $header.$this->encryptedAudio.$nonce;
     }
 
     /**

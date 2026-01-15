@@ -29,7 +29,7 @@ use Discord\Voice\Client\User;
 use Discord\Voice\Client\WS;
 use Discord\Voice\Processes\Dca;
 use Discord\Voice\Processes\Ffmpeg;
-use Discord\Voice\Processes\OpusFfi;
+use Discord\Voice\Processes\OpusDecoderInterface;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
@@ -82,11 +82,11 @@ class VoiceClient extends EventEmitter
     public ?UDP $udp;
 
     /**
-     * The Opus FFI instance.
+     * The Opus Decoder instance.
      *
-     * @var OpusFFI The Opus FFI instance used for decoding audio.
+     * @var OpusDecoderInterface|null The Opus Decoder instance used for decoding audio.
      */
-    public OpusFFI $opusffi;
+    public ?OpusDecoderInterface $opusdecoder = null;
 
     /**
      * The Voice WebSocket endpoint.
@@ -323,8 +323,6 @@ class VoiceClient extends EventEmitter
         $this->data['session'] = $this->data['session'] ?? null;
 
         $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
-
-        $this->opusffi = new OpusFFI();
 
         if ($this->shouldBoot) {
             $this->boot();
@@ -1005,8 +1003,7 @@ class VoiceClient extends EventEmitter
         }
 
         // Only disconnect if we weren't disconnected by discord
-        if (!$this->udp->isClosed())
-        {
+        if (! $this->udp->isClosed()) {
             $this->disconnect();
         }
 
@@ -1169,6 +1166,7 @@ class VoiceClient extends EventEmitter
     {
         if (is_string($voicePacket)) {
             $voicePacket = new Packet($voicePacket, key: $this->udp->ws->secretKey);
+
             return;
         }
 
@@ -1191,6 +1189,7 @@ class VoiceClient extends EventEmitter
         $this->emit('raw', [$message, $this]);
 
         $ss = $this->speakingStatus->get('ssrc', $voicePacket->getSSRC());
+        /** @var Process */
         $decoder = $this->voiceDecoders[$voicePacket->getSSRC()] ?? null;
 
         if (null === $ss) {
@@ -1205,16 +1204,13 @@ class VoiceClient extends EventEmitter
             if (! isset($this->receiveStreams[$ss->ssrc])) {
                 $this->receiveStreams[$ss->ssrc] = new ReceiveStream();
 
-                $this->receiveStreams[$ss->ssrc]->on('pcm', function ($d) {
-                    $this->emit('channel-pcm', [$d, $this]);
-                });
+                $this->receiveStreams[$ss->ssrc]->on('pcm', fn ($d) => $this->emit('channel-pcm', [$d, $this]));
 
-                $this->receiveStreams[$ss->ssrc]->on('opus', function ($d) {
-                    $this->emit('channel-opus', [$d, $this]);
-                });
+                $this->receiveStreams[$ss->ssrc]->on('opus', fn ($d) => $this->emit('channel-opus', [$d, $this]));
             }
 
             $this->createDecoder($ss);
+            /** @var Process */
             $decoder = $this->voiceDecoders[$ss->ssrc] ?? null;
         }
 
@@ -1233,15 +1229,17 @@ class VoiceClient extends EventEmitter
             return; // no audio data to write
         }
 
-        $data = $this->opusffi->decode($voicePacket->decryptedAudio);
+        if (isset($this->opusdecoder)) {
+            $data = $this->opusdecoder->decode($voicePacket->decryptedAudio);
 
-        if (empty(trim($data))) {
-            $this->discord->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
+            if (empty(trim($data))) {
+                $this->discord->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
 
-            return; // no audio data to write
+                return; // no audio data to write
+            }
+
+            $decoder->stdin->write($data);
         }
-
-        $decoder->stdin->write($data);
     }
 
     /**
@@ -1427,5 +1425,15 @@ class VoiceClient extends EventEmitter
         }
 
         return $this;
+    }
+
+    /**
+     * Sets the Opus decoder.
+     *
+     * @param OpusDecoderInterface|null $opusdecoder The Opus decoder to set.
+     */
+    public function setDecoder(?OpusDecoderInterface $opusdecoder = null): void
+    {
+        $this->opusdecoder = $opusdecoder;
     }
 }

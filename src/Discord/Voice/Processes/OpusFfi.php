@@ -27,7 +27,7 @@ use FFI;
  * @method   int   opus_decode(mixed $st, mixed $data, int $len, mixed $pcm, int $frame_size, int $decode_fec)
  * @method   void  opus_decoder_destroy(mixed $st)
  */
-class OpusFFI
+class OpusFfi implements OpusDecoderInterface
 {
     protected FFI $ffi;
 
@@ -46,6 +46,11 @@ class OpusFFI
         int opus_decode(OpusDecoder *st, const unsigned char *data, opus_int32 len, opus_int16 *pcm, int frame_size, int decode_fec);
         void opus_decoder_destroy(OpusDecoder *st);
         ', 'libopus.so.0');
+    }
+
+    public static function new(): self
+    {
+        return new self();
     }
 
     /**
