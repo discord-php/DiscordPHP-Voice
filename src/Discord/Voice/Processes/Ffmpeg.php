@@ -88,10 +88,9 @@ final class Ffmpeg extends ProcessAbstract
         }
 
         $flags = implode(' ', $flags);
-        $cmd = self::$exec." {$flags}";
 
         return new Process(
-            $cmd,
+            self::$exec." {$flags}",
             fds: [
                 ['socket'],
                 ['socket'],
