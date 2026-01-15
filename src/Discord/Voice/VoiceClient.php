@@ -84,7 +84,7 @@ class VoiceClient extends EventEmitter
     /**
      * The Opus Decoder instance.
      *
-     * @var OpusDecoderInterface The Opus Decoder instance used for decoding audio.
+     * @var OpusDecoderInterface|null The Opus Decoder instance used for decoding audio.
      */
     public ?OpusDecoderInterface $opusdecoder = null;
 
