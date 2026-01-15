@@ -30,7 +30,6 @@ use Discord\Voice\Client\WS;
 use Discord\Voice\Processes\Dca;
 use Discord\Voice\Processes\Ffmpeg;
 use Discord\Voice\Processes\OpusDecoderInterface;
-use Discord\Voice\Processes\OpusFfi;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
@@ -1004,8 +1003,7 @@ class VoiceClient extends EventEmitter
         }
 
         // Only disconnect if we weren't disconnected by discord
-        if (!$this->udp->isClosed())
-        {
+        if (! $this->udp->isClosed()) {
             $this->disconnect();
         }
 
@@ -1168,6 +1166,7 @@ class VoiceClient extends EventEmitter
     {
         if (is_string($voicePacket)) {
             $voicePacket = new Packet($voicePacket, key: $this->udp->ws->secretKey);
+
             return;
         }
 
@@ -1430,7 +1429,7 @@ class VoiceClient extends EventEmitter
 
     /**
      * Enables or disables the Opus FFI decoder.
-     * 
+     *
      * @param bool $enable Whether to enable (true) or disable (false) the Opus FFI decoder.
      */
     public function setDecoder(?OpusDecoderInterface $opusdecoder = null): void

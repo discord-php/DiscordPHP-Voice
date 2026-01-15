@@ -157,7 +157,7 @@ final class Manager
         }
 
         $client = $this->getClient($channel);
-        if (!$client) {
+        if (! $client) {
             return; // We might have left the voice channel already.
         }
 
@@ -186,7 +186,7 @@ final class Manager
         }
 
         $client = $this->getClient($channel);
-        if (!$client) {
+        if (! $client) {
             return; // We might have left the voice channel already.
         }
 
