@@ -27,7 +27,7 @@ use FFI;
  * @method   int   opus_decode(mixed $st, mixed $data, int $len, mixed $pcm, int $frame_size, int $decode_fec)
  * @method   void  opus_decoder_destroy(mixed $st)
  */
-class OpusFFI
+class OpusFFI implements OpusDecoderInterface
 {
     protected FFI $ffi;
 
