@@ -13,7 +13,7 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/discord-php/DiscordPHP/issues",
+        "issues": "https://github.com/discord-php/DiscordPHP-Voice/issues",
         "wiki": "https://github.com/discord-php/DiscordPHP/wiki",
         "docs": "https://discord-php.github.io/DiscordPHP/",
         "chat": "https://discord.gg/dphp"
