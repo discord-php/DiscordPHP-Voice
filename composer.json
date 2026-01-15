@@ -30,14 +30,6 @@
             "Discord\\": "src/Discord"
         }
     },
-    "suggest": {
-        "ext-gmp": "For 64 bit calculations on x86 (32 bit) PHP.",
-        "ext-uv": "For a faster, and more performant loop. Preferred.",
-        "ext-ev": "For a faster, and more performant loop.",
-        "ext-event": "For a faster, and more performant loop.",
-        "ext-mbstring": "For accurate calculations of string length when handling non-english characters.",
-        "ext-fileinfo": "For function mime_content_type()."
-    },
     "scripts": {
         "pint": ["./vendor/bin/pint --config ./pint.json"],
         "cs": ["./vendor/bin/php-cs-fixer fix"],
