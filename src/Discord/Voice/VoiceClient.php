@@ -324,8 +324,6 @@ class VoiceClient extends EventEmitter
 
         $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
 
-        $this->opusffi = new OpusFFI();
-
         if ($this->shouldBoot) {
             $this->boot();
         }
@@ -1191,6 +1189,7 @@ class VoiceClient extends EventEmitter
         $this->emit('raw', [$message, $this]);
 
         $ss = $this->speakingStatus->get('ssrc', $voicePacket->getSSRC());
+        /** @var Process */
         $decoder = $this->voiceDecoders[$voicePacket->getSSRC()] ?? null;
 
         if (null === $ss) {
@@ -1205,16 +1204,13 @@ class VoiceClient extends EventEmitter
             if (! isset($this->receiveStreams[$ss->ssrc])) {
                 $this->receiveStreams[$ss->ssrc] = new ReceiveStream();
 
-                $this->receiveStreams[$ss->ssrc]->on('pcm', function ($d) {
-                    $this->emit('channel-pcm', [$d, $this]);
-                });
+                $this->receiveStreams[$ss->ssrc]->on('pcm', fn ($d) => $this->emit('channel-pcm', [$d, $this]));
 
-                $this->receiveStreams[$ss->ssrc]->on('opus', function ($d) {
-                    $this->emit('channel-opus', [$d, $this]);
-                });
+                $this->receiveStreams[$ss->ssrc]->on('opus', fn ($d) => $this->emit('channel-opus', [$d, $this]));
             }
 
             $this->createDecoder($ss);
+            /** @var Process */
             $decoder = $this->voiceDecoders[$ss->ssrc] ?? null;
         }
 
@@ -1233,15 +1229,17 @@ class VoiceClient extends EventEmitter
             return; // no audio data to write
         }
 
-        $data = $this->opusffi->decode($voicePacket->decryptedAudio);
+        if (isset($this->opusffi)) {
+            $data = $this->opusffi->decode($voicePacket->decryptedAudio);
 
-        if (empty(trim($data))) {
-            $this->discord->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
+            if (empty(trim($data))) {
+                $this->discord->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
 
-            return; // no audio data to write
+                return; // no audio data to write
+            }
+
+            $decoder->stdin->write($data);
         }
-
-        $decoder->stdin->write($data);
     }
 
     /**
@@ -1427,5 +1425,15 @@ class VoiceClient extends EventEmitter
         }
 
         return $this;
+    }
+
+    /**
+     * Enables or disables the Opus FFI decoder.
+     * 
+     * @param bool $enable Whether to enable (true) or disable (false) the Opus FFI decoder.
+     */
+    public function setDecoder(bool $enable = true): void
+    {
+        $this->opusffi = $enable ? new OpusFfi() : null;
     }
 }
