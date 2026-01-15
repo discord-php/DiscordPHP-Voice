@@ -29,6 +29,7 @@ use Discord\Voice\Client\User;
 use Discord\Voice\Client\WS;
 use Discord\Voice\Processes\Dca;
 use Discord\Voice\Processes\Ffmpeg;
+use Discord\Voice\Processes\OpusDecoderInterface;
 use Discord\Voice\Processes\OpusFfi;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
@@ -82,11 +83,11 @@ class VoiceClient extends EventEmitter
     public ?UDP $udp;
 
     /**
-     * The Opus FFI instance.
+     * The Opus Decoder instance.
      *
-     * @var OpusFFI The Opus FFI instance used for decoding audio.
+     * @var OpusDecoderInterface The Opus Decoder instance used for decoding audio.
      */
-    public OpusFFI $opusffi;
+    public OpusDecoderInterface $opusdecoder;
 
     /**
      * The Voice WebSocket endpoint.
@@ -1229,8 +1230,8 @@ class VoiceClient extends EventEmitter
             return; // no audio data to write
         }
 
-        if (isset($this->opusffi)) {
-            $data = $this->opusffi->decode($voicePacket->decryptedAudio);
+        if (isset($this->opusdecoder)) {
+            $data = $this->opusdecoder->decode($voicePacket->decryptedAudio);
 
             if (empty(trim($data))) {
                 $this->discord->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
@@ -1432,8 +1433,8 @@ class VoiceClient extends EventEmitter
      * 
      * @param bool $enable Whether to enable (true) or disable (false) the Opus FFI decoder.
      */
-    public function setDecoder(bool $enable = true): void
+    public function setDecoder(?OpusDecoderInterface $opusdecoder = null): void
     {
-        $this->opusffi = $enable ? new OpusFfi() : null;
+        $this->opusdecoder = $opusdecoder;
     }
 }
