@@ -511,9 +511,7 @@ class VoiceClient extends EventEmitter
         }
 
         $this->buffer = new RealBuffer();
-        $stream->on('data', function ($d) {
-            $this->buffer->write($d);
-        });
+        $stream->on('data', fn ($d) => $this->buffer->write($d));
 
         /** @var OggStream */
         $ogg = null;
@@ -635,9 +633,7 @@ class VoiceClient extends EventEmitter
         }
 
         $this->buffer = new RealBuffer($this->discord->getLoop());
-        $stream->on('data', function ($d) {
-            $this->buffer->write($d);
-        });
+        $stream->on('data', fn ($d) => $this->buffer->write($d));
 
         $this->setSpeaking(self::MICROPHONE);
 
