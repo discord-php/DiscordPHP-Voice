@@ -86,7 +86,7 @@ class VoiceClient extends EventEmitter
      *
      * @var OpusDecoderInterface The Opus Decoder instance used for decoding audio.
      */
-    public OpusDecoderInterface $opusdecoder;
+    public ?OpusDecoderInterface $opusdecoder = null;
 
     /**
      * The Voice WebSocket endpoint.
@@ -1428,9 +1428,9 @@ class VoiceClient extends EventEmitter
     }
 
     /**
-     * Enables or disables the Opus FFI decoder.
+     * Sets the Opus decoder.
      *
-     * @param bool $enable Whether to enable (true) or disable (false) the Opus FFI decoder.
+     * @param OpusDecoderInterface|null $opusdecoder The Opus decoder to set.
      */
     public function setDecoder(?OpusDecoderInterface $opusdecoder = null): void
     {
