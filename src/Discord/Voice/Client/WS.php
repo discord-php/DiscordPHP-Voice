@@ -49,6 +49,8 @@ use React\Promise\PromiseInterface;
  */
 final class WS
 {
+    private const DAVE_TRANSITION_ID_UNPACK_FORMAT = 'ntransition_id';
+
     /**
      * The maximum DAVE protocol version supported.
      */
@@ -175,6 +177,7 @@ final class WS
         $this->data ??= $this->vc->data;
         $this->discord ??= $this->vc->discord;
         $this->daveState = new DaveState();
+        // Never advertise a protocol version beyond what both this library and the runtime can support.
         $this->maxDaveProtocolVersion = min(self::MAX_DAVE_PROTOCOL_VERSION, DaveRuntime::maxProtocolVersion());
 
         if (! isset($this->data['endpoint'])) {
@@ -348,7 +351,7 @@ final class WS
         $this->mode = $sd->mode === $this->mode ? $this->mode : 'aead_aes256_gcm_rtpsize';
         $this->rawKey = $data->d['secret_key'];
         $this->secretKey = $sd->secret_key;
-        $this->daveState->setProtocolVersion((int) ($data->d['dave_protocol_version'] ?? 0));
+        $this->daveState->setProtocolVersion($this->extractProtocolVersion($data->d));
 
         $this->discord->logger->debug('received description packet, vc ready', ['data' => $sd->__debugInfo()]);
 
@@ -435,7 +438,7 @@ final class WS
     {
         $this->discord->getLogger()->debug('received client connect packet', ['data' => $data]);
         // "d" contains an array with ['user_ids' => array<string>]
-        $userIds = $data->d['user_ids'] ?? [];
+        $userIds = is_array($data->d['user_ids'] ?? null) ? $data->d['user_ids'] : [];
         $this->daveState->addRecognizedUsers($userIds);
         $this->vc->users = array_map(fn (int|string $userId) => $this->discord->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $userIds);
     }
@@ -528,7 +531,7 @@ final class WS
     {
         $this->discord->logger->debug('DAVE Prepare Epoch', ['data' => $data]);
         $epoch = (int) ($data->d['epoch'] ?? 0);
-        $protocolVersion = (int) ($data->d['protocol_version'] ?? 0);
+        $protocolVersion = $this->extractProtocolVersion($data->d);
 
         $this->daveState->prepareEpoch($epoch);
         $this->daveState->setProtocolVersion($protocolVersion);
@@ -560,7 +563,7 @@ final class WS
         $this->discord->logger->debug('DAVE MLS Proposals', ['data' => $data]);
 
         if ($data instanceof BinaryFrame && DaveRuntime::isAvailable()) {
-            // Placeholder for MLS commit/welcome generation through libdave.
+            // TODO: Implement MLS commit/welcome generation through libdave.
             // Intentionally no-op until full commit serialization is wired.
         }
     }
@@ -577,13 +580,7 @@ final class WS
         $this->discord->logger->debug('DAVE MLS Announce Commit Transition', ['data' => $data]);
 
         if ($data instanceof BinaryFrame) {
-            $header = unpack('ntransition_id', substr($data->payload, 0, 2));
-            $transitionId = (int) ($header['transition_id'] ?? 0);
-            $this->daveState->prepareTransition($transitionId, $this->daveState->protocolVersion);
-            $this->send(VoicePayload::new(
-                Op::VOICE_DAVE_TRANSITION_READY,
-                ['transition_id' => $transitionId],
-            ));
+            $this->prepareTransitionAndAck($this->extractTransitionId($data->payload));
         }
     }
 
@@ -593,13 +590,7 @@ final class WS
         $this->discord->logger->debug('DAVE MLS Welcome', ['data' => $data]);
 
         if ($data instanceof BinaryFrame) {
-            $header = unpack('ntransition_id', substr($data->payload, 0, 2));
-            $transitionId = (int) ($header['transition_id'] ?? 0);
-            $this->daveState->prepareTransition($transitionId, $this->daveState->protocolVersion);
-            $this->send(VoicePayload::new(
-                Op::VOICE_DAVE_TRANSITION_READY,
-                ['transition_id' => $transitionId],
-            ));
+            $this->prepareTransitionAndAck($this->extractTransitionId($data->payload));
         }
     }
 
@@ -609,6 +600,34 @@ final class WS
         if (DaveRuntime::isAvailable()) {
             $this->sendDaveBinary(Op::VOICE_DAVE_MLS_KEY_PACKAGE);
         }
+    }
+
+    /**
+     * @param array<mixed> $data
+     */
+    private function extractProtocolVersion(array $data): int
+    {
+        return (int) ($data['dave_protocol_version'] ?? $data['protocol_version'] ?? 0);
+    }
+
+    private function extractTransitionId(string $payload): int
+    {
+        if (strlen($payload) < 2) {
+            return 0;
+        }
+
+        $header = unpack(self::DAVE_TRANSITION_ID_UNPACK_FORMAT, substr($payload, 0, 2));
+
+        return (int) ($header['transition_id'] ?? 0);
+    }
+
+    private function prepareTransitionAndAck(int $transitionId): void
+    {
+        $this->daveState->prepareTransition($transitionId, $this->daveState->protocolVersion);
+        $this->send(VoicePayload::new(
+            Op::VOICE_DAVE_TRANSITION_READY,
+            ['transition_id' => $transitionId],
+        ));
     }
 
     /**

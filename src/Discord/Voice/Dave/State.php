@@ -79,7 +79,7 @@ final class State
     }
 
     /**
-     * @return array<int, string>
+     * @return list<string>
      */
     public function recognizedUsers(): array
     {

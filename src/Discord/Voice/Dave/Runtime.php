@@ -70,7 +70,10 @@ final class Runtime
             return;
         }
 
-        $libraryPath = getenv('DISCORDPHP_DAVE_LIBRARY') ?: self::DEFAULT_LIBRARY_PATH;
+        $libraryPath = getenv('DISCORDPHP_DAVE_LIBRARY');
+        if ($libraryPath === false || $libraryPath === '') {
+            $libraryPath = self::DEFAULT_LIBRARY_PATH;
+        }
 
         try {
             self::$ffi = FFI::cdef(

@@ -17,6 +17,9 @@ namespace Discord\Voice\Dave;
 
 final class BinaryFrame
 {
+    private const MIN_HEADER_SIZE = 3;
+    private const HEADER_UNPACK_FORMAT = 'nsequence/Copcode';
+
     public function __construct(
         public readonly int $sequence,
         public readonly int $opcode,
@@ -26,11 +29,11 @@ final class BinaryFrame
 
     public static function fromPayload(string $payload): ?self
     {
-        if (strlen($payload) < 3) {
+        if (strlen($payload) < self::MIN_HEADER_SIZE) {
             return null;
         }
 
-        $header = unpack('nsequence/Copcode', substr($payload, 0, 3));
+        $header = unpack(self::HEADER_UNPACK_FORMAT, substr($payload, 0, self::MIN_HEADER_SIZE));
         if (! $header) {
             return null;
         }
@@ -38,7 +41,7 @@ final class BinaryFrame
         return new self(
             $header['sequence'],
             $header['opcode'],
-            substr($payload, 3)
+            substr($payload, self::MIN_HEADER_SIZE)
         );
     }
 

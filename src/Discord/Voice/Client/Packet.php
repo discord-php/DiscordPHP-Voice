@@ -80,12 +80,14 @@ final class Packet
     /**
      * Constructs the voice packet.
      *
-     * @param string      $data       The Opus data to encode.
-     * @param int         $ssrc       The client SSRC value.
-     * @param int         $seq        The packet sequence.
-     * @param int         $timestamp  The packet timestamp.
-     * @param bool        $encryption Whether the packet should be encrypted.
-     * @param string|null $key        The encryption key.
+     * @param string                              $data                   The Opus data to encode.
+     * @param int                                 $ssrc                   The client SSRC value.
+     * @param int                                 $seq                    The packet sequence.
+     * @param int                                 $timestamp              The packet timestamp.
+     * @param bool                                $encryption             Whether the packet should be encrypted.
+     * @param string|null                         $key                    The encryption key.
+     * @param null|callable(string): string       $outboundFrameEncryptor Optional callback to transform outgoing decrypted frame data.
+     * @param null|callable(string): false|string $inboundFrameDecryptor  Optional callback to transform incoming decrypted frame data.
      */
     public function __construct(
         ?string $data = null,
@@ -94,8 +96,8 @@ final class Packet
         public ?int $timestamp = null,
         bool $decrypt = true,
         protected ?string $key = null,
-        protected $outboundFrameEncryptor = null,
-        protected $inboundFrameDecryptor = null
+        protected mixed $outboundFrameEncryptor = null,
+        protected mixed $inboundFrameDecryptor = null
     ) {
         if (! function_exists('sodium_crypto_secretbox')) {
             throw new LibSodiumNotFoundException('libsodium-php could not be found.');
