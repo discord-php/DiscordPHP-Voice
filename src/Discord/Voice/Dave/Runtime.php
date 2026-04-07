@@ -20,9 +20,9 @@ use FFI;
 final class Runtime
 {
     private const DEFAULT_LIBRARY_PATH = 'libdave.so';
-    private const DAVE_FFI_DEFINITIONS = '
-        unsigned short daveMaxSupportedProtocolVersion(void);
-    ';
+    private const DAVE_FFI_DEFINITIONS = <<<'CDEF'
+unsigned short daveMaxSupportedProtocolVersion(void);
+CDEF;
 
     private static bool $loaded = false;
 
