@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -118,7 +119,11 @@ final class UDP extends Socket
                 return null;
             }
 
-            return $this->ws->vc->handleAudioData(new Packet($message, key: $secret));
+            return $this->ws->vc->handleAudioData(new Packet(
+                $message,
+                key: $secret,
+                inboundFrameDecryptor: [$this->ws->vc, 'decryptDaveFrame']
+            ));
         });
     }
 
@@ -254,6 +259,7 @@ final class UDP extends Socket
             $this->ws->vc->timestamp,
             false,
             $this->ws->secretKey,
+            [$this->ws->vc, 'encryptDaveFrame'],
         );
         $this->send($packet->getEncryptedMessage());
 

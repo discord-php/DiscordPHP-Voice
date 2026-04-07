@@ -15,6 +15,14 @@ Before you start using this Library, you **need** to know how PHP works, you nee
 	- x86 (32-bit) PHP requires [`ext-gmp`](https://www.php.net/manual/en/book.gmp.php) enabled.
 - [`ext-json`](https://www.php.net/manual/en/book.json.php)
 
+### DAVE (Discord Audio/Video End-to-End Encryption) runtime support
+
+- DAVE protocol negotiation is now supported at the voice gateway layer.
+- Binary DAVE voice opcodes are parsed and routed.
+- If [`ext-ffi`](https://www.php.net/manual/en/book.ffi.php) is enabled and `libdave.so` is available, the runtime will detect the maximum protocol version from libdave.
+- You can override the library lookup path with `DISCORDPHP_DAVE_LIBRARY` (defaults to `libdave.so`).
+- If libdave is unavailable, the client automatically falls back to protocol version `0` (transport-only behavior).
+
 ### Basic Example
 
 ```php

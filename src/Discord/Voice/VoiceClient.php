@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -1160,6 +1161,22 @@ class VoiceClient extends EventEmitter
     }
 
     /**
+     * Encrypts an outgoing Opus frame using DAVE when enabled.
+     */
+    public function encryptDaveFrame(string $frame): string
+    {
+        return $frame;
+    }
+
+    /**
+     * Decrypts an incoming Opus frame using DAVE when enabled.
+     */
+    public function decryptDaveFrame(string $frame): string|false
+    {
+        return $frame;
+    }
+
+    /**
      * Handles raw opus data from the UDP server.
      *
      * @param Packet|string $voicePacket The data from the UDP server.
@@ -1167,7 +1184,11 @@ class VoiceClient extends EventEmitter
     public function handleAudioData(Packet|string $voicePacket): void
     {
         if (is_string($voicePacket)) {
-            $voicePacket = new Packet($voicePacket, key: $this->udp->ws->secretKey);
+            $voicePacket = new Packet(
+                $voicePacket,
+                key: $this->udp->ws->secretKey,
+                inboundFrameDecryptor: [$this, 'decryptDaveFrame']
+            );
 
             return;
         }

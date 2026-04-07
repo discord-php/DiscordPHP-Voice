@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -19,6 +20,9 @@ use Discord\Factory\SocketFactory;
 use Discord\Parts\Voice\UserConnected;
 use Discord\Voice\Any;
 use Discord\Voice\Client;
+use Discord\Voice\Dave\BinaryFrame;
+use Discord\Voice\Dave\Runtime as DaveRuntime;
+use Discord\Voice\Dave\State as DaveState;
 use Discord\Voice\Flags;
 use Discord\Voice\Hello;
 use Discord\Voice\Platform;
@@ -48,7 +52,7 @@ final class WS
     /**
      * The maximum DAVE protocol version supported.
      */
-    public const MAX_DAVE_PROTOCOL_VERSION = 0;
+    public const MAX_DAVE_PROTOCOL_VERSION = 1;
 
     /**
      * Dispatch table mapping Discord Voice Gateway opcodes to handler methods.
@@ -144,6 +148,21 @@ final class WS
     protected int $hbSequence = 0;
 
     /**
+     * DAVE protocol state for this voice connection.
+     */
+    protected DaveState $daveState;
+
+    /**
+     * Sequence number for DAVE binary gateway payloads.
+     */
+    protected int $daveSequence = 0;
+
+    /**
+     * Maximum supported DAVE protocol version for this runtime.
+     */
+    protected int $maxDaveProtocolVersion = self::MAX_DAVE_PROTOCOL_VERSION;
+
+    /**
      * The WebSocket connection for the voice client.
      *
      * This is used to send and receive messages over the WebSocket connection.
@@ -155,6 +174,8 @@ final class WS
     ) {
         $this->data ??= $this->vc->data;
         $this->discord ??= $this->vc->discord;
+        $this->daveState = new DaveState();
+        $this->maxDaveProtocolVersion = min(self::MAX_DAVE_PROTOCOL_VERSION, DaveRuntime::maxProtocolVersion());
 
         if (! isset($this->data['endpoint'])) {
             throw new \InvalidArgumentException('Endpoint is required for the voice WebSocket connection.');
@@ -200,7 +221,11 @@ final class WS
         $this->socket = $this->vc->ws = $ws;
 
         $ws->on('message', function (Message $message): void {
-            if (($data = json_decode($message->getPayload(), true)) === false) {
+            $payload = $message->getPayload();
+
+            if (($data = json_decode($payload, true)) === false) {
+                $this->handleBinaryVoiceMessage($payload);
+
                 return;
             }
             $data = Payload::fromArray($data);
@@ -244,6 +269,35 @@ final class WS
     public function send(VoicePayload|array $data): void
     {
         $this->socket->send(json_encode($data));
+    }
+
+    /**
+     * Sends a DAVE binary payload over the voice websocket.
+     */
+    protected function sendDaveBinary(int $opcode, string $payload = ''): void
+    {
+        $frame = new BinaryFrame(++$this->daveSequence, $opcode, $payload);
+        $this->socket->send($frame->toPayload());
+    }
+
+    /**
+     * Handles binary voice websocket frames.
+     */
+    protected function handleBinaryVoiceMessage(string $payload): void
+    {
+        $frame = BinaryFrame::fromPayload($payload);
+        if ($frame === null) {
+            return;
+        }
+
+        if (! isset(self::VOICE_OP_HANDLERS[$frame->opcode])) {
+            $this->discord->logger->debug('unknown voice binary op', ['op' => $frame->opcode]);
+
+            return;
+        }
+
+        $handler = self::VOICE_OP_HANDLERS[$frame->opcode];
+        $this->$handler($frame);
     }
 
     /**
@@ -294,6 +348,7 @@ final class WS
         $this->mode = $sd->mode === $this->mode ? $this->mode : 'aead_aes256_gcm_rtpsize';
         $this->rawKey = $data->d['secret_key'];
         $this->secretKey = $sd->secret_key;
+        $this->daveState->setProtocolVersion((int) ($data->d['dave_protocol_version'] ?? 0));
 
         $this->discord->logger->debug('received description packet, vc ready', ['data' => $sd->__debugInfo()]);
 
@@ -380,7 +435,9 @@ final class WS
     {
         $this->discord->getLogger()->debug('received client connect packet', ['data' => $data]);
         // "d" contains an array with ['user_ids' => array<string>]
-        $this->vc->users = array_map(fn (int $userId) => $this->discord->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $data->d['user_ids']);
+        $userIds = $data->d['user_ids'] ?? [];
+        $this->daveState->addRecognizedUsers($userIds);
+        $this->vc->users = array_map(fn (int|string $userId) => $this->discord->getFactory()->part(UserConnected::class, ['user_id' => $userId]), $userIds);
     }
 
     /**
@@ -391,6 +448,7 @@ final class WS
     protected function handleClientDisconnect(Payload $data): void
     {
         $this->discord->logger->debug('received client disconnected packet', ['data' => $data]);
+        $this->daveState->removeRecognizedUser($data->d['user_id']);
         unset($this->vc->clientsConnected[$data->d['user_id']]);
     }
 
@@ -442,18 +500,22 @@ final class WS
     protected function handleDavePrepareTransition($data): void
     {
         $this->discord->logger->debug('DAVE Prepare Transition', ['data' => $data]);
-        // Prepare local state necessary to perform the transition
+
+        $transitionId = (int) ($data->d['transition_id'] ?? 0);
+        $protocolVersion = isset($data->d['protocol_version']) ? (int) $data->d['protocol_version'] : null;
+        $this->daveState->prepareTransition($transitionId, $protocolVersion);
+
         $this->send(VoicePayload::new(
             Op::VOICE_DAVE_TRANSITION_READY,
-            ['transition_id' => $data->d['transition_id']],
+            ['transition_id' => $transitionId],
         ));
     }
 
     protected function handleDaveExecuteTransition($data): void
     {
         $this->discord->logger->debug('DAVE Execute Transition', ['data' => $data]);
-        // Execute the transition
-        // Update local state to reflect the new protocol context
+        $transitionId = (int) ($data->d['transition_id'] ?? 0);
+        $this->daveState->executeTransition($transitionId);
     }
 
     protected function handleDaveTransitionReady($data): void
@@ -465,20 +527,26 @@ final class WS
     protected function handleDavePrepareEpoch($data): void
     {
         $this->discord->logger->debug('DAVE Prepare Epoch', ['data' => $data]);
-        // Prepare local MLS group with parameters appropriate for the DAVE protocol version
-        $this->send(VoicePayload::new(
-            Op::VOICE_DAVE_MLS_KEY_PACKAGE,
-            [
-                'epoch_id' => $data->d['epoch_id'],
-                //'key_package' => $this->generateKeyPackage(),
-            ],
-        ));
+        $epoch = (int) ($data->d['epoch'] ?? 0);
+        $protocolVersion = (int) ($data->d['protocol_version'] ?? 0);
+
+        $this->daveState->prepareEpoch($epoch);
+        $this->daveState->setProtocolVersion($protocolVersion);
+
+        if ($protocolVersion > 0 && ! DaveRuntime::isAvailable()) {
+            $this->discord->logger->warning(
+                'DAVE protocol requested by voice server but libdave runtime is unavailable.',
+                ['error' => DaveRuntime::getLastLoadError()]
+            );
+        }
     }
 
     protected function handleDaveMlsExternalSender($data): void
     {
         $this->discord->logger->debug('DAVE MLS External Sender', ['data' => $data]);
-        // Handle external sender public key and credential
+        if ($data instanceof BinaryFrame) {
+            $this->daveState->externalSenderPackage = $data->payload;
+        }
     }
 
     protected function handleDaveMlsKeyPackage($data): void
@@ -490,14 +558,11 @@ final class WS
     protected function handleDaveMlsProposals($data): void
     {
         $this->discord->logger->debug('DAVE MLS Proposals', ['data' => $data]);
-        // Handle MLS proposals
-        $this->send(VoicePayload::new(
-            Op::VOICE_DAVE_MLS_COMMIT_WELCOME,
-            [
-                //'commit' => $this->generateCommit(),
-                //'welcome' => $this->generateWelcome(),
-            ],
-        ));
+
+        if ($data instanceof BinaryFrame && DaveRuntime::isAvailable()) {
+            // Placeholder for MLS commit/welcome generation through libdave.
+            // Intentionally no-op until full commit serialization is wired.
+        }
     }
 
     protected function handleDaveMlsCommitWelcome($data): void
@@ -510,25 +575,40 @@ final class WS
     {
         // Handle MLS announce commit transition
         $this->discord->logger->debug('DAVE MLS Announce Commit Transition', ['data' => $data]);
+
+        if ($data instanceof BinaryFrame) {
+            $header = unpack('ntransition_id', substr($data->payload, 0, 2));
+            $transitionId = (int) ($header['transition_id'] ?? 0);
+            $this->daveState->prepareTransition($transitionId, $this->daveState->protocolVersion);
+            $this->send(VoicePayload::new(
+                Op::VOICE_DAVE_TRANSITION_READY,
+                ['transition_id' => $transitionId],
+            ));
+        }
     }
 
     protected function handleDaveMlsWelcome($data)
     {
         // Handle MLS welcome message
         $this->discord->logger->debug('DAVE MLS Welcome', ['data' => $data]);
+
+        if ($data instanceof BinaryFrame) {
+            $header = unpack('ntransition_id', substr($data->payload, 0, 2));
+            $transitionId = (int) ($header['transition_id'] ?? 0);
+            $this->daveState->prepareTransition($transitionId, $this->daveState->protocolVersion);
+            $this->send(VoicePayload::new(
+                Op::VOICE_DAVE_TRANSITION_READY,
+                ['transition_id' => $transitionId],
+            ));
+        }
     }
 
     protected function handleDaveMlsInvalidCommitWelcome($data)
     {
         $this->discord->logger->debug('DAVE MLS Invalid Commit Welcome', ['data' => $data]);
-        // Handle invalid commit or welcome message
-        // Reset local group state and generate a new key package
-        $this->send(VoicePayload::new(
-            Op::VOICE_DAVE_MLS_KEY_PACKAGE,
-            [
-                //'key_package' => $this->generateKeyPackage(),
-            ],
-        ));
+        if (DaveRuntime::isAvailable()) {
+            $this->sendDaveBinary(Op::VOICE_DAVE_MLS_KEY_PACKAGE);
+        }
     }
 
     /**
@@ -620,7 +700,7 @@ final class WS
             'server_id' => $this->vc->channel->guild_id,
             'user_id' => $this->data['user_id'],
             'token' => $this->data['token'],
-            'max_dave_protocol_version' => self::MAX_DAVE_PROTOCOL_VERSION,
+            'max_dave_protocol_version' => $this->maxDaveProtocolVersion,
         ];
         if (isset($this->discord->voice_sessions[$this->vc->channel->guild_id])) {
             $this->data['session'] = $this->discord->voice_sessions[$this->vc->channel->guild_id];

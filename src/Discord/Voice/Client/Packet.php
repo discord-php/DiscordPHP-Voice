@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -92,7 +93,9 @@ final class Packet
         public ?int $seq = null,
         public ?int $timestamp = null,
         bool $decrypt = true,
-        protected ?string $key = null
+        protected ?string $key = null,
+        protected $outboundFrameEncryptor = null,
+        protected $inboundFrameDecryptor = null
     ) {
         if (! function_exists('sodium_crypto_secretbox')) {
             throw new LibSodiumNotFoundException('libsodium-php could not be found.');
@@ -206,6 +209,10 @@ final class Packet
                 $this->key
             );
 
+            if ($resultMessage !== false && is_callable($this->inboundFrameDecryptor)) {
+                $resultMessage = ($this->inboundFrameDecryptor)($resultMessage);
+            }
+
             // If decryption fails, log the error and return
             // Most of the time, the length is 20 bytes either for a ping, or an empty voice/udp packet
             if ($resultMessage === false && strlen($cipherText) !== 20) {
@@ -233,6 +240,13 @@ final class Packet
     public function encrypt()
     {
         $header = $this->getHeader();
+
+        if (is_callable($this->outboundFrameEncryptor)) {
+            $transformed = ($this->outboundFrameEncryptor)($this->decryptedAudio);
+            if (is_string($transformed)) {
+                $this->decryptedAudio = $transformed;
+            }
+        }
 
         // pad nonce to 12 bytes for AES 256 GCM
         $nonce = pack('V', $this->seq - 1);
