@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace Discord\Tests\Unit\Voice;
 
 use Discord\Discord;
+use Discord\Parts\Channel\Channel;
 use Discord\Voice\Client;
 use Discord\Voice\Client\WS;
 use Discord\Voice\Dave\BinaryFrame;
@@ -90,7 +91,12 @@ final class WSSequenceAckTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['emit'])
             ->getMock();
-        $voiceClient->channel = (object) ['guild_id' => 'guild-1', 'id' => 'channel-1'];
+        $channel = (new \ReflectionClass(Channel::class))->newInstanceWithoutConstructor();
+        $attributesProperty = new \ReflectionProperty(Channel::class, 'attributes');
+        $attributesProperty->setAccessible(true);
+        $attributesProperty->setValue($channel, ['guild_id' => 'guild-1', 'id' => 'channel-1']);
+
+        $voiceClient->channel = $channel;
         $voiceClient->method('emit')->willReturn(null);
 
         $loggerProperty = new \ReflectionProperty(Discord::class, 'logger');

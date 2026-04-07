@@ -1083,7 +1083,7 @@ final class WS
             $data['seq_ack'] = $this->daveState->lastReceivedSequence;
         }
 
-        $payload = Payload::new(
+        $payload = VoicePayload::new(
             Op::VOICE_RESUME,
             $data
         );

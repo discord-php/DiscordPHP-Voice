@@ -616,7 +616,7 @@ CDEF;
                 return null;
             }
 
-            return FFI::string(FFI::cast('char*', $encryptedFrame), (int) $bytesWritten[0]);
+            return FFI::string(FFI::addr($encryptedFrame[0]), (int) $bytesWritten[0]);
         } catch (\Throwable $e) {
             self::$lastLoadError = $e->getMessage();
 
@@ -700,7 +700,7 @@ CDEF;
                 return false;
             }
 
-            return FFI::string(FFI::cast('char*', $plaintextFrame), (int) $bytesWritten[0]);
+            return FFI::string(FFI::addr($plaintextFrame[0]), (int) $bytesWritten[0]);
         } catch (\Throwable $e) {
             self::$lastLoadError = $e->getMessage();
 
