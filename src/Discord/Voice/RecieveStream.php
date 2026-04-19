@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -121,7 +122,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function isReadable()
     {
@@ -129,7 +130,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function isWritable()
     {
@@ -137,7 +138,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function write($data)
     {
@@ -146,7 +147,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function end($data = null)
     {
@@ -154,12 +155,15 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
             return;
         }
 
-        $this->write($data);
+        if (null !== $data) {
+            $this->write($data);
+        }
+
         $this->close();
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function close()
     {
@@ -174,7 +178,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function pause()
     {
@@ -190,7 +194,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function resume()
     {
@@ -204,22 +208,37 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
 
         $this->isPaused = false;
 
-        foreach ($this->pcmPauseBuffer as $data) {
+        $pcmPauseBuffer = $this->pcmPauseBuffer;
+        $opusPauseBuffer = $this->opusPauseBuffer;
+        $this->pcmPauseBuffer = [];
+        $this->opusPauseBuffer = [];
+
+        foreach ($pcmPauseBuffer as $data) {
             $this->writePCM($data);
         }
 
-        foreach ($this->opusPauseBuffer as $data) {
+        foreach ($opusPauseBuffer as $data) {
             $this->writeOpus($data);
         }
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function pipe(WritableStreamInterface $dest, array $options = [])
     {
-        $this->pipePCM($dest, $options);
-        $this->pipeOpus($dest, $options);
+        $pipeOptions = $options;
+        $pipeOptions['end'] = false;
+
+        $this->pipePCM($dest, $pipeOptions);
+        $this->pipeOpus($dest, $pipeOptions);
+
+        $end = isset($options['end']) ? $options['end'] : true;
+        if ($end && $this !== $dest) {
+            $this->on('end', function () use ($dest) {
+                $dest->end();
+            });
+        }
     }
 
     /**

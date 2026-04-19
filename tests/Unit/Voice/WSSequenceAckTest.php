@@ -25,131 +25,122 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Ratchet\Client\WebSocket;
 
-final class WSSequenceAckTest extends TestCase
+it('heartbeat uses last received gateway sequence', function (): void {
+    $sentPayload = null;
+    $ws = makeWs($this, function (string $payload) use (&$sentPayload): void {
+        $sentPayload = $payload;
+    });
+
+    invokePrivateMethod($ws, 'recordGatewaySequence', [42]);
+    $ws->sendHeartbeat();
+
+    expect($sentPayload)->toBeString();
+    /** @var string $sentPayload */
+    $payload = json_decode($sentPayload, true, flags: JSON_THROW_ON_ERROR);
+    expect($payload['d']['seq_ack'])->toBe(42);
+});
+
+it('resume uses last received gateway sequence', function (): void {
+    $sentPayload = null;
+    $ws = makeWs($this, function (string $payload) use (&$sentPayload): void {
+        $sentPayload = $payload;
+    });
+
+    invokePrivateMethod($ws, 'recordGatewaySequence', [77]);
+    invokeProtectedMethod($ws, 'handleResume');
+
+    expect($sentPayload)->toBeString();
+    /** @var string $sentPayload */
+    $payload = json_decode($sentPayload, true, flags: JSON_THROW_ON_ERROR);
+    expect($payload['d']['seq_ack'])->toBe(77);
+});
+
+it('binary gateway frames update sequence ack bookkeeping', function (): void {
+    $sentPayload = null;
+    $ws = makeWs($this, function (string $payload) use (&$sentPayload): void {
+        $sentPayload = $payload;
+    });
+
+    invokeProtectedMethod($ws, 'handleBinaryVoiceMessage', [(new BinaryFrame(91, 255, 'ignored'))->toPayload()]);
+    $ws->sendHeartbeat();
+
+    expect($sentPayload)->toBeString();
+    /** @var string $sentPayload */
+    $payload = json_decode($sentPayload, true, flags: JSON_THROW_ON_ERROR);
+    expect($payload['d']['seq_ack'])->toBe(91);
+});
+
+/**
+ * @param callable(string): void $sendHook
+ */
+function makeWs(TestCase $test, callable $sendHook): WS
 {
-    public function testHeartbeatUsesLastReceivedGatewaySequence(): void
-    {
-        $sentPayload = null;
-        $ws = $this->makeWs(function (string $payload) use (&$sentPayload): void {
-            $sentPayload = $payload;
-        });
+    $ws = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();
+    $discord = (new \ReflectionClass(Discord::class))->newInstanceWithoutConstructor();
+    $state = new State();
 
-        $this->invokePrivateMethod($ws, 'recordGatewaySequence', [42]);
-        $ws->sendHeartbeat();
+    $voiceClient = invokeProtectedMethod($test, 'getMockBuilder', [Client::class])
+        ->disableOriginalConstructor()
+        ->onlyMethods(['emit'])
+        ->getMock();
+    $channel = (new \ReflectionClass(Channel::class))->newInstanceWithoutConstructor();
+    $attributesProperty = new \ReflectionProperty(Channel::class, 'attributes');
+    $attributesProperty->setAccessible(true);
+    $attributesProperty->setValue($channel, ['guild_id' => 'guild-1', 'id' => 'channel-1']);
 
-        self::assertIsString($sentPayload);
-        /** @var string $sentPayload */
+    $voiceClient->channel = $channel;
+    $voiceClient->method('emit')->willReturn(null);
 
-        $payload = json_decode($sentPayload, true, flags: JSON_THROW_ON_ERROR);
-        self::assertSame(42, $payload['d']['seq_ack']);
-    }
+    $loggerProperty = new \ReflectionProperty(Discord::class, 'logger');
+    $loggerProperty->setAccessible(true);
+    $loggerProperty->setValue($discord, new NullLogger());
 
-    public function testResumeUsesLastReceivedGatewaySequence(): void
-    {
-        $sentPayload = null;
-        $ws = $this->makeWs(function (string $payload) use (&$sentPayload): void {
-            $sentPayload = $payload;
-        });
+    $voiceSessionsProperty = new \ReflectionProperty(Discord::class, 'voice_sessions');
+    $voiceSessionsProperty->setAccessible(true);
+    $voiceSessionsProperty->setValue($discord, ['guild-1' => 'session-1']);
 
-        $this->invokePrivateMethod($ws, 'recordGatewaySequence', [77]);
-        $this->invokeProtectedMethod($ws, 'handleResume');
+    $socket = invokeProtectedMethod($test, 'getMockBuilder', [WebSocket::class])
+        ->disableOriginalConstructor()
+        ->onlyMethods(['send'])
+        ->getMock();
+    $socket->method('send')->willReturnCallback($sendHook);
 
-        self::assertIsString($sentPayload);
-        /** @var string $sentPayload */
+    $daveStateProperty = new \ReflectionProperty(WS::class, 'daveState');
+    $daveStateProperty->setAccessible(true);
+    $daveStateProperty->setValue($ws, $state);
 
-        $payload = json_decode($sentPayload, true, flags: JSON_THROW_ON_ERROR);
-        self::assertSame(77, $payload['d']['seq_ack']);
-    }
+    $discordProperty = new \ReflectionProperty(WS::class, 'discord');
+    $discordProperty->setAccessible(true);
+    $discordProperty->setValue($ws, $discord);
 
-    public function testBinaryGatewayFramesUpdateSequenceAckBookkeeping(): void
-    {
-        $sentPayload = null;
-        $ws = $this->makeWs(function (string $payload) use (&$sentPayload): void {
-            $sentPayload = $payload;
-        });
+    $socketProperty = new \ReflectionProperty(WS::class, 'socket');
+    $socketProperty->setAccessible(true);
+    $socketProperty->setValue($ws, $socket);
 
-        $this->invokeProtectedMethod($ws, 'handleBinaryVoiceMessage', [(new BinaryFrame(91, 255, 'ignored'))->toPayload()]);
-        $ws->sendHeartbeat();
+    $dataProperty = new \ReflectionProperty(WS::class, 'data');
+    $dataProperty->setAccessible(true);
+    $dataProperty->setValue($ws, ['token' => 'voice-token', 'user_id' => 'self-user']);
 
-        self::assertIsString($sentPayload);
-        /** @var string $sentPayload */
+    $ws->vc = $voiceClient;
 
-        $payload = json_decode($sentPayload, true, flags: JSON_THROW_ON_ERROR);
-        self::assertSame(91, $payload['d']['seq_ack']);
-    }
+    return $ws;
+}
 
-    /**
-     * @param callable(string): void $sendHook
-     */
-    private function makeWs(callable $sendHook): WS
-    {
-        $ws = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();
-        $discord = (new \ReflectionClass(Discord::class))->newInstanceWithoutConstructor();
-        $state = new State();
+/**
+ * @param array<int, mixed> $arguments
+ */
+function invokeProtectedMethod(object $object, string $method, array $arguments = []): mixed
+{
+    $reflectionMethod = new \ReflectionMethod($object, $method);
+    $reflectionMethod->setAccessible(true);
 
-        $voiceClient = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['emit'])
-            ->getMock();
-        $channel = (new \ReflectionClass(Channel::class))->newInstanceWithoutConstructor();
-        $attributesProperty = new \ReflectionProperty(Channel::class, 'attributes');
-        $attributesProperty->setAccessible(true);
-        $attributesProperty->setValue($channel, ['guild_id' => 'guild-1', 'id' => 'channel-1']);
+    return $reflectionMethod->invokeArgs($object, $arguments);
+}
 
-        $voiceClient->channel = $channel;
-        $voiceClient->method('emit')->willReturn(null);
-
-        $loggerProperty = new \ReflectionProperty(Discord::class, 'logger');
-        $loggerProperty->setAccessible(true);
-        $loggerProperty->setValue($discord, new NullLogger());
-
-        $voiceSessionsProperty = new \ReflectionProperty(Discord::class, 'voice_sessions');
-        $voiceSessionsProperty->setAccessible(true);
-        $voiceSessionsProperty->setValue($discord, ['guild-1' => 'session-1']);
-
-        $socket = $this->getMockBuilder(WebSocket::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['send'])
-            ->getMock();
-        $socket->method('send')->willReturnCallback($sendHook);
-
-        $daveStateProperty = new \ReflectionProperty(WS::class, 'daveState');
-        $daveStateProperty->setAccessible(true);
-        $daveStateProperty->setValue($ws, $state);
-
-        $discordProperty = new \ReflectionProperty(WS::class, 'discord');
-        $discordProperty->setAccessible(true);
-        $discordProperty->setValue($ws, $discord);
-
-        $socketProperty = new \ReflectionProperty(WS::class, 'socket');
-        $socketProperty->setAccessible(true);
-        $socketProperty->setValue($ws, $socket);
-
-        $dataProperty = new \ReflectionProperty(WS::class, 'data');
-        $dataProperty->setAccessible(true);
-        $dataProperty->setValue($ws, ['token' => 'voice-token', 'user_id' => 'self-user']);
-
-        $ws->vc = $voiceClient;
-
-        return $ws;
-    }
-
-    /**
-     * @param array<int, mixed> $arguments
-     */
-    private function invokeProtectedMethod(object $object, string $method, array $arguments = []): mixed
-    {
-        $reflectionMethod = new \ReflectionMethod($object, $method);
-        $reflectionMethod->setAccessible(true);
-
-        return $reflectionMethod->invokeArgs($object, $arguments);
-    }
-
-    /**
-     * @param array<int, mixed> $arguments
-     */
-    private function invokePrivateMethod(object $object, string $method, array $arguments = []): mixed
-    {
-        return $this->invokeProtectedMethod($object, $method, $arguments);
-    }
+/**
+ * @param array<int, mixed> $arguments
+ */
+function invokePrivateMethod(object $object, string $method, array $arguments = []): mixed
+{
+    return invokeProtectedMethod($object, $method, $arguments);
 }

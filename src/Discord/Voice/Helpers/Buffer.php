@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -62,7 +63,7 @@ class Buffer extends EventEmitter implements WritableStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function write($data): bool
     {
@@ -123,21 +124,27 @@ class Buffer extends EventEmitter implements WritableStreamInterface
             $deferred->resolve($output);
         } else {
             $this->reads[] = [$deferred, $length];
+            $key = array_key_last($this->reads);
+            $rejectTimedOutRead = function () use ($deferred, $key): void {
+                unset($this->reads[$key]);
+                $deferred->reject(new BufferTimedOutException());
+            };
 
             if ($timeout > 0 && $this->loop !== null) {
-                $timer = $this->loop->addTimer($timeout / 1000, function () use ($deferred) {
-                    $deferred->reject(new BufferTimedOutException());
-                });
+                $timer = $this->loop->addTimer($timeout / 1000, $rejectTimedOutRead);
 
                 $deferred->promise()->then(function () use ($timer) {
                     $this->loop->cancelTimer($timer);
                 });
             } elseif ($timeout === 0) {
-                $deferred->reject(new BufferTimedOutException());
+                $rejectTimedOutRead();
             }
         }
 
-        return $deferred->promise()->then(function ($d) use ($format) {
+        $promise = $deferred->promise();
+        $promise->then(null, static fn () => null);
+
+        return $promise->then(function ($d) use ($format) {
             if ($format !== null) {
                 $unpacked = unpack($format, $d);
 
@@ -181,15 +188,15 @@ class Buffer extends EventEmitter implements WritableStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function isWritable()
     {
-        return $this->closed;
+        return ! $this->closed;
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function end($data = null): void
     {
@@ -198,7 +205,7 @@ class Buffer extends EventEmitter implements WritableStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function close(): void
     {
@@ -206,7 +213,6 @@ class Buffer extends EventEmitter implements WritableStreamInterface
             return;
         }
 
-        $this->buffer = [];
         $this->closed = true;
         $this->emit('close');
     }

@@ -31,11 +31,11 @@ Before you start using this Library, you **need** to know how PHP works, you nee
 COMPOSER_ROOT_VERSION=dev-main composer install --no-interaction --prefer-dist
 ./scripts/setup-libdave.sh
 export DISCORDPHP_DAVE_LIBRARY="$PWD/.cache/libdave/lib/libdave.so"
-phpunit --filter Dave
+./vendor/bin/pest tests/Unit/Dave/RuntimeTest.php
 ```
 
 The setup script currently targets the published Linux x64 BoringSSL release asset `libdave-Linux-X64-boringssl.zip` from `discord/libdave`.
-Use any PHPUnit 9-compatible runner available on your PATH for local validation.
+Use the bundled Pest runner for local validation. `composer unit` runs the default suite with TestDox output, while `composer pest` keeps the parallel full-suite command.
 
 ### Basic Example
 

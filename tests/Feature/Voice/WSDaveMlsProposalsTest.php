@@ -25,102 +25,98 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Ratchet\Client\WebSocket;
 
-final class WSDaveMlsProposalsTest extends TestCase
+afterEach(function (): void {
+    Runtime::reset();
+});
+
+it('mls proposals send commit welcome when runtime builds payload', function (): void {
+    Runtime::configureCallbacks(
+        null,
+        null,
+        fn (string $payload, int $protocolVersion): ?string => "commit:{$protocolVersion}:{$payload}"
+    );
+
+    $sentPayload = null;
+    $ws = makeWsForProposalsTest($this, function (string $payload) use (&$sentPayload): void {
+        $sentPayload = $payload;
+    });
+
+    $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_PROPOSALS, 'proposals');
+    invokeProtectedMethod($ws, 'handleDaveMlsProposals', [$frame]);
+
+    expect($sentPayload)->toBeString();
+    /** @var string $sentPayload */
+    $out = BinaryFrame::fromClientPayload($sentPayload);
+    expect($out)->not->toBeNull();
+    /** @var BinaryFrame $out */
+    expect($out->sequence)->toBeNull();
+    expect($out->opcode)->toBe(Op::VOICE_DAVE_MLS_COMMIT_WELCOME);
+    expect($out->payload)->toBe('commit:1:proposals');
+});
+
+it('mls proposals send invalid commit welcome when runtime cannot build payload', function (): void {
+    Runtime::configureCallbacks(null, null, fn (string $payload, int $protocolVersion): ?string => null);
+
+    $sentPayload = null;
+    $ws = makeWsForProposalsTest($this, function (string $payload) use (&$sentPayload): void {
+        $sentPayload = $payload;
+    });
+
+    $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_PROPOSALS, 'proposals');
+    invokeProtectedMethod($ws, 'handleDaveMlsProposals', [$frame]);
+
+    expect($sentPayload)->toBeString();
+    /** @var string $sentPayload */
+    $out = BinaryFrame::fromClientPayload($sentPayload);
+    expect($out)->not->toBeNull();
+    /** @var BinaryFrame $out */
+    expect($out->sequence)->toBeNull();
+    expect($out->opcode)->toBe(Op::VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME);
+    expect($out->payload)->toBe('');
+});
+
+/**
+ * @param callable(string): void $sendHook
+ */
+function makeWsForProposalsTest(TestCase $test, callable $sendHook): WS
 {
-    protected function tearDown(): void
-    {
-        Runtime::reset();
-    }
+    $ws = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();
+    $discord = (new \ReflectionClass(Discord::class))->newInstanceWithoutConstructor();
+    $state = new State();
+    $state->setProtocolVersion(1);
 
-    public function testMlsProposalsSendCommitWelcomeWhenRuntimeBuildsPayload(): void
-    {
-        Runtime::configureCallbacks(
-            null,
-            null,
-            fn (string $payload, int $protocolVersion): ?string => "commit:{$protocolVersion}:{$payload}"
-        );
+    $loggerProperty = new \ReflectionProperty(Discord::class, 'logger');
+    $loggerProperty->setAccessible(true);
+    $loggerProperty->setValue($discord, new NullLogger());
 
-        $sentPayload = null;
-        $ws = $this->makeWsForProposalsTest(function (string $payload) use (&$sentPayload): void {
-            $sentPayload = $payload;
-        });
+    $daveStateProperty = new \ReflectionProperty(WS::class, 'daveState');
+    $daveStateProperty->setAccessible(true);
+    $daveStateProperty->setValue($ws, $state);
 
-        $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_PROPOSALS, 'proposals');
-        $this->invokeProtectedMethod($ws, 'handleDaveMlsProposals', [$frame]);
+    $discordProperty = new \ReflectionProperty(WS::class, 'discord');
+    $discordProperty->setAccessible(true);
+    $discordProperty->setValue($ws, $discord);
 
-        self::assertIsString($sentPayload);
-        /** @var string $sentPayload */
-        $out = BinaryFrame::fromClientPayload($sentPayload);
-        self::assertNotNull($out);
-        self::assertNull($out->sequence);
-        self::assertSame(Op::VOICE_DAVE_MLS_COMMIT_WELCOME, $out->opcode);
-        self::assertSame('commit:1:proposals', $out->payload);
-    }
+    $socket = invokeProtectedMethod($test, 'getMockBuilder', [WebSocket::class])
+        ->disableOriginalConstructor()
+        ->onlyMethods(['send'])
+        ->getMock();
+    $socket->method('send')->willReturnCallback($sendHook);
 
-    public function testMlsProposalsSendInvalidCommitWelcomeWhenRuntimeCannotBuildPayload(): void
-    {
-        Runtime::configureCallbacks(null, null, fn (string $payload, int $protocolVersion): ?string => null);
+    $socketProperty = new \ReflectionProperty(WS::class, 'socket');
+    $socketProperty->setAccessible(true);
+    $socketProperty->setValue($ws, $socket);
 
-        $sentPayload = null;
-        $ws = $this->makeWsForProposalsTest(function (string $payload) use (&$sentPayload): void {
-            $sentPayload = $payload;
-        });
+    return $ws;
+}
 
-        $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_PROPOSALS, 'proposals');
-        $this->invokeProtectedMethod($ws, 'handleDaveMlsProposals', [$frame]);
+/**
+ * @param array<int, mixed> $arguments
+ */
+function invokeProtectedMethod(object $object, string $method, array $arguments = []): mixed
+{
+    $reflectionMethod = new \ReflectionMethod($object, $method);
+    $reflectionMethod->setAccessible(true);
 
-        self::assertIsString($sentPayload);
-        /** @var string $sentPayload */
-        $out = BinaryFrame::fromClientPayload($sentPayload);
-        self::assertNotNull($out);
-        self::assertNull($out->sequence);
-        self::assertSame(Op::VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME, $out->opcode);
-        self::assertSame('', $out->payload);
-    }
-
-    /**
-     * @param callable(string): void $sendHook
-     */
-    private function makeWsForProposalsTest(callable $sendHook): WS
-    {
-        $ws = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();
-        $discord = (new \ReflectionClass(Discord::class))->newInstanceWithoutConstructor();
-        $state = new State();
-        $state->setProtocolVersion(1);
-
-        $loggerProperty = new \ReflectionProperty(Discord::class, 'logger');
-        $loggerProperty->setAccessible(true);
-        $loggerProperty->setValue($discord, new NullLogger());
-
-        $daveStateProperty = new \ReflectionProperty(WS::class, 'daveState');
-        $daveStateProperty->setAccessible(true);
-        $daveStateProperty->setValue($ws, $state);
-
-        $discordProperty = new \ReflectionProperty(WS::class, 'discord');
-        $discordProperty->setAccessible(true);
-        $discordProperty->setValue($ws, $discord);
-
-        $socket = $this->getMockBuilder(WebSocket::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['send'])
-            ->getMock();
-        $socket->method('send')->willReturnCallback($sendHook);
-
-        $socketProperty = new \ReflectionProperty(WS::class, 'socket');
-        $socketProperty->setAccessible(true);
-        $socketProperty->setValue($ws, $socket);
-
-        return $ws;
-    }
-
-    /**
-     * @param array<int, mixed> $arguments
-     */
-    private function invokeProtectedMethod(object $object, string $method, array $arguments = []): mixed
-    {
-        $reflectionMethod = new \ReflectionMethod($object, $method);
-        $reflectionMethod->setAccessible(true);
-
-        return $reflectionMethod->invokeArgs($object, $arguments);
-    }
+    return $reflectionMethod->invokeArgs($object, $arguments);
 }
