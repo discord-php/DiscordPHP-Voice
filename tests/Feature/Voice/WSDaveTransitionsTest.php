@@ -178,11 +178,21 @@ it('resolveDaveProtocolVersion returns 0 when protocolVersion is 0 or negative',
 });
 
 it('resolveDaveProtocolVersion returns 0 when libdave runtime is unavailable', function (): void {
-    // Runtime::reset() (called in afterEach) ensures isAvailable() returns false.
-    $ws = makeWsForTransitionsTest($this, function (string $payload): void {});
+    $original = getenv('DISCORDPHP_DAVE_LIBRARY') ?: null;
+    putenv('DISCORDPHP_DAVE_LIBRARY');
+    Runtime::reset();
 
-    $result = invokeTransitionsWsMethod($ws, 'resolveDaveProtocolVersion', [1]);
-    expect($result)->toBe(0);
+    try {
+        $ws = makeWsForTransitionsTest($this, function (string $payload): void {});
+
+        $result = invokeTransitionsWsMethod($ws, 'resolveDaveProtocolVersion', [1]);
+        expect($result)->toBe(0);
+    } finally {
+        if ($original !== null) {
+            putenv('DISCORDPHP_DAVE_LIBRARY=' . $original);
+        }
+        Runtime::reset();
+    }
 });
 
 it('resolveDaveProtocolVersion returns min(requested, maxProtocol) when libdave is available', function (): void {
