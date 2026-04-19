@@ -80,14 +80,14 @@ final class Packet
     /**
      * Constructs the voice packet.
      *
-     * @param string                              $data                   The Opus data to encode.
-     * @param int                                 $ssrc                   The client SSRC value.
-     * @param int                                 $seq                    The packet sequence.
-     * @param int                                 $timestamp              The packet timestamp.
-     * @param bool                                $encryption             Whether the packet should be encrypted.
-     * @param string|null                         $key                    The encryption key.
-    * @param null|callable(string): string             $outboundFrameEncryptor Optional callback to transform outgoing decrypted frame data.
-    * @param null|callable(string, self): false|string $inboundFrameDecryptor  Optional callback to transform incoming decrypted frame data.
+     * @param string                                    $data                   The Opus data to encode.
+     * @param int                                       $ssrc                   The client SSRC value.
+     * @param int                                       $seq                    The packet sequence.
+     * @param int                                       $timestamp              The packet timestamp.
+     * @param bool                                      $encryption             Whether the packet should be encrypted.
+     * @param string|null                               $key                    The encryption key.
+     * @param null|callable(string): string             $outboundFrameEncryptor Optional callback to transform outgoing decrypted frame data.
+     * @param null|callable(string, self): false|string $inboundFrameDecryptor  Optional callback to transform incoming decrypted frame data.
      */
     public function __construct(
         ?string $data = null,
@@ -211,8 +211,10 @@ final class Packet
                 $this->key
             );
 
+            $daveApplied = false;
             if ($resultMessage !== false && is_callable($this->inboundFrameDecryptor)) {
                 $resultMessage = ($this->inboundFrameDecryptor)($resultMessage, $this);
+                $daveApplied = true;
             }
 
             // If decryption fails, log the error and return
@@ -221,8 +223,9 @@ final class Packet
                 //$this->log->warning('Failed to decode voice packet.', ['ssrc' => $this->ssrc]);
                 return false;
             }
-            // Check if the message contains an extension and remove it
-            elseif (substr($message, 12, 2) === "\xBE\xDE") {
+            // Check if the message contains an extension and remove it.
+            // Skip when DAVE decryption was applied: its output is already raw Opus with no RTP extension.
+            elseif (! $daveApplied && substr($message, 12, 2) === "\xBE\xDE") {
                 // Reads the 2 bytes after the extension identifier to get the extension length
                 $extLengthData = substr($message, 14, 2);
                 $headerExtensionLength = unpack('n', $extLengthData)[1];

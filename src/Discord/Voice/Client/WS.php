@@ -285,7 +285,7 @@ final class WS
      */
     protected function handleBinaryVoiceMessage(string $payload): void
     {
-        $frame = BinaryFrame::fromPayload($payload);
+        $frame = BinaryFrame::fromServerPayload($payload);
         if ($frame === null) {
             return;
         }
@@ -387,6 +387,9 @@ final class WS
 
         $this->discord->logger->debug('received speaking packet', ['data' => json_decode(json_encode($data->d), true)]);
         $this->vc->speakingStatus[$speaking->user_id] = $speaking;
+        if (isset($speaking->user_id, $speaking->ssrc)) {
+            $this->vc->ssrcToUserId[$speaking->ssrc] = (string) $speaking->user_id;
+        }
         $this->vc->emit('speaking', [$speaking->speaking, $speaking->user_id, $this->vc]);
         $this->vc->emit("speaking.{$speaking->user_id}", [$speaking->speaking, $this->vc]);
     }
@@ -433,6 +436,11 @@ final class WS
         /** @var Resumed */
         $resumed = $this->discord->factory(Resumed::class, (array) $data->d, true);
         $this->discord->getLogger()->debug('received resumed packet', ['data' => $resumed]);
+
+        $rawVersion = $this->extractProtocolVersion(is_array($data->d) ? $data->d : []);
+        if ($rawVersion > 0) {
+            $this->daveState->setProtocolVersion($this->resolveDaveProtocolVersion($rawVersion));
+        }
     }
 
     /**
@@ -540,7 +548,9 @@ final class WS
         }
 
         if ($this->daveState->session !== null) {
-            DaveRuntime::setSessionProtocolVersion($this->daveState->session, $protocolVersion);
+            if (! DaveRuntime::setSessionProtocolVersion($this->daveState->session, $protocolVersion)) {
+                $this->discord->logger->error('Failed to set DAVE session protocol version', ['protocol_version' => $protocolVersion]);
+            }
         }
 
         $this->applySelfDaveEncryptor($protocolVersion);
@@ -592,7 +602,9 @@ final class WS
             $this->daveState->externalSenderPackage = $data->payload;
 
             if ($this->daveState->session !== null) {
-                DaveRuntime::setExternalSender($this->daveState->session, $data->payload);
+                if (! DaveRuntime::setExternalSender($this->daveState->session, $data->payload)) {
+                    $this->discord->logger->error('Failed to set DAVE MLS external sender');
+                }
             }
         }
     }
@@ -828,10 +840,14 @@ final class WS
             $this->daveState->replaceEncryptor($encryptor);
         }
 
-        DaveRuntime::configureEncryptorPassthrough($this->daveState->encryptor, false);
+        if (! DaveRuntime::configureEncryptorPassthrough($this->daveState->encryptor, false)) {
+            $this->discord->logger->error('Failed to configure encryptor passthrough');
+        }
 
         if ($this->daveState->externalSenderPackage !== null) {
-            DaveRuntime::setExternalSender($this->daveState->session, $this->daveState->externalSenderPackage);
+            if (! DaveRuntime::setExternalSender($this->daveState->session, $this->daveState->externalSenderPackage)) {
+                $this->discord->logger->error('Failed to set DAVE MLS external sender from state');
+            }
         }
 
         $shouldInitSession = $resetState || $sessionCreated || $this->daveState->epoch === 1;
@@ -896,8 +912,12 @@ final class WS
             return;
         }
 
-        DaveRuntime::configureDecryptorPassthrough($decryptor, false);
-        DaveRuntime::configureDecryptorKeyRatchet($decryptor, $keyRatchet);
+        if (! DaveRuntime::configureDecryptorPassthrough($decryptor, false)) {
+            $this->discord->logger->error('Failed to configure decryptor passthrough', ['user_id' => $userId]);
+        }
+        if (! DaveRuntime::configureDecryptorKeyRatchet($decryptor, $keyRatchet)) {
+            $this->discord->logger->error('Failed to configure decryptor key ratchet', ['user_id' => $userId]);
+        }
         $keyRatchet->destroy();
 
         $this->daveState->setDecryptor($userId, $decryptor);
@@ -910,7 +930,9 @@ final class WS
         }
 
         if ($protocolVersion <= 0) {
-            DaveRuntime::configureEncryptorPassthrough($this->daveState->encryptor, true);
+            if (! DaveRuntime::configureEncryptorPassthrough($this->daveState->encryptor, true)) {
+                $this->discord->logger->error('Failed to configure encryptor passthrough');
+            }
 
             return;
         }
@@ -926,8 +948,12 @@ final class WS
             return;
         }
 
-        DaveRuntime::configureEncryptorPassthrough($this->daveState->encryptor, false);
-        DaveRuntime::configureEncryptorKeyRatchet($this->daveState->encryptor, $keyRatchet);
+        if (! DaveRuntime::configureEncryptorPassthrough($this->daveState->encryptor, false)) {
+            $this->discord->logger->error('Failed to configure encryptor passthrough');
+        }
+        if (! DaveRuntime::configureEncryptorKeyRatchet($this->daveState->encryptor, $keyRatchet)) {
+            $this->discord->logger->error('Failed to configure encryptor key ratchet');
+        }
         $keyRatchet->destroy();
     }
 
@@ -973,11 +999,13 @@ final class WS
             return;
         }
 
-        if (! $this->initializeDaveRuntimeState($protocolVersion, true)) {
-            return;
-        }
+        if ($regenerateKeyPackage) {
+            if (! $this->initializeDaveRuntimeState($protocolVersion, true)) {
+                return;
+            }
 
-        $this->sendDaveKeyPackage();
+            $this->sendDaveKeyPackage();
+        }
     }
 
     private function recordGatewaySequence(?int $sequence): void
@@ -1127,6 +1155,7 @@ final class WS
             'server_id' => $this->vc->channel->guild_id,
             'session_id' => $this->discord->voice_sessions[$this->vc->channel->guild_id],
             'token' => $this->data['token'],
+            'max_dave_protocol_version' => $this->maxDaveProtocolVersion,
         ];
 
         if ($this->daveState->lastReceivedSequence !== null) {

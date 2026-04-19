@@ -19,23 +19,23 @@ use Discord\Voice\Dave\BinaryFrame;
 
 it('round trips server payloads with header values and binary payloads', function (): void {
     $payload = pack('nC', 513, 7)."mls:\x00ok";
-    $frame = BinaryFrame::fromPayload($payload);
+    $frame = BinaryFrame::fromServerPayload($payload);
 
     expect($frame)->toBeInstanceOf(BinaryFrame::class);
     /** @var BinaryFrame $frame */
     expect($frame->sequence)->toBe(513)
         ->and($frame->opcode)->toBe(7)
         ->and($frame->payload)->toBe("mls:\x00ok")
-        ->and($frame->toPayload())->toBe($payload);
+        ->and($frame->toServerPayload())->toBe($payload);
 });
 
 it('round trips empty server payload bodies with max header values', function (): void {
     $frame = new BinaryFrame(65535, 255);
-    $payload = $frame->toPayload();
+    $payload = $frame->toServerPayload();
 
     expect($payload)->toBe(pack('nC', 65535, 255));
 
-    $parsedFrame = BinaryFrame::fromPayload($payload);
+    $parsedFrame = BinaryFrame::fromServerPayload($payload);
     expect($parsedFrame)->toBeInstanceOf(BinaryFrame::class);
     /** @var BinaryFrame $parsedFrame */
     expect($parsedFrame->sequence)->toBe(65535)
@@ -56,7 +56,7 @@ it('round trips client payloads without a sequence number', function (): void {
 });
 
 it('returns null for incomplete server payloads', function (string $payload): void {
-    expect(BinaryFrame::fromPayload($payload))->toBeNull();
+    expect(BinaryFrame::fromServerPayload($payload))->toBeNull();
 })->with([
     'empty payload' => '',
     'one byte' => "\x01",
@@ -68,6 +68,6 @@ it('returns null for incomplete client payloads', function (): void {
 });
 
 it('requires a sequence number for server frame serialization', function (): void {
-    expect(fn (): string => (new BinaryFrame(null, 1, 'payload'))->toPayload())
+    expect(fn (): string => (new BinaryFrame(null, 1, 'payload'))->toServerPayload())
         ->toThrow(\RuntimeException::class, 'Server DAVE binary frames require a sequence number.');
 });

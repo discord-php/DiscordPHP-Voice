@@ -29,7 +29,7 @@ final class BinaryFrame
     ) {
     }
 
-    public static function fromPayload(string $payload): ?self
+    public static function fromServerPayload(string $payload): ?self
     {
         if (strlen($payload) < self::SERVER_MIN_HEADER_SIZE) {
             return null;
@@ -45,6 +45,14 @@ final class BinaryFrame
             $header['opcode'],
             substr($payload, self::SERVER_MIN_HEADER_SIZE)
         );
+    }
+
+    /**
+     * @deprecated Use {@see self::fromServerPayload()} instead.
+     */
+    public static function fromPayload(string $payload): ?self
+    {
+        return self::fromServerPayload($payload);
     }
 
     public static function fromClientPayload(string $payload): ?self
@@ -65,13 +73,21 @@ final class BinaryFrame
         );
     }
 
-    public function toPayload(): string
+    public function toServerPayload(): string
     {
         if ($this->sequence === null) {
             throw new \RuntimeException('Server DAVE binary frames require a sequence number.');
         }
 
         return pack('nC', $this->sequence, $this->opcode).$this->payload;
+    }
+
+    /**
+     * @deprecated Use {@see self::toServerPayload()} instead.
+     */
+    public function toPayload(): string
+    {
+        return $this->toServerPayload();
     }
 
     public function toClientPayload(): string

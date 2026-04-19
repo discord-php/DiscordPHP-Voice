@@ -140,6 +140,26 @@ it('creates packets from raw buffers and exposes payload data', function (): voi
         ->and($made->getAudioData())->toBeNull();
 });
 
+it('does not re-strip RTP extension from DAVE-decrypted audio', function (): void {
+    $key = random_bytes(SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES);
+    $rawPacket = buildExtensionPacket($key, 5, 960, 12345, 'opus-audio', 'EXT!');
+    $daveOutput = 'dave-decrypted-opus';
+
+    $packet = new Packet(
+        $rawPacket,
+        null,
+        null,
+        null,
+        true,
+        $key,
+        null,
+        fn (string $frame, Packet $p): string => $daveOutput
+    );
+
+    // DAVE returns raw Opus; extension stripping must NOT be applied to it
+    expect($packet->getAudioData())->toBe($daveOutput);
+});
+
 function packetWithoutConstructor(): Packet
 {
     return (new \ReflectionClass(Packet::class))->newInstanceWithoutConstructor();

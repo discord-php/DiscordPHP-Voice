@@ -175,6 +175,13 @@ class VoiceClient extends EventEmitter
     public $speakingStatus;
 
     /**
+     * O(1) map from SSRC to user ID, kept in sync with speakingStatus.
+     *
+     * @var array<int, string>
+     */
+    protected array $ssrcToUserId = [];
+
+    /**
      * Collection of voice decoders.
      *
      * @var ExCollectionInterface<Process> Voice decoders.
@@ -1028,6 +1035,7 @@ class VoiceClient extends EventEmitter
         $this->startTime = null;
         $this->streamTime = 0;
         $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
+        $this->ssrcToUserId = [];
 
         $this->emit('close');
     }
@@ -1121,7 +1129,8 @@ class VoiceClient extends EventEmitter
         unset(
             $this->voiceDecoders[$ss->ssrc],
             $this->speakingStatus[$ss->ssrc],
-            $this->receiveStreams[$ss->ssrc]
+            $this->receiveStreams[$ss->ssrc],
+            $this->ssrcToUserId[$ss->ssrc]
         );
     }
 
@@ -1256,12 +1265,7 @@ class VoiceClient extends EventEmitter
 
     private function resolveDaveRemoteUserId(Packet $packet): ?string
     {
-        $speaking = $this->speakingStatus->get('ssrc', $packet->getSSRC());
-        if ($speaking === null || ! isset($speaking->user_id)) {
-            return null;
-        }
-
-        return (string) $speaking->user_id;
+        return $this->ssrcToUserId[$packet->getSSRC()] ?? null;
     }
 
     /**
@@ -1522,12 +1526,11 @@ class VoiceClient extends EventEmitter
         $this->voiceDecoders = [];
         $this->receiveStreams = [];
         $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
+        $this->ssrcToUserId = [];
     }
 
     public function setData(array $data): self
     {
-        $this->data = $data;
-
         if (isset($this->data['token'], $this->data['endpoint'], $this->data['session'], $this->data['dnsConfig'])) {
             $this->endpoint = str_replace([':80', ':443'], '', $this->data['endpoint']);
             $this->dnsConfig = $this->data['dnsConfig'];

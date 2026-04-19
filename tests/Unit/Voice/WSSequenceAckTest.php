@@ -61,7 +61,7 @@ it('binary gateway frames update sequence ack bookkeeping', function (): void {
         $sentPayload = $payload;
     });
 
-    invokeProtectedMethod($ws, 'handleBinaryVoiceMessage', [(new BinaryFrame(91, 255, 'ignored'))->toPayload()]);
+    invokeProtectedMethod($ws, 'handleBinaryVoiceMessage', [(new BinaryFrame(91, 255, 'ignored'))->toServerPayload()]);
     $ws->sendHeartbeat();
 
     expect($sentPayload)->toBeString();

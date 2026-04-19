@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace Discord\Tests\Unit\Voice;
 
 use Discord\Discord;
+use Discord\Voice\Client\Packet;
 use Discord\Voice\Client\UDP;
 use Discord\Voice\Client\WS;
 use Discord\Voice\Dave\Runtime;
@@ -55,6 +56,33 @@ it('returns false when the runtime cannot decrypt with the DAVE protocol enabled
     $voiceClient = makeVoiceClientWithProtocolVersion(1);
 
     $this->assertFalse($voiceClient->decryptDaveFrame('audio'));
+});
+
+it('decryptDaveFrame uses Runtime callback when no per-user decryptor is registered', function (): void {
+    Runtime::configureCallbacks(
+        null,
+        fn (string $frame, int $protocolVersion): ?string => "dec:{$protocolVersion}:{$frame}"
+    );
+
+    $voiceClient = makeVoiceClientWithProtocolVersion(1);
+
+    // Map SSRC 12345 → 'user1', but register no decryptor for 'user1' in daveState.
+    $ssrcMapProp = new \ReflectionProperty(VoiceClient::class, 'ssrcToUserId');
+    $ssrcMapProp->setAccessible(true);
+    $ssrcMapProp->setValue($voiceClient, [12345 => 'user1']);
+
+    $packet = (new \ReflectionClass(Packet::class))->newInstanceWithoutConstructor();
+    $ssrcProp = new \ReflectionProperty(Packet::class, 'ssrc');
+    $ssrcProp->setAccessible(true);
+    $ssrcProp->setValue($packet, 12345);
+
+    expect($voiceClient->decryptDaveFrame('audio', $packet))->toBe('dec:1:audio');
+});
+
+it('decryptDaveFrame passes frame through unchanged when DAVE protocol version is zero', function (): void {
+    $voiceClient = makeVoiceClientWithProtocolVersion(0);
+
+    expect($voiceClient->decryptDaveFrame('audio'))->toBe('audio');
 });
 
 function makeVoiceClientWithProtocolVersion(int $protocolVersion): VoiceClient
