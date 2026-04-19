@@ -15,10 +15,12 @@ declare(strict_types=1);
 namespace Discord\Voice;
 
 use Discord\Discord;
+use Discord\Voice\Dave\Runtime as DaveRuntime;
 use Discord\Voice\Exceptions\Channels\CantJoinMoreThanOneChannelException;
 use Discord\Voice\Exceptions\Channels\CantSpeakInChannelException;
 use Discord\Voice\Exceptions\Channels\ChannelMustAllowVoiceException;
 use Discord\Voice\Exceptions\Channels\EnterChannelDeniedException;
+use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\WebSockets\VoiceServerUpdate;
 use Discord\Parts\WebSockets\VoiceStateUpdate;
@@ -34,6 +36,7 @@ use React\Promise\PromiseInterface;
  *
  * @requires libopus - Linux | NOT TESTED - WINDOWS
  * @requires FFMPEG - Linux | NOT TESTED - WINDOWS
+ * @requires libdave
  *
  * @since 10.19.0
  */
@@ -44,11 +47,16 @@ final class Manager
     /**
      * @param Discord               $discord
      * @param array<string, Client> $clients
+     *
+     * @throws LibDaveNotFoundException if libdave is not available
      */
     public function __construct(
         protected Discord $discord,
         public array $clients = [],
     ) {
+        if (! DaveRuntime::isAvailable()) {
+            throw LibDaveNotFoundException::fromRuntimeError();
+        }
     }
 
     /**

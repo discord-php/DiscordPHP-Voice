@@ -16,10 +16,12 @@ declare(strict_types=1);
 namespace Discord\Tests\Feature\Voice;
 
 use Discord\Discord;
+use Discord\Voice\Client as VoiceClient;
 use Discord\Voice\Client\WS;
 use Discord\Voice\Dave\EncryptorHandle;
 use Discord\Voice\Dave\Runtime;
 use Discord\Voice\Dave\State;
+use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;
 use Discord\WebSockets\Op;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -52,11 +54,8 @@ it('handleDavePrepareTransition sends TRANSITION_READY with matching transition_
 it('handleDavePrepareTransition sets pendingProtocolVersion from the resolved data field', function (): void {
     $ws = makeWsForTransitionsTest($this, function (string $payload): void {});
 
-    // Force isAvailable() to return false so resolveDaveProtocolVersion(1) → 0;
-    // we verify the field is consumed and passed through to prepareTransition (resulting in 0 here).
-    Runtime::configureCallbacks(availabilityOverride: false);
-
-    $data = (object) ['d' => ['transition_id' => 7, 'protocol_version' => 1]];
+    // protocol_version: 0 resolves to 0; verify the field is consumed and stored in pendingProtocolVersion.
+    $data = (object) ['d' => ['transition_id' => 7, 'protocol_version' => 0]];
     invokeTransitionsWsMethod($ws, 'handleDavePrepareTransition', [$data]);
 
     $state = getTransitionsDaveState($ws);
@@ -179,15 +178,17 @@ it('resolveDaveProtocolVersion returns 0 when protocolVersion is 0 or negative',
     expect($result)->toBe(0);
 });
 
-it('resolveDaveProtocolVersion returns 0 when libdave runtime is unavailable', function (): void {
-    // Use availabilityOverride to simulate libdave being absent without relying on putenv/reset,
-    // since dlopen caches the loaded library in the process regardless of env var changes.
+it('WS constructor throws LibDaveNotFoundException when libdave is unavailable', function (): void {
     Runtime::configureCallbacks(availabilityOverride: false);
 
-    $ws = makeWsForTransitionsTest($this, function (string $payload): void {});
+    $vc = (new \ReflectionClass(VoiceClient::class))->newInstanceWithoutConstructor();
+    $channel = (new \ReflectionClass(\Discord\Parts\Channel\Channel::class))->newInstanceWithoutConstructor();
+    (new \ReflectionProperty(\Discord\Voice\VoiceClient::class, 'channel'))->setValue($vc, $channel);
 
-    $result = invokeTransitionsWsMethod($ws, 'resolveDaveProtocolVersion', [1]);
-    expect($result)->toBe(0);
+    $discord = (new \ReflectionClass(Discord::class))->newInstanceWithoutConstructor();
+
+    expect(fn () => new WS($vc, $discord, ['user_id' => '123']))
+        ->toThrow(LibDaveNotFoundException::class);
 });
 
 it('resolveDaveProtocolVersion returns min(requested, maxProtocol) when libdave is available', function (): void {

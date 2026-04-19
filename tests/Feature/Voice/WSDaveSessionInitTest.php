@@ -154,17 +154,13 @@ it('handleDavePrepareEpoch records epoch and returns early when dave_protocol_ve
         ->and($sentPayloads)->toBeEmpty();
 });
 
-it('handleDavePrepareEpoch resolves protocol version to 0 without libdave and sends no key package', function (): void {
+it('handleDavePrepareEpoch returns early and sends no key package when protocol version is 0', function (): void {
     $sentPayloads = [];
     $ws = makeWsForSessionInitTest($this, $sentPayloads);
 
-    // Force isAvailable() to return false so resolveDaveProtocolVersion downgrades to 0,
-    // making the handler return early without creating a session or sending a key package.
-    Runtime::configureCallbacks(availabilityOverride: false);
-
-    // dave_protocol_version=1 but libdave unavailable → resolveDaveProtocolVersion returns 0 → early return.
+    // dave_protocol_version=0 → resolveDaveProtocolVersion returns 0 → early return without session or key package.
     $data = new \stdClass();
-    $data->d = ['epoch' => 1, 'dave_protocol_version' => 1];
+    $data->d = ['epoch' => 1, 'dave_protocol_version' => 0];
 
     invokeSessionInitMethod($ws, 'handleDavePrepareEpoch', [$data]);
 

@@ -23,6 +23,7 @@ use Discord\Voice\Client;
 use Discord\Voice\Dave\BinaryFrame;
 use Discord\Voice\Dave\Runtime as DaveRuntime;
 use Discord\Voice\Dave\State as DaveState;
+use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;
 use Discord\Voice\Flags;
 use Discord\Voice\Hello;
 use Discord\Voice\Platform;
@@ -177,6 +178,9 @@ final class WS
             $this->resolveDaveGroupId()
         );
         // Never advertise a protocol version beyond what both this library and the runtime can support.
+        if (! DaveRuntime::isAvailable()) {
+            throw LibDaveNotFoundException::fromRuntimeError();
+        }
         $this->maxDaveProtocolVersion = min(self::MAX_DAVE_PROTOCOL_VERSION, DaveRuntime::maxProtocolVersion());
 
         if (! isset($this->data['endpoint'])) {
@@ -785,15 +789,7 @@ final class WS
             return 0;
         }
 
-        if (! DaveRuntime::isAvailable()) {
-            $this->discord->logger->warning(
-                'DAVE protocol requested by voice server but libdave runtime is unavailable, falling back to protocol 0.',
-                ['error' => DaveRuntime::getLastLoadError()]
-            );
-
-            return 0;
-        }
-
+        // libdave availability is enforced in __construct(); this point is always reached with a loaded runtime.
         return min($protocolVersion, $this->maxDaveProtocolVersion);
     }
 
