@@ -52,7 +52,8 @@ it('handleDavePrepareTransition sends TRANSITION_READY with matching transition_
 });
 
 it('handleDavePrepareTransition sets pendingProtocolVersion from the resolved data field', function (): void {
-    $ws = makeWsForTransitionsTest($this, function (string $payload): void {});
+    $ws = makeWsForTransitionsTest($this, function (string $payload): void {
+    });
 
     // protocol_version: 0 resolves to 0; verify the field is consumed and stored in pendingProtocolVersion.
     $data = (object) ['d' => ['transition_id' => 7, 'protocol_version' => 0]];
@@ -84,7 +85,8 @@ it('handleDavePrepareTransition handles missing protocol_version gracefully', fu
 // ---------------------------------------------------------------------------
 
 it('handleDaveExecuteTransition executes transition when IDs match', function (): void {
-    $ws = makeWsForTransitionsTest($this, function (string $payload): void {});
+    $ws = makeWsForTransitionsTest($this, function (string $payload): void {
+    });
 
     $state = getTransitionsDaveState($ws);
     $state->prepareTransition(3);
@@ -99,7 +101,8 @@ it('handleDaveExecuteTransition executes transition when IDs match', function ()
 });
 
 it('handleDaveExecuteTransition ignores mismatched transition ID', function (): void {
-    $ws = makeWsForTransitionsTest($this, function (string $payload): void {});
+    $ws = makeWsForTransitionsTest($this, function (string $payload): void {
+    });
 
     $state = getTransitionsDaveState($ws);
     $state->prepareTransition(3);
@@ -113,7 +116,8 @@ it('handleDaveExecuteTransition ignores mismatched transition ID', function (): 
 });
 
 it('handleDaveExecuteTransition resets protocol state when resolved protocolVersion is 0', function (): void {
-    $ws = makeWsForTransitionsTest($this, function (string $payload): void {});
+    $ws = makeWsForTransitionsTest($this, function (string $payload): void {
+    });
 
     $state = getTransitionsDaveState($ws);
     // pendingProtocolVersion = 0 (explicitly), protocolVersion = 0 (default).
@@ -169,7 +173,8 @@ it('applySelfDaveEncryptor returns early without crashing when protocolVersion i
 // ---------------------------------------------------------------------------
 
 it('resolveDaveProtocolVersion returns 0 when protocolVersion is 0 or negative', function (): void {
-    $ws = makeWsForTransitionsTest($this, function (string $payload): void {});
+    $ws = makeWsForTransitionsTest($this, function (string $payload): void {
+    });
 
     $result = invokeTransitionsWsMethod($ws, 'resolveDaveProtocolVersion', [0]);
     expect($result)->toBe(0);
@@ -196,7 +201,8 @@ it('resolveDaveProtocolVersion returns min(requested, maxProtocol) when libdave 
         $this->markTestSkipped('Requires DISCORDPHP_DAVE_LIBRARY to be set.');
     }
 
-    $ws = makeWsForTransitionsTest($this, function (string $payload): void {});
+    $ws = makeWsForTransitionsTest($this, function (string $payload): void {
+    });
 
     // With libdave available and requested version 1: min(1, MAX_DAVE_PROTOCOL_VERSION=1) = 1.
     $result = invokeTransitionsWsMethod($ws, 'resolveDaveProtocolVersion', [1]);

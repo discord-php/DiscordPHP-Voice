@@ -769,7 +769,7 @@ class VoiceClient extends EventEmitter
             throw new \RuntimeException('Voice Client is not ready.');
         }
 
-        $this->ws->send(VoicePayload::new(
+        $this->udp->ws->send(VoicePayload::new(
             Op::VOICE_SPEAKING,
             [
                 'speaking' => $speaking,
@@ -1292,7 +1292,8 @@ class VoiceClient extends EventEmitter
      * @param Packet $voicePacket The data from the UDP server.
      */
     public function handleAudioData(Packet $voicePacket): void
-    {        if (! $this->shouldRecord) {
+    {
+        if (! $this->shouldRecord) {
             // If we are not recording, we don't need to handle audio data.
             return;
         }
@@ -1525,7 +1526,6 @@ class VoiceClient extends EventEmitter
         $this->shouldRecord = false;
         $this->discord->getLogger()->info('Stopped recording audio.');
 
-        $this->udp->removeListener('message', [$this, 'handleAudioData']);
         $this->reset();
 
         foreach ($this->voiceDecoders as $decoder) {

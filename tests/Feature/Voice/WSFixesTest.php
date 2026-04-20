@@ -172,7 +172,8 @@ function makeWsForFixesTest(TestCase $test, ?callable $sendHook = null): WS
     $discordProp->setAccessible(true);
     $discordProp->setValue($ws, $discord);
 
-    $sendHook ??= function (string $payload): void {};
+    $sendHook ??= function (string $payload): void {
+    };
     $socket = invokeFixesWsMethod($test, 'getMockBuilder', [WebSocket::class])
         ->disableOriginalConstructor()
         ->onlyMethods(['send'])

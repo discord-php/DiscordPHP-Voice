@@ -17,8 +17,6 @@ namespace Discord\Tests\Unit\Voice;
 
 use Discord\Discord;
 use Discord\Voice\Client\Packet;
-use Discord\Voice\Client\UDP;
-use Discord\Voice\Client\WS;
 use Discord\Voice\VoiceClient;
 use Psr\Log\NullLogger;
 

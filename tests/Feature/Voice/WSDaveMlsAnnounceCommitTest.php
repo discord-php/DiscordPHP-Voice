@@ -47,7 +47,7 @@ it('returns early without sending when session is null', function (): void {
         $sentPayloads[] = $payload;
     }, protocolVersion: 1, session: null);
 
-    $payload = pack('n', 42) . 'commit-data';
+    $payload = pack('n', 42).'commit-data';
     $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION, $payload);
     invokeAnnounceCommitMethod($ws, 'handleDaveMlsAnnounceCommitTransition', [$frame]);
 
@@ -61,7 +61,7 @@ it('sends INVALID_COMMIT_WELCOME when processCommit returns null (protocolVersio
         $sentPayloads[] = $payload;
     }, protocolVersion: 0, session: $fakeSession);
 
-    $payload = pack('n', 7) . 'some-commit-bytes';
+    $payload = pack('n', 7).'some-commit-bytes';
     $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION, $payload);
     invokeAnnounceCommitMethod($ws, 'handleDaveMlsAnnounceCommitTransition', [$frame]);
 
@@ -84,7 +84,7 @@ it('INVALID_COMMIT_WELCOME opcode value is 31', function (): void {
         $sentPayloads[] = $payload;
     }, protocolVersion: 0, session: $fakeSession);
 
-    $payload = pack('n', 1) . 'bytes';
+    $payload = pack('n', 1).'bytes';
     $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION, $payload);
     invokeAnnounceCommitMethod($ws, 'handleDaveMlsAnnounceCommitTransition', [$frame]);
 
@@ -101,7 +101,7 @@ it('resets protocol state on invalid commit when protocolVersion is 0', function
         $sentPayloads[] = $payload;
     }, protocolVersion: 0, session: $fakeSession);
 
-    $payload = pack('n', 3) . 'bad-commit';
+    $payload = pack('n', 3).'bad-commit';
     $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION, $payload);
     invokeAnnounceCommitMethod($ws, 'handleDaveMlsAnnounceCommitTransition', [$frame]);
 
@@ -123,7 +123,7 @@ it('sends INVALID_COMMIT_WELCOME when processCommit returns null (protocolVersio
 
     Runtime::configureCallbacks(processCommitCallback: fn (?SessionHandle $s, string $c): ?array => null);
 
-    $payload = pack('n', 5) . 'commit-payload';
+    $payload = pack('n', 5).'commit-payload';
     $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION, $payload);
     invokeAnnounceCommitMethod($ws, 'handleDaveMlsAnnounceCommitTransition', [$frame]);
 

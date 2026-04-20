@@ -96,10 +96,25 @@ it('surfaces invalid opus tag pages when opening a stream', function (): void {
 
 function buildOggStreamPageFixture(array $segments, string $segmentData): string
 {
-    return 'OggS'
+    // Build with zeroed checksum, compute the correct Ogg CRC, then embed it.
+    $page = 'OggS'
         .pack('CCPVVVC', 0, 0, 0, 1, 1, 0, count($segments))
         .pack('C*', ...$segments)
         .$segmentData;
+
+    $crc = 0;
+    for ($i = 0; $i < strlen($page); $i++) {
+        $crc ^= (ord($page[$i]) << 24);
+        for ($j = 0; $j < 8; $j++) {
+            if ($crc & 0x80000000) {
+                $crc = (($crc << 1) ^ 0x04C11DB7) & 0xFFFFFFFF;
+            } else {
+                $crc = ($crc << 1) & 0xFFFFFFFF;
+            }
+        }
+    }
+
+    return substr($page, 0, 22).pack('V', $crc).substr($page, 26);
 }
 
 function buildOggStreamHeaderFixture(int $channelCount = 2): string

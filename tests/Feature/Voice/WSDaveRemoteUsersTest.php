@@ -244,4 +244,3 @@ function invokeRemoteUsersMethod(object $object, string $method, array $argument
 
     return $reflectionMethod->invokeArgs($object, $arguments);
 }
-

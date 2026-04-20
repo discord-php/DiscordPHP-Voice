@@ -213,12 +213,12 @@ CDEF;
     }
 
     /**
-     * @param null|callable(string, int): ?string           $frameEncryptor
-     * @param null|callable(string, int): false|string|null $frameDecryptor
-     * @param null|callable(string, int): ?string           $mlsCommitWelcomeBuilder
-     * @param null|callable(?SessionHandle, string): ?array $processCommitCallback
+     * @param null|callable(string, int): ?string                $frameEncryptor
+     * @param null|callable(string, int): false|string|null      $frameDecryptor
+     * @param null|callable(string, int): ?string                $mlsCommitWelcomeBuilder
+     * @param null|callable(?SessionHandle, string): ?array      $processCommitCallback
      * @param null|callable(?SessionHandle, string, array): bool $processWelcomeCallback
-     * @param null|callable(?string): ?SessionHandle $createSessionCallback
+     * @param null|callable(?string): ?SessionHandle             $createSessionCallback
      */
     public static function configureCallbacks(
         ?callable $frameEncryptor = null,
@@ -389,6 +389,9 @@ CDEF;
         }
 
         [$pointer, $length, $buffer] = self::makeBytePointer($externalSender);
+        if ($pointer === null) {
+            return false;
+        }
 
         try {
             self::call($ffi, 'daveSessionSetExternalSender', $session->raw(), $pointer, $length);
@@ -412,6 +415,9 @@ CDEF;
         }
 
         [$proposalPointer, $proposalLength, $proposalBuffer] = self::makeBytePointer($proposalsPayload);
+        if ($proposalPointer === null) {
+            return null;
+        }
         [$recognizedPointers, $recognizedBuffers] = self::makeStringPointerArray($recognizedUserIds);
         [$buffer, $length] = self::makeOutputByteBuffer();
 
@@ -448,6 +454,9 @@ CDEF;
         }
 
         [$commitPointer, $commitLength, $commitBuffer] = self::makeBytePointer($commit);
+        if ($commitPointer === null) {
+            return null;
+        }
 
         try {
             $result = self::call($ffi, 'daveSessionProcessCommit', $session->raw(), $commitPointer, $commitLength);
@@ -485,6 +494,9 @@ CDEF;
         }
 
         [$welcomePointer, $welcomeLength, $welcomeBuffer] = self::makeBytePointer($welcome);
+        if ($welcomePointer === null) {
+            return false;
+        }
         [$recognizedPointers, $recognizedBuffers] = self::makeStringPointerArray($recognizedUserIds);
 
         try {
@@ -629,6 +641,9 @@ CDEF;
         }
 
         [$framePointer, $frameLength, $frameBuffer] = self::makeBytePointer($frame);
+        if ($framePointer === null) {
+            return null;
+        }
 
         try {
             self::call($ffi, 'daveEncryptorAssignSsrcToCodec', $encryptor->raw(), $ssrc, $codec);
@@ -716,6 +731,9 @@ CDEF;
         }
 
         [$framePointer, $frameLength, $frameBuffer] = self::makeBytePointer($frame);
+        if ($framePointer === null) {
+            return false;
+        }
 
         try {
             $maxPlaintextSize = (int) self::call(

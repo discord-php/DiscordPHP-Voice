@@ -192,7 +192,6 @@ it('nonce counter is independent of seq preventing ciphertext reuse after rollov
         ->and((new Packet($packet2->getEncryptedMessage(), null, null, null, true, $key))->getAudioData())->toBe('audio');
 });
 
-
 function packetWithoutConstructor(): Packet
 {
     return (new \ReflectionClass(Packet::class))->newInstanceWithoutConstructor();

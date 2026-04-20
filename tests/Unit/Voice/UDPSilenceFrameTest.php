@@ -13,13 +13,11 @@ declare(strict_types=1);
  * with this source code in the LICENSE.md file.
  */
 
-namespace Discord\Voice\Exceptions\Libraries;
+namespace Discord\Tests\Unit\Voice;
 
-/**
- * Thrown when the FFmpeg binary cannot be found in your PATH.
- *
- * @since 3.2.0
- */
-class FFmpegNotFoundException extends \Exception
-{
-}
+use Discord\Voice\Client\UDP;
+
+it('silence frame constant is the correct 3-byte opus silence', function (): void {
+    expect(strlen(UDP::SILENCE_FRAME))->toBe(3)
+        ->and(UDP::SILENCE_FRAME)->toBe("\xF8\xFF\xFE");
+});

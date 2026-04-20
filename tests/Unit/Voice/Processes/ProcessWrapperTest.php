@@ -175,6 +175,18 @@ it('builds dca decode commands even when the frame size defaults', function (): 
     expect(getProcessCommand($process))->toBe('/opt/dca ');
 });
 
+it('does not produce a frameSize of zero when dca decode defaults the frame size', function (): void {
+    setProtectedStatic(DCA::class, 'exec', '/opt/dca');
+
+    // Prior to the fix, null * 48 = 0 was used as the frameSize.
+    // The correct default is 960 samples (20 ms at 48 kHz).
+    $process = DCA::decode(null, 0, 128000, 2, null);
+
+    // The command must not embed a "0" frameSize artefact from round(null * 48).
+    expect(getProcessCommand($process))->not->toContain('frameSize=0')
+        ->and(getProcessCommand($process))->not->toContain(' 0 ');
+});
+
 it('escapes shell metacharacters in filenames passed to ffmpeg encode', function (): void {
     setProtectedStatic(Ffmpeg::class, 'exec', '/opt/ffmpeg');
 

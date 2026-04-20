@@ -65,9 +65,9 @@ it('calls boot and sets endpoint and dnsConfig when all required keys are presen
     $discordProp->setValue($client, makeDiscordForSetDataTest());
 
     $client->setData([
-        'token'     => 'my-token',
-        'endpoint'  => 'gateway.discord.gg:443',
-        'session'   => 'session-id',
+        'token' => 'my-token',
+        'endpoint' => 'gateway.discord.gg:443',
+        'session' => 'session-id',
         'dnsConfig' => '8.8.8.8',
     ]);
 

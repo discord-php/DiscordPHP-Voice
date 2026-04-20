@@ -117,10 +117,10 @@ function makeWsForRequirementTest(TestCase $test): array
     $voiceClient->channel = $channel;
 
     $data = [
-        'endpoint'   => 'voice.discord.gg',
-        'user_id'    => '123456789',
-        'guild_id'   => '987654321',
-        'token'      => 'test-token',
+        'endpoint' => 'voice.discord.gg',
+        'user_id' => '123456789',
+        'guild_id' => '987654321',
+        'token' => 'test-token',
         'session_id' => 'test-session',
     ];
 

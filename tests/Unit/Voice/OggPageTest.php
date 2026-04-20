@@ -31,7 +31,6 @@ it('parses ogg pages from a buffer', function (): void {
         granulePosition: 123456789,
         bitstreamSn: 456,
         pageSeq: 7,
-        checksum: 0x11223344
     ));
 
     $page = await(OggPage::fromBuffer($buffer));
@@ -41,7 +40,7 @@ it('parses ogg pages from a buffer', function (): void {
         ->and(readOggPageProperty($page, 'granulePosition'))->toBe(123456789)
         ->and(readOggPageProperty($page, 'bitstreamSn'))->toBe(456)
         ->and(readOggPageProperty($page, 'pageSeq'))->toBe(7)
-        ->and(readOggPageProperty($page, 'checksum'))->toBe(0x11223344)
+        ->and(readOggPageProperty($page, 'checksum'))->toBe(0x68553ef8)
         ->and(readOggPageProperty($page, 'pageSegments'))->toBe([1 => 5, 2 => 3])
         ->and($page->segmentData)->toBe($segmentData)
         ->and(iterator_to_array($page->iterPackets(), false))->toBe([
@@ -76,6 +75,27 @@ it('rejects invalid ogg page magic headers', function (): void {
         ->toThrow(UnexpectedValueException::class, 'Invalid Ogg page header, expected OggS got Bad!.');
 });
 
+it('rejects ogg pages with a mismatched CRC checksum', function (): void {
+    $pageBytes = buildOggPageFixture(segments: [4], segmentData: 'opus');
+    // Corrupt the CRC field at bytes 22–25
+    $corrupted = substr($pageBytes, 0, 22)."\xff\xff\xff\xff".substr($pageBytes, 26);
+    $buffer = new Buffer();
+    $buffer->write($corrupted);
+
+    expect(fn () => await(OggPage::fromBuffer($buffer)))
+        ->toThrow(UnexpectedValueException::class, 'CRC mismatch');
+});
+
+it('accepts ogg pages with a correct CRC checksum', function (): void {
+    $buffer = new Buffer();
+    $buffer->write(buildOggPageFixture(segments: [4], segmentData: 'opus', bitstreamSn: 99, pageSeq: 1));
+
+    $page = await(OggPage::fromBuffer($buffer));
+
+    expect($page)->toBeInstanceOf(OggPage::class)
+        ->and($page->segmentData)->toBe('opus');
+});
+
 function buildOggPageFixture(
     array $segments,
     string $segmentData,
@@ -84,12 +104,26 @@ function buildOggPageFixture(
     int $granulePosition = 0,
     int $bitstreamSn = 1,
     int $pageSeq = 1,
-    int $checksum = 0
 ): string {
-    return 'OggS'
-        .pack('CCPVVVC', $version, $headerType, $granulePosition, $bitstreamSn, $pageSeq, $checksum, count($segments))
+    // Build with zeroed checksum, compute the correct Ogg CRC, then embed it.
+    $page = 'OggS'
+        .pack('CCPVVVC', $version, $headerType, $granulePosition, $bitstreamSn, $pageSeq, 0, count($segments))
         .pack('C*', ...$segments)
         .$segmentData;
+
+    $crc = 0;
+    for ($i = 0; $i < strlen($page); $i++) {
+        $crc ^= (ord($page[$i]) << 24);
+        for ($j = 0; $j < 8; $j++) {
+            if ($crc & 0x80000000) {
+                $crc = (($crc << 1) ^ 0x04C11DB7) & 0xFFFFFFFF;
+            } else {
+                $crc = ($crc << 1) & 0xFFFFFFFF;
+            }
+        }
+    }
+
+    return substr($page, 0, 22).pack('V', $crc).substr($page, 26);
 }
 
 function readOggPageProperty(OggPage $page, string $property): mixed

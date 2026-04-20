@@ -32,7 +32,8 @@ afterEach(function (): void {
 });
 
 it('handleDaveTransitionReady executes the pending transition', function (): void {
-    $ws = makeWsForStubHandlersTest($this, function (): void {});
+    $ws = makeWsForStubHandlersTest($this, function (): void {
+    });
 
     $state = getWsDaveState($ws);
     $state->prepareTransition(5);
