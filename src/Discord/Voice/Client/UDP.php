@@ -200,7 +200,15 @@ final class UDP extends Socket
              */
             $unpackedMessageArray = \unpack('C2Type/nLength/NSSRC/A64Address/nPort', $message);
 
-            $this->ws->vc->ssrc = $unpackedMessageArray['SSRC'];
+            $discoveredSsrc = $unpackedMessageArray['SSRC'];
+            if ($this->ws->vc->ssrc !== null && $discoveredSsrc !== $this->ws->vc->ssrc) {
+                $this->getLogger()->warning('IP discovery SSRC mismatch — keeping expected SSRC', [
+                    'expected' => $this->ws->vc->ssrc,
+                    'discovered' => $discoveredSsrc,
+                ]);
+            } else {
+                $this->ws->vc->ssrc = $discoveredSsrc;
+            }
             $ip = rtrim($unpackedMessageArray['Address'], "\0");
             $port = $unpackedMessageArray['Port'];
 

@@ -32,6 +32,10 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
 
     public function __construct($argument)
     {
+        if (is_int($argument) && $argument < 0) {
+            throw new \OutOfRangeException("Buffer size cannot be negative: {$argument}");
+        }
+
         is_string($argument)
             ? $this->initializeStructs(strlen($argument), $argument)
             : (is_int($argument)
@@ -119,6 +123,10 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      */
     protected function checkForOverSize($expectedMax, string|int $actual): self
     {
+        if (is_int($actual) && $actual < 0) {
+            throw new \OutOfRangeException("Buffer size cannot be negative: {$actual}");
+        }
+
         if ($actual > $expectedMax) {
             throw new \InvalidArgumentException('actual exceeded expectedMax limit');
         }

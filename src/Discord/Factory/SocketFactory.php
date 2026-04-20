@@ -27,14 +27,15 @@ final class SocketFactory extends Factory
     public function __construct($loop = null, $resolver = null, ?WS $ws = null)
     {
         if (null === $resolver) {
+            if ($ws === null) {
+                throw new \InvalidArgumentException('A DNS resolver or WS instance must be provided to SocketFactory.');
+            }
             $resolver = (new DnsFactory())->createCached($ws->data['dnsConfig'], $loop);
         }
 
         parent::__construct($loop, $resolver);
 
-        if ($ws !== null) {
-            $this->ws = $ws;
-        }
+        $this->ws = $ws;
     }
 
     public function createClient($address)

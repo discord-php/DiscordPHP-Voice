@@ -56,6 +56,11 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     protected $isClosed = false;
 
     /**
+     * Maximum number of frames to buffer while paused.
+     */
+    private const MAX_PAUSE_BUFFER = 512;
+
+    /**
      * The PCM pause buffer.
      *
      * @var array The PCM pause buffer.
@@ -89,7 +94,9 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
         }
 
         if ($this->isPaused) {
-            $this->pcmPauseBuffer[] = $pcm;
+            if (count($this->pcmPauseBuffer) < self::MAX_PAUSE_BUFFER) {
+                $this->pcmPauseBuffer[] = $pcm;
+            }
 
             return;
         }
@@ -111,7 +118,9 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
         }
 
         if ($this->isPaused) {
-            $this->opusPauseBuffer[] = $opus;
+            if (count($this->opusPauseBuffer) < self::MAX_PAUSE_BUFFER) {
+                $this->opusPauseBuffer[] = $opus;
+            }
 
             return;
         }

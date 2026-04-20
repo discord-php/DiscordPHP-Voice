@@ -120,7 +120,7 @@ trait BufferArrayAccessTrait
      */
     public function readUIntLE(int $offset): int
     {
-        return $this->extract(FormatPackEnum::I, $offset, 3);
+        return $this->extract(FormatPackEnum::I, $offset, 4);
     }
 
     public function readChar(int $offset): string

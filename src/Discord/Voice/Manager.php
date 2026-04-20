@@ -46,6 +46,18 @@ final class Manager
     use EventEmitterTrait;
 
     /**
+     * Listener references keyed by guild ID for cleanup.
+     *
+     * @var array<string, \Closure>
+     */
+    private array $stateListeners = [];
+
+    /**
+     * @var array<string, \Closure>
+     */
+    private array $serverListeners = [];
+
+    /**
      * @param Discord               $discord
      * @param array<string, Client> $clients
      *
@@ -117,9 +129,14 @@ final class Manager
             false
         );
 
-        $discord->on(Event::VOICE_STATE_UPDATE, fn ($state) => $this->stateUpdate($state, $channel));
-        // Creates Voice Client and waits for the voice server update.
-        $discord->on(Event::VOICE_SERVER_UPDATE, fn ($state, Discord $discord) => $this->serverUpdate($state, $channel, $discord, $deferred));
+        $stateListener = fn ($state) => $this->stateUpdate($state, $channel);
+        $serverListener = fn ($state, Discord $discord) => $this->serverUpdate($state, $channel, $discord, $deferred);
+
+        $this->stateListeners[$channel->guild_id] = $stateListener;
+        $this->serverListeners[$channel->guild_id] = $serverListener;
+
+        $discord->on(Event::VOICE_STATE_UPDATE, $stateListener);
+        $discord->on(Event::VOICE_SERVER_UPDATE, $serverListener);
 
         $discord->send(VoicePayload::new(
             Op::OP_UPDATE_VOICE_STATE,
@@ -155,6 +172,30 @@ final class Manager
     }
 
     /**
+     * Removes the server update listener for a guild, if registered.
+     */
+    private function removeServerListener(string|int $guildId): void
+    {
+        if (isset($this->serverListeners[$guildId])) {
+            $this->discord->removeListener(Event::VOICE_SERVER_UPDATE, $this->serverListeners[$guildId]);
+            unset($this->serverListeners[$guildId]);
+        }
+    }
+
+    /**
+     * Removes all gateway listeners for a guild.
+     */
+    private function removeAllListeners(string|int $guildId): void
+    {
+        $this->removeServerListener($guildId);
+
+        if (isset($this->stateListeners[$guildId])) {
+            $this->discord->removeListener(Event::VOICE_STATE_UPDATE, $this->stateListeners[$guildId]);
+            unset($this->stateListeners[$guildId]);
+        }
+    }
+
+    /**
      * Handles the voice state update event to update session information for the voice client.
      *
      * @param \Discord\Parts\WebSockets\VoiceStateUpdate $state
@@ -177,7 +218,7 @@ final class Manager
             'mute' => $state->mute,
         ]);
 
-        $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id, 'session_id' => $state->session_id]);
+        $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id]);
         $this->discord->voice_sessions[$channel->guild_id] = $state->session_id;
     }
 
@@ -209,16 +250,19 @@ final class Manager
         $client->once('ready', function () use (&$client, $deferred, $channel) {
             $this->discord->logger->info('voice manager is ready');
             $this->discord->voice->clients[$channel->guild_id] = $client;
+            $this->removeServerListener($channel->guild_id);
             $deferred->resolve($client);
         });
-        $client->once('error', function ($e) use ($deferred) {
+        $client->once('error', function ($e) use ($deferred, $channel) {
             $this->discord->logger->error('error initializing voice manager', ['e' => $e->getMessage()]);
+            $this->removeAllListeners($channel->guild_id);
             $deferred->reject($e);
         });
         $client->once('close', function () use ($channel) {
             $this->discord->logger->warning('voice manager closed');
             unset($this->discord->voice->clients[$channel->guild_id]);
             unset($this->discord->voice_sessions[$channel->guild_id]);
+            $this->removeAllListeners($channel->guild_id);
         });
 
         $client->setData(
