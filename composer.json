@@ -37,6 +37,7 @@
         "cs": ["./vendor/bin/php-cs-fixer fix"],
         "cs-unsupported": ["./vendor/bin/php-cs-fixer fix --allow-unsupported-php-version yes"],
         "unit": ["pest --testdox"],
+        "unit-dave": ["DISCORDPHP_DAVE_LIBRARY=.cache/libdave/lib/libdave.so pest --testdox"],
         "pest": "pest --parallel",
         "coverage": ["XDEBUG_MODE=coverage pest --coverage-html coverage --testdox"]
     },
