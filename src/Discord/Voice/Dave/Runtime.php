@@ -659,8 +659,8 @@ CDEF;
                 return null;
             }
 
-            $encryptedFrame = $ffi->new("uint8_t[{$maxCiphertextSize}]", false);
-            $bytesWritten = $ffi->new('size_t[1]', false);
+            $encryptedFrame = $ffi->new("uint8_t[{$maxCiphertextSize}]");
+            $bytesWritten = $ffi->new('size_t[1]');
 
             $result = (int) self::call(
                 $ffi,
@@ -747,8 +747,8 @@ CDEF;
                 return false;
             }
 
-            $plaintextFrame = $ffi->new("uint8_t[{$maxPlaintextSize}]", false);
-            $bytesWritten = $ffi->new('size_t[1]', false);
+            $plaintextFrame = $ffi->new("uint8_t[{$maxPlaintextSize}]");
+            $bytesWritten = $ffi->new('size_t[1]');
 
             $result = (int) self::call(
                 $ffi,
@@ -875,8 +875,8 @@ CDEF;
         $ffi = self::$ffi;
 
         return [
-            $ffi->new('uint8_t*[1]', false),
-            $ffi->new('size_t[1]', false),
+            $ffi->new('uint8_t*[1]'),
+            $ffi->new('size_t[1]'),
         ];
     }
 

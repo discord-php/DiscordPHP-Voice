@@ -270,7 +270,7 @@ final class UDP extends Socket
             $this->ws->vc->seq,
             $this->ws->vc->timestamp,
             false,
-            $this->ws->secretKey,
+            $this->ws->getSecretKey(),
             [$this->ws->vc, 'encryptDaveFrame'],
             null,
             $this->ws->vc->nonce,

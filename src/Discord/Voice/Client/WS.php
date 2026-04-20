@@ -116,12 +116,12 @@ final class WS
     /**
      * The secret key used for encrypting voice.
      */
-    public ?string $secretKey;
+    protected ?string $secretKey;
 
     /**
      * The raw secret key.
      */
-    public ?array $rawKey;
+    protected ?array $rawKey;
 
     /**
      * The SSRC identifier for the voice connection client.
@@ -759,7 +759,9 @@ final class WS
     protected function handleDaveMlsInvalidCommitWelcome($data)
     {
         $this->discord->logger->warning('DAVE MLS Invalid Commit Welcome received; recovering MLS state.', ['data' => $data]);
-        $transitionId = (int) ($data->d['transition_id'] ?? 0);
+        $transitionId = $data instanceof BinaryFrame
+            ? $this->extractTransitionId($data->payload)
+            : (int) ($data->d['transition_id'] ?? 0);
         $this->handleInvalidDaveTransition($transitionId, true);
     }
 
@@ -1173,5 +1175,41 @@ final class WS
         $this->discord->logger->debug('sending identify (resume)', ['packet' => $payload->__debugInfo()]);
 
         $this->send($payload);
+    }
+
+    /**
+     * Returns the secret key for voice encryption.
+     *
+     * @internal
+     */
+    public function getSecretKey(): ?string
+    {
+        return $this->secretKey;
+    }
+
+    /**
+     * Returns the raw secret key array.
+     *
+     * @internal
+     */
+    public function getRawKey(): ?array
+    {
+        return $this->rawKey;
+    }
+
+    /**
+     * Redacts sensitive cryptographic material from debug output.
+     */
+    public function __debugInfo(): array
+    {
+        $info = get_object_vars($this);
+        if (isset($info['secretKey'])) {
+            $info['secretKey'] = '[REDACTED]';
+        }
+        if (isset($info['rawKey'])) {
+            $info['rawKey'] = '[REDACTED]';
+        }
+
+        return $info;
     }
 }
