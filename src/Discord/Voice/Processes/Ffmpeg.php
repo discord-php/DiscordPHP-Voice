@@ -73,6 +73,7 @@ final class Ffmpeg extends ProcessAbstract
         ?array $preArgs = null
     ): Process {
         $flags = [
+            '-protocol_whitelist', 'file,http,https,tcp,tls,crypto',
             '-i', escapeshellarg($filename ?? 'pipe:0'),
             '-map_metadata', '-1',
             '-f', 'opus',
@@ -131,7 +132,7 @@ final class Ffmpeg extends ProcessAbstract
         }
 
         if ($filename) {
-            $filename = date('Y-m-d_H-i').'-'.$filename;
+            $filename = sys_get_temp_dir() . DIRECTORY_SEPARATOR . date('Y-m-d_H-i').'-'.$filename;
             if (! str_ends_with($filename, '.ogg')) {
                 $filename .= '.ogg';
             }

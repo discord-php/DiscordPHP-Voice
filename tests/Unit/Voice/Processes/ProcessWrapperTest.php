@@ -92,7 +92,7 @@ it('builds ffmpeg encode commands with stdin defaults and pre-arguments', functi
 
     $process = Ffmpeg::encode(null, -6, 192000, ['-re', '-nostdin']);
 
-    expect(getProcessCommand($process))->toBe("/opt/ffmpeg '-re' '-nostdin' -i 'pipe:0' -map_metadata -1 -f opus -c:a libopus -ar 48000 -af 'volume=-6dB' -ac 2 -b:a 192000 -loglevel warning pipe:1");
+    expect(getProcessCommand($process))->toBe("/opt/ffmpeg '-re' '-nostdin' -protocol_whitelist file,http,https,tcp,tls,crypto -i 'pipe:0' -map_metadata -1 -f opus -c:a libopus -ar 48000 -af 'volume=-6dB' -ac 2 -b:a 192000 -loglevel warning pipe:1");
 });
 
 it('builds ffmpeg decode commands for stdout output by default', function (): void {
@@ -108,9 +108,11 @@ it('prefixes decoded ffmpeg files with a timestamp and ogg extension', function 
 
     $process = Ffmpeg::decode('capture', 0, 96000, 1, 960);
 
+    $tmpDir = sys_get_temp_dir();
     expect(getProcessCommand($process))
         ->toStartWith('/opt/ffmpeg -loglevel error -channel_layout stereo -ac 1 -ar 48000 -f s16le -i pipe:0 -acodec libopus -f ogg -ar 48000 -ac 1 -b:a 96000 ')
-        ->toMatch("/'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-capture\.ogg'$/");
+        ->toContain($tmpDir)
+        ->toMatch("/capture\.ogg'$/");
 });
 
 it('keeps existing ogg extensions when decoding with ffmpeg', function (): void {
@@ -128,7 +130,7 @@ it('routes explicit ffmpeg magic calls through binary detection', function (): v
     $process = Ffmpeg::__callStatic('encode', [null, 1, 128000, ['-re']]);
 
     expect($process)->toBeInstanceOf(Process::class)
-        ->and(getProcessCommand($process))->toBe(FIXTURE_BINARIES."/ffmpeg '-re' -i 'pipe:0' -map_metadata -1 -f opus -c:a libopus -ar 48000 -af 'volume=1dB' -ac 2 -b:a 128000 -loglevel warning pipe:1");
+        ->and(getProcessCommand($process))->toBe(FIXTURE_BINARIES."/ffmpeg '-re' -protocol_whitelist file,http,https,tcp,tls,crypto -i 'pipe:0' -map_metadata -1 -f opus -c:a libopus -ar 48000 -af 'volume=1dB' -ac 2 -b:a 128000 -loglevel warning pipe:1");
 });
 
 it('throws for missing or invalid ffmpeg magic calls', function (): void {

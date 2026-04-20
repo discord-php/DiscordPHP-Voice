@@ -65,6 +65,16 @@ class VoiceClient extends EventEmitter
     public const PRIORITY_SPEAKER = 1 << 2;
 
     /**
+     * Allowed URL schemes for playFile().
+     */
+    private const ALLOWED_URL_SCHEMES = ['http', 'https'];
+
+    /**
+     * Maximum number of concurrent voice decoders to prevent resource exhaustion.
+     */
+    private const MAX_DECODERS = 25;
+
+    /**
      * Is the voice client ready?
      *
      * @var bool Whether the voice client is ready.
@@ -374,6 +384,8 @@ class VoiceClient extends EventEmitter
      *
      * @param  string      $executable
      * @return string|null
+     *
+     * @deprecated 10.6.0 Use ProcessAbstract::checkForExecutable() instead.
      */
     public static function checkForExecutable(string $executable): ?string
     {
@@ -383,7 +395,7 @@ class VoiceClient extends EventEmitter
             $which = 'where';
         }
 
-        $shellExecutable = shell_exec("$which $executable");
+        $shellExecutable = shell_exec("$which " . escapeshellarg($executable));
         if ($shellExecutable === false) {
             // Unable to establish pipe
             return null;
@@ -429,6 +441,18 @@ class VoiceClient extends EventEmitter
             }
 
             return $deferred->promise();
+        }
+
+        // Validate URL scheme to prevent SSRF via dangerous protocols
+        if (filter_var($file, FILTER_VALIDATE_URL) !== false) {
+            $scheme = parse_url($file, PHP_URL_SCHEME);
+            if ($scheme === null || !in_array(strtolower($scheme), self::ALLOWED_URL_SCHEMES, true)) {
+                $deferred->reject(new \InvalidArgumentException(
+                    "URL scheme '{$scheme}' is not allowed. Only " . implode(', ', self::ALLOWED_URL_SCHEMES) . ' URLs are supported.'
+                ));
+
+                return $deferred->promise();
+            }
         }
 
         $process = Ffmpeg::encode($file, volume: $this->getDbVolume());
@@ -593,6 +617,9 @@ class VoiceClient extends EventEmitter
             // uint32 overflow protection
             if (++$this->nonce >= 2 ** 32) {
                 $this->nonce = 0;
+                $this->discord->getLogger()->critical('Voice nonce counter wrapped at 2^32. Cryptographic safety requires reconnection.', [
+                    'guild' => $this->channel->guild_id ?? null,
+                ]);
             }
 
             $this->udp->sendBuffer($packet);
@@ -676,13 +703,21 @@ class VoiceClient extends EventEmitter
             // Read JSON length
             return $this->buffer->readInt32();
         })->then(function ($jsonLength) {
+            if ($jsonLength <= 0 || $jsonLength > 1_000_000) {
+                throw new \UnexpectedValueException("Invalid DCA JSON metadata length: {$jsonLength}");
+            }
+
             // Read JSON content
             return $this->buffer->read($jsonLength);
         })->then(function ($metadata) use ($deferred) {
             $metadata = json_decode($metadata, true);
 
-            if (null !== $metadata) {
-                $this->frameSize = $metadata['opus']['frame_size'] / 48;
+            if (null !== $metadata && isset($metadata['opus']['frame_size'])) {
+                $frameSize = (int) ($metadata['opus']['frame_size'] / 48);
+                if ($frameSize < 1 || $frameSize > 120) {
+                    $frameSize = 20; // safe default: 20ms
+                }
+                $this->frameSize = $frameSize;
             }
 
             $this->startTime = microtime(true) + 0.5;
@@ -1136,6 +1171,9 @@ class VoiceClient extends EventEmitter
             return; // no voice decoder to remove
         }
 
+        if ($decoder->isRunning()) {
+            $decoder->terminate(SIGTERM);
+        }
         $decoder->close();
         unset(
             $this->voiceDecoders[$ss->ssrc],
@@ -1372,6 +1410,12 @@ class VoiceClient extends EventEmitter
      */
     protected function createDecoder($ss): void
     {
+        if (count($this->voiceDecoders) >= self::MAX_DECODERS) {
+            $this->discord->getLogger()->warning('Maximum decoder limit reached, refusing new decoder.', ['ssrc' => $ss->ssrc, 'limit' => self::MAX_DECODERS]);
+
+            return;
+        }
+
         $decoder = Ffmpeg::decode((string) $ss->ssrc);
         $decoder->start();
 

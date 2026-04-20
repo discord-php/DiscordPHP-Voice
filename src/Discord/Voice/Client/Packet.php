@@ -88,7 +88,7 @@ final class Packet
      * @param string|null                               $key                    The encryption key.
      * @param null|callable(string): string             $outboundFrameEncryptor Optional callback to transform outgoing decrypted frame data.
      * @param null|callable(string, self): false|string $inboundFrameDecryptor  Optional callback to transform incoming decrypted frame data.
-     * @param int|null                                  $nonce                  32-bit nonce counter for AES-256-GCM. When null, falls back to seq-1 (legacy behaviour).
+     * @param int|null                                  $nonce                  32-bit nonce counter for AES-256-GCM. Required for encryption; null is only valid on the decrypt path.
      */
     public function __construct(
         ?string $data = null,
@@ -173,7 +173,7 @@ final class Packet
             $message = $this->rawData ?? null;
         }
 
-        if (empty($message)) {
+        if ($message === '' || $message === null) {
             // throw error here
             return null;
         }
@@ -196,6 +196,9 @@ final class Packet
         //    The message: [header][ciphertext][auth tag][nonce]
         //    The size of the ciphertext is: total - headerSize - 16 (auth tag) - 4 (nonce)
         $encryptedLength = $len - $this->headerSize - HeaderValuesEnum::AUTH_TAG_LENGTH->value - HeaderValuesEnum::TIMESTAMP_OR_NONCE_INDEX->value;
+        if ($encryptedLength < 0) {
+            return false;
+        }
         $cipherText = substr($message, $this->headerSize, $encryptedLength);
         $authTag = substr($message, $this->headerSize + $encryptedLength, HeaderValuesEnum::AUTH_TAG_LENGTH->value);
 
@@ -221,13 +224,12 @@ final class Packet
 
             // If decryption fails, log the error and return
             // Most of the time, the length is 20 bytes either for a ping, or an empty voice/udp packet
-            if ($resultMessage === false && strlen($cipherText) !== 20) {
-                //$this->log->warning('Failed to decode voice packet.', ['ssrc' => $this->ssrc]);
+            if ($resultMessage === false) {
                 return false;
             }
             // Check if the message contains an extension and remove it.
             // Skip when DAVE decryption was applied: its output is already raw Opus with no RTP extension.
-            elseif (! $daveApplied && substr($message, 12, 2) === "\xBE\xDE") {
+            elseif (! $daveApplied && (ord($message[0]) & 0x10) !== 0) {
                 // Reads the 2 bytes after the extension identifier to get the extension length
                 $extLengthData = substr($message, 14, 2);
                 $headerExtensionLength = unpack('n', $extLengthData)[1];
@@ -257,10 +259,12 @@ final class Packet
             }
         }
 
+        if ($this->nonce === null) {
+            throw new \LogicException('Nonce must be set before encrypting a packet.');
+        }
+
         // pad nonce to 12 bytes for AES 256 GCM
-        // Use the dedicated 32-bit nonce counter when provided; fall back to
-        // seq-1 only for legacy call-sites that do not pass an explicit nonce.
-        $nonce = pack('V', $this->nonce ?? ($this->seq - 1));
+        $nonce = pack('V', $this->nonce);
         $paddedNonce = str_pad($nonce, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES, "\0", STR_PAD_RIGHT);
 
         // encrypt the audio
@@ -287,6 +291,8 @@ final class Packet
 
     /**
      * Initilizes the buffer with encryption.
+     *
+     * @deprecated 10.6.0 This method uses xsalsa20poly1305 with RTP-header-based nonce which allows nonce collision. Use AES-256-GCM encrypt() path instead.
      */
     protected function initBufferEncryption(string $data, string $key): void
     {
