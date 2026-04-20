@@ -19,8 +19,8 @@ use FFI;
 
 final class Runtime
 {
-    private const DEFAULT_LIBRARY_PATH = 'libdave.so';
-    private const DAVE_FFI_DEFINITIONS = <<<'CDEF'
+    protected const DEFAULT_LIBRARY_PATH = 'libdave.so';
+    protected const DAVE_FFI_DEFINITIONS = <<<'CDEF'
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
@@ -125,45 +125,45 @@ CDEF;
     public const MEDIA_TYPE_AUDIO = 0;
     public const CODEC_OPUS = 1;
 
-    private const RESULT_SUCCESS = 0;
+    protected const RESULT_SUCCESS = 0;
 
-    private static bool $loaded = false;
+    protected static bool $loaded = false;
 
-    private static ?FFI $ffi = null;
+    protected static ?FFI $ffi = null;
 
-    private static ?string $lastLoadError = null;
+    protected static ?string $lastLoadError = null;
 
     /**
      * @var null|callable(string, int): ?string
      */
-    private static $frameEncryptor = null;
+    protected static $frameEncryptor = null;
 
     /**
      * @var null|callable(string, int): false|string|null
      */
-    private static $frameDecryptor = null;
+    protected static $frameDecryptor = null;
 
     /**
      * @var null|callable(string, int): ?string
      */
-    private static $mlsCommitWelcomeBuilder = null;
+    protected static $mlsCommitWelcomeBuilder = null;
 
     /**
      * @var null|callable(?SessionHandle, string): ?array
      */
-    private static $processCommitCallback = null;
+    protected static $processCommitCallback = null;
 
     /**
      * @var null|callable(?SessionHandle, string, array): bool
      */
-    private static $processWelcomeCallback = null;
+    protected static $processWelcomeCallback = null;
 
     /**
      * @var null|callable(?string): ?SessionHandle
      */
-    private static $createSessionCallback = null;
+    protected static $createSessionCallback = null;
 
-    private static ?bool $availabilityOverride = null;
+    protected static ?bool $availabilityOverride = null;
 
     public static function isAvailable(): bool
     {
@@ -769,7 +769,7 @@ CDEF;
         }
     }
 
-    private static function load(): void
+    protected static function load(): void
     {
         if (self::$loaded) {
             return;
@@ -799,7 +799,7 @@ CDEF;
         }
     }
 
-    private static function ffi(): ?FFI
+    protected static function ffi(): ?FFI
     {
         self::load();
 
@@ -809,7 +809,7 @@ CDEF;
     /**
      * @return array{0:mixed,1:int,2:mixed}
      */
-    private static function makeBytePointer(string $bytes): array
+    protected static function makeBytePointer(string $bytes): array
     {
         $ffi = self::$ffi;
         $length = strlen($bytes);
@@ -828,7 +828,7 @@ CDEF;
      *
      * @return array{0:mixed,1:list<mixed>}
      */
-    private static function makeStringPointerArray(array $strings): array
+    protected static function makeStringPointerArray(array $strings): array
     {
         $ffi = self::$ffi;
         if (! $ffi instanceof FFI || $strings === []) {
@@ -852,7 +852,7 @@ CDEF;
     /**
      * @return array{0:mixed,1:mixed}
      */
-    private static function makeOutputByteBuffer(): array
+    protected static function makeOutputByteBuffer(): array
     {
         $ffi = self::$ffi;
 
@@ -862,7 +862,7 @@ CDEF;
         ];
     }
 
-    private static function takeOutputBytes(mixed $buffer, mixed $length): ?string
+    protected static function takeOutputBytes(mixed $buffer, mixed $length): ?string
     {
         $ffi = self::$ffi;
         if (! $ffi instanceof FFI || FFI::isNull($buffer[0])) {
@@ -876,7 +876,7 @@ CDEF;
         }
     }
 
-    private static function call(FFI $ffi, string $method, mixed ...$arguments): mixed
+    protected static function call(FFI $ffi, string $method, mixed ...$arguments): mixed
     {
         /** @var mixed $native */
         $native = $ffi;
