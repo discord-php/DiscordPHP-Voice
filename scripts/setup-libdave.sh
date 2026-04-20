@@ -2,8 +2,6 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 # ---------------------------------------------------------------------------
 # Detect OS and architecture
 # ---------------------------------------------------------------------------
@@ -44,7 +42,7 @@ LIBDAVE_BASE_URL="${LIBDAVE_BASE_URL:-https://github.com/discord/libdave/release
 LIBDAVE_DEST_DIR="${LIBDAVE_DEST_DIR:-.cache/libdave}"
 LIBDAVE_ZIP_PATH="${LIBDAVE_ZIP_PATH:-${LIBDAVE_DEST_DIR}/libdave.zip}"
 LIBDAVE_VERSION_FILE="${LIBDAVE_DEST_DIR}/.version"
-LIBDAVE_CHECKSUMS_FILE="${LIBDAVE_CHECKSUMS_FILE:-${SCRIPT_DIR}/libdave-checksums.sha256}"
+LIBDAVE_API_URL="${LIBDAVE_API_URL:-https://api.github.com/repos/discord/libdave/releases/tags}"
 
 # Derive the library path from the detected OS
 case "${DETECTED_OS}" in
@@ -82,18 +80,41 @@ verify_sha256() {
     fi
 }
 
-# Look up the expected checksum from the checksums file
-lookup_checksum() {
-    local version="$1" asset="$2" key
+# Fetch the expected SHA-256 digest from the GitHub Releases API
+fetch_github_digest() {
+    local version="$1" asset="$2" api_tag response digest
 
-    key="${version}/${asset}"
+    # URL-encode the tag (replace / with %2F)
+    api_tag="${version//\//%2F}"
 
-    if [[ ! -f "${LIBDAVE_CHECKSUMS_FILE}" ]]; then
+    response="$(curl -L --fail --silent --show-error \
+        -H "Accept: application/vnd.github+json" \
+        "${LIBDAVE_API_URL}/${api_tag}" 2>/dev/null)" || {
         echo ""
         return
+    }
+
+    # Extract the digest for the matching asset.
+    # The API returns "digest":"sha256:<hex>" per asset.
+    if command -v jq > /dev/null 2>&1; then
+        digest="$(echo "${response}" | jq -r \
+            --arg name "${asset}" \
+            '.assets[] | select(.name == $name) | .digest // empty')"
+    else
+        # Fallback: grep/sed for environments without jq.
+        # Match the asset name, then find the next "digest" field.
+        digest="$(echo "${response}" \
+            | grep -o "\"name\":\"${asset}\"[^}]*\"digest\":\"[^\"]*\"" \
+            | grep -o '"digest":"[^"]*"' \
+            | sed 's/"digest":"//;s/"//')"
     fi
 
-    grep -F "${key}" "${LIBDAVE_CHECKSUMS_FILE}" | awk '{print $1}' | head -1
+    # Strip the "sha256:" prefix
+    if [[ "${digest}" == sha256:* ]]; then
+        echo "${digest#sha256:}"
+    else
+        echo ""
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -121,9 +142,10 @@ curl -L --fail --silent --show-error \
     "${LIBDAVE_BASE_URL}/${LIBDAVE_VERSION//\//%2F}/${LIBDAVE_ASSET}"
 
 # ---------------------------------------------------------------------------
-# Verify SHA-256
+# Verify SHA-256 against GitHub's release digest
 # ---------------------------------------------------------------------------
-EXPECTED_SHA="$(lookup_checksum "${LIBDAVE_VERSION}" "${LIBDAVE_ASSET}")"
+echo "Fetching expected checksum from GitHub Releases API..."
+EXPECTED_SHA="$(fetch_github_digest "${LIBDAVE_VERSION}" "${LIBDAVE_ASSET}")"
 
 if [[ -n "${EXPECTED_SHA}" ]]; then
     echo "Verifying SHA-256 checksum..."
