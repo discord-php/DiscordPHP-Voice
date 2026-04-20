@@ -19,7 +19,6 @@ use Discord\Discord;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\WebSockets\VoiceStateUpdate;
 use Discord\Voice\Manager;
-use Psr\Log\NullLogger;
 
 // VULN-16 regression: Manager::stateUpdate() uses strict !== to compare guild
 // IDs, preventing type-coercion bypasses that were possible with loose !=.

@@ -395,7 +395,7 @@ class VoiceClient extends EventEmitter
             $which = 'where';
         }
 
-        $shellExecutable = shell_exec("$which " . escapeshellarg($executable));
+        $shellExecutable = shell_exec("$which ".escapeshellarg($executable));
         if ($shellExecutable === false) {
             // Unable to establish pipe
             return null;
@@ -446,9 +446,9 @@ class VoiceClient extends EventEmitter
         // Validate URL scheme to prevent SSRF via dangerous protocols
         if (filter_var($file, FILTER_VALIDATE_URL) !== false) {
             $scheme = parse_url($file, PHP_URL_SCHEME);
-            if ($scheme === null || !in_array(strtolower($scheme), self::ALLOWED_URL_SCHEMES, true)) {
+            if ($scheme === null || ! in_array(strtolower($scheme), self::ALLOWED_URL_SCHEMES, true)) {
                 $deferred->reject(new \InvalidArgumentException(
-                    "URL scheme '{$scheme}' is not allowed. Only " . implode(', ', self::ALLOWED_URL_SCHEMES) . ' URLs are supported.'
+                    "URL scheme '{$scheme}' is not allowed. Only ".implode(', ', self::ALLOWED_URL_SCHEMES).' URLs are supported.'
                 ));
 
                 return $deferred->promise();

@@ -77,7 +77,7 @@ it('valid IP and valid port — WS select protocol IS sent', function (): void {
  * Uses a real WS instance (no constructor) with a mocked Ratchet WebSocket
  * injected as the socket, matching the pattern used throughout Feature tests.
  *
- * @param array<int, string> $sent  Populated by reference with each raw JSON payload
+ * @param array<int, string> $sent Populated by reference with each raw JSON payload
  *
  * @return UDP
  */

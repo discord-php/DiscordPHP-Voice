@@ -45,7 +45,7 @@ it('returns false on any AEAD failure regardless of ciphertext length (MED-2)', 
     $key = random_bytes(SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES);
     // 52 bytes = 12 header + 20 cipher + 16 auth tag + 4 nonce
     // The 20-byte ciphertext case used to be silently passed through
-    $fakePacket = str_repeat("\x00", 12) . random_bytes(20) . random_bytes(16) . pack('V', 1);
+    $fakePacket = str_repeat("\x00", 12).random_bytes(20).random_bytes(16).pack('V', 1);
 
     $packet = new Packet($fakePacket, key: $key, decrypt: true);
     expect($packet->getAudioData())->toBeFalse();

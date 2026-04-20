@@ -132,7 +132,7 @@ final class Ffmpeg extends ProcessAbstract
         }
 
         if ($filename) {
-            $filename = sys_get_temp_dir() . DIRECTORY_SEPARATOR . date('Y-m-d_H-i').'-'.$filename;
+            $filename = sys_get_temp_dir().DIRECTORY_SEPARATOR.date('Y-m-d_H-i').'-'.$filename;
             if (! str_ends_with($filename, '.ogg')) {
                 $filename .= '.ogg';
             }

@@ -109,8 +109,10 @@ it('VULN-14: handleDaveMlsInvalidCommitWelcome clears pending transition even wh
 
 it('VULN-15: handleSendingOfLoginFrame does not log the token value', function (): void {
     $capturedLogs = [];
-    $capturingLogger = new class ($capturedLogs) extends \Psr\Log\AbstractLogger {
-        public function __construct(private array &$logs) {}
+    $capturingLogger = new class($capturedLogs) extends \Psr\Log\AbstractLogger {
+        public function __construct(private array &$logs)
+        {
+        }
 
         public function log($level, string|\Stringable $message, array $context = []): void
         {
