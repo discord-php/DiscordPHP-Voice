@@ -1531,6 +1531,8 @@ class VoiceClient extends EventEmitter
 
     public function setData(array $data): self
     {
+        $this->data = array_merge($this->data, $data);
+
         if (isset($this->data['token'], $this->data['endpoint'], $this->data['session'], $this->data['dnsConfig'])) {
             $this->endpoint = str_replace([':80', ':443'], '', $this->data['endpoint']);
             $this->dnsConfig = $this->data['dnsConfig'];

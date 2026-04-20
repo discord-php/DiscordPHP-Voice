@@ -92,7 +92,7 @@ it('builds ffmpeg encode commands with stdin defaults and pre-arguments', functi
 
     $process = Ffmpeg::encode(null, -6, 192000, ['-re', '-nostdin']);
 
-    expect(getProcessCommand($process))->toBe('/opt/ffmpeg -re -nostdin -i pipe:0 -map_metadata -1 -f opus -c:a libopus -ar 48000 -af volume=-6dB -ac 2 -b:a 192000 -loglevel warning pipe:1');
+    expect(getProcessCommand($process))->toBe("/opt/ffmpeg '-re' '-nostdin' -i 'pipe:0' -map_metadata -1 -f opus -c:a libopus -ar 48000 -af 'volume=-6dB' -ac 2 -b:a 192000 -loglevel warning pipe:1");
 });
 
 it('builds ffmpeg decode commands for stdout output by default', function (): void {
@@ -100,7 +100,7 @@ it('builds ffmpeg decode commands for stdout output by default', function (): vo
 
     $process = Ffmpeg::decode(null, 0, 128000, 2, null, ['-hide_banner']);
 
-    expect(getProcessCommand($process))->toBe('/opt/ffmpeg -hide_banner -loglevel error -channel_layout stereo -ac 2 -ar 48000 -f s16le -i pipe:0 -acodec libopus -f ogg -ar 48000 -ac 2 -b:a 128000 pipe:1');
+    expect(getProcessCommand($process))->toBe("/opt/ffmpeg '-hide_banner' -loglevel error -channel_layout stereo -ac 2 -ar 48000 -f s16le -i pipe:0 -acodec libopus -f ogg -ar 48000 -ac 2 -b:a 128000 'pipe:1'");
 });
 
 it('prefixes decoded ffmpeg files with a timestamp and ogg extension', function (): void {
@@ -110,7 +110,7 @@ it('prefixes decoded ffmpeg files with a timestamp and ogg extension', function 
 
     expect(getProcessCommand($process))
         ->toStartWith('/opt/ffmpeg -loglevel error -channel_layout stereo -ac 1 -ar 48000 -f s16le -i pipe:0 -acodec libopus -f ogg -ar 48000 -ac 1 -b:a 96000 ')
-        ->toMatch('/\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-capture\.ogg$/');
+        ->toMatch("/'\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-capture\.ogg'$/");
 });
 
 it('keeps existing ogg extensions when decoding with ffmpeg', function (): void {
@@ -118,8 +118,8 @@ it('keeps existing ogg extensions when decoding with ffmpeg', function (): void 
 
     $command = getProcessCommand(Ffmpeg::decode('clip.ogg'));
 
-    expect($command)->toEndWith('-clip.ogg')
-        ->not->toMatch('/\.ogg\.ogg$/');
+    expect($command)->toEndWith("-clip.ogg'")
+        ->not->toMatch('/\.ogg\.ogg/');
 });
 
 it('routes explicit ffmpeg magic calls through binary detection', function (): void {
@@ -128,7 +128,7 @@ it('routes explicit ffmpeg magic calls through binary detection', function (): v
     $process = Ffmpeg::__callStatic('encode', [null, 1, 128000, ['-re']]);
 
     expect($process)->toBeInstanceOf(Process::class)
-        ->and(getProcessCommand($process))->toBe(FIXTURE_BINARIES.'/ffmpeg -re -i pipe:0 -map_metadata -1 -f opus -c:a libopus -ar 48000 -af volume=1dB -ac 2 -b:a 128000 -loglevel warning pipe:1');
+        ->and(getProcessCommand($process))->toBe(FIXTURE_BINARIES."/ffmpeg '-re' -i 'pipe:0' -map_metadata -1 -f opus -c:a libopus -ar 48000 -af 'volume=1dB' -ac 2 -b:a 128000 -loglevel warning pipe:1");
 });
 
 it('throws for missing or invalid ffmpeg magic calls', function (): void {

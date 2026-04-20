@@ -60,7 +60,7 @@ abstract class ProcessAbstract
         if (strtoupper($systemOs) === 'WIN') {
             $which = 'where';
         }
-        $shellExecutable = (string) shell_exec("$which $exec");
+        $shellExecutable = (string) shell_exec("$which ".escapeshellarg($exec));
         $executable = rtrim(explode(PHP_EOL, $shellExecutable)[0]);
 
         return is_executable($executable) ? $executable : null;

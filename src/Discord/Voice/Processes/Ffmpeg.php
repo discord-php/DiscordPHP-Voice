@@ -72,12 +72,12 @@ final class Ffmpeg extends ProcessAbstract
         ?array $preArgs = null
     ): Process {
         $flags = [
-            '-i', $filename ?? 'pipe:0',
+            '-i', escapeshellarg($filename ?? 'pipe:0'),
             '-map_metadata', '-1',
             '-f', 'opus',
             '-c:a', 'libopus',
             '-ar', parent::DEFAULT_KHZ,
-            '-af', "volume={$volume}dB",
+            '-af', escapeshellarg("volume={$volume}dB"),
             '-ac', '2',
             '-b:a', $bitrate,
             '-loglevel', 'warning',
@@ -85,7 +85,7 @@ final class Ffmpeg extends ProcessAbstract
         ];
 
         if (null !== $preArgs) {
-            $flags = array_merge($preArgs, $flags);
+            $flags = array_merge(array_map('escapeshellarg', $preArgs), $flags);
         }
 
         $flags = implode(' ', $flags);
@@ -150,11 +150,11 @@ final class Ffmpeg extends ProcessAbstract
             '-ar', parent::DEFAULT_KHZ,
             '-ac', $channels,
             '-b:a', $bitrate,
-            $filename,
+            escapeshellarg($filename),
         ];
 
         if (null !== $preArgs) {
-            $flags = array_merge($preArgs, $flags);
+            $flags = array_merge(array_map('escapeshellarg', $preArgs), $flags);
         }
 
         $flags = implode(' ', $flags);

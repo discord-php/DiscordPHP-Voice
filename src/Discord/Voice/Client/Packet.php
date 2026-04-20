@@ -236,10 +236,12 @@ final class Packet
         } catch (\Throwable $e) {
             //$this->log->error('Exception occurred when decoding voice packet: ' . $e->getMessage());
             //$this->log->error('Trace: ' . $e->getTraceAsString());
-            return false;
+            $resultMessage = false;
         } finally {
-            return $this->decryptedAudio = $resultMessage;
+            $this->decryptedAudio = $resultMessage;
         }
+
+        return $resultMessage;
     }
 
     public function encrypt()
