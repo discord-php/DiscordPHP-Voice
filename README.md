@@ -17,6 +17,7 @@ Before you start using this Library, you **need** to know how PHP works, you nee
 
 ### DAVE (Discord Audio/Video End-to-End Encryption) runtime support
 
+- **[📊 Visual DAVE Protocol Guide →](docs/DAVE.md)** — Mermaid diagrams covering architecture, MLS lifecycle, media encryption pipeline, and all DAVE opcodes.
 - DAVE protocol negotiation is now supported at the voice gateway layer.
 - Binary DAVE voice opcodes are parsed and routed.
 - If [`ext-ffi`](https://www.php.net/manual/en/book.ffi.php) is enabled and `libdave.so` is available, the runtime will load real libdave session and media APIs and detect the maximum supported DAVE protocol version.
