@@ -1,0 +1,13 @@
+# SHA256 checksums for libdave release assets.
+# Format: <sha256>  <version>/<asset-filename>
+# Used by scripts/setup-libdave.sh to verify downloaded archives.
+#
+# To add a new version, download each asset and run:
+#   sha256sum libdave-*.zip
+# Then add lines with the version prefix below.
+
+2848ca62da5c8303626cfa410827f37735455f614256311fc320b35c7c6a1975  v1.1.1/cpp/libdave-Linux-ARM64-boringssl.zip
+2470a131dbf39a820d893ba3d6f01373fc597868caffd6a30a8746e441ed5ede  v1.1.1/cpp/libdave-Linux-X64-boringssl.zip
+ff8ae20332b4553cb61989cbcecd8dc4224edfc0ab9afdf7e23c1a9aa5ed748a  v1.1.1/cpp/libdave-macOS-ARM64-boringssl.zip
+8588ba9e664f659b3b143ddccd2edccf4432de8150698e3c1ad401a9149ea851  v1.1.1/cpp/libdave-macOS-X64-boringssl.zip
+52701e912db3b194a9837eeef2067a15ad24ee1b163014e41ec94e110d70b59c  v1.1.1/cpp/libdave-Windows-X64-boringssl.zip

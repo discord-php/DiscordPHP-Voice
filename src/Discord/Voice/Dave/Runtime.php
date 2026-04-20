@@ -19,15 +19,24 @@ use FFI;
 
 final class Runtime
 {
-    protected const DEFAULT_LIBRARY_PATH = 'libdave.so';
-    protected const DAVE_FFI_DEFINITIONS = <<<'CDEF'
+    /**
+     * Platform-specific typedefs prepended to FFI definitions.
+     * PHP FFI::cdef() does not process C headers, so we provide these explicitly.
+     */
+    private const FFI_TYPEDEF_PRELUDE = <<<'CDEF'
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 typedef unsigned long size_t;
 typedef unsigned long long uint64_t;
 typedef _Bool bool;
+CDEF;
 
+    /**
+     * Hardcoded FFI C declarations used as fallback when the dave.h header
+     * shipped with the native library is not available on disk.
+     */
+    private const DAVE_FFI_DEFINITIONS = <<<'CDEF'
 typedef struct DAVESessionHandle_s* DAVESessionHandle;
 typedef struct DAVECommitResultHandle_s* DAVECommitResultHandle;
 typedef struct DAVEWelcomeResultHandle_s* DAVEWelcomeResultHandle;
@@ -133,6 +142,8 @@ CDEF;
 
     protected static ?string $lastLoadError = null;
 
+    private static ?string $lastDestroyError = null;
+
     /**
      * @var null|callable(string, int): ?string
      */
@@ -198,11 +209,17 @@ CDEF;
         return self::$lastLoadError;
     }
 
+    public static function getLastDestroyError(): ?string
+    {
+        return self::$lastDestroyError;
+    }
+
     public static function reset(): void
     {
         self::$loaded = false;
         self::$ffi = null;
         self::$lastLoadError = null;
+        self::$lastDestroyError = null;
         self::$frameEncryptor = null;
         self::$frameDecryptor = null;
         self::$mlsCommitWelcomeBuilder = null;
@@ -783,7 +800,8 @@ CDEF;
 
         try {
             self::call($ffi, $destroyMethod, $handle);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            self::$lastDestroyError = "{$destroyMethod}: {$e->getMessage()}";
         }
     }
 
@@ -803,12 +821,14 @@ CDEF;
 
         $libraryPath = getenv('DISCORDPHP_DAVE_LIBRARY');
         if ($libraryPath === false || $libraryPath === '') {
-            $libraryPath = self::DEFAULT_LIBRARY_PATH;
+            $libraryPath = self::resolveDefaultLibraryPath();
         }
+
+        $definitions = self::resolveDefinitions($libraryPath);
 
         try {
             self::$ffi = FFI::cdef(
-                self::DAVE_FFI_DEFINITIONS,
+                $definitions,
                 $libraryPath
             );
         } catch (\Throwable $e) {
@@ -817,7 +837,155 @@ CDEF;
         }
     }
 
-    protected static function ffi(): ?FFI
+    /**
+     * Resolves the default library path by probing known locations.
+     *
+     * Probe order:
+     * 1. Package root (relative to __DIR__): .cache/libdave/lib/libdave.{ext}
+     * 2. Working directory: .cache/libdave/lib/libdave.{ext}
+     * 3. Bare filename: libdave.{ext} (system library path)
+     */
+    private static function resolveDefaultLibraryPath(): string
+    {
+        $relative = match (PHP_OS_FAMILY) {
+            'Darwin' => '.cache/libdave/lib/libdave.dylib',
+            'Windows' => '.cache/libdave/bin/libdave.dll',
+            default => '.cache/libdave/lib/libdave.so',
+        };
+        $libFile = basename($relative);
+
+        // Package root: __DIR__ is src/Discord/Voice/Dave — walk up 4 dirs
+        $packageRoot = dirname(__DIR__, 4);
+        $packagePath = $packageRoot.DIRECTORY_SEPARATOR.$relative;
+        if (is_file($packagePath)) {
+            return $packagePath;
+        }
+
+        // Working directory
+        $cwdPath = getcwd().DIRECTORY_SEPARATOR.$relative;
+        if (is_file($cwdPath)) {
+            return $cwdPath;
+        }
+
+        return $libFile;
+    }
+
+    /**
+     * Resolves FFI C definitions, preferring the dave.h header file from the
+     * same install root as the resolved library, falling back to inline CDEF.
+     */
+    private static function resolveDefinitions(string $libraryPath): string
+    {
+        $headerPath = self::deriveHeaderPath($libraryPath);
+
+        if ($headerPath !== null) {
+            $parsed = self::loadHeaderDefinitions($headerPath);
+            if ($parsed !== null) {
+                return self::FFI_TYPEDEF_PRELUDE."\n".$parsed;
+            }
+        }
+
+        return self::FFI_TYPEDEF_PRELUDE."\n".self::DAVE_FFI_DEFINITIONS;
+    }
+
+    /**
+     * Derives the dave.h header path from a resolved library path.
+     *
+     * Expected layout:
+     *   Linux/macOS: {root}/.cache/libdave/lib/libdave.{so|dylib}
+     *   Windows:     {root}/.cache/libdave/bin/libdave.dll
+     * Header:        {root}/.cache/libdave/include/dave/dave.h
+     */
+    private static function deriveHeaderPath(string $libraryPath): ?string
+    {
+        $libDir = dirname($libraryPath);
+        $dirName = basename($libDir);
+        if ($dirName !== 'lib' && $dirName !== 'bin') {
+            return null;
+        }
+
+        $headerPath = dirname($libDir).'/include/dave/dave.h';
+
+        return is_file($headerPath) ? $headerPath : null;
+    }
+
+    /**
+     * Reads and preprocesses the dave.h C header into FFI-compatible declarations.
+     *
+     * Handles: preprocessor directives, DAVE_EXPORT attribute, DECLARE_OPAQUE_HANDLE
+     * macro expansion, extern "C" blocks, and C doc comments.
+     */
+    public static function loadHeaderDefinitions(string $headerPath): ?string
+    {
+        $content = @file_get_contents($headerPath);
+        if ($content === false) {
+            return null;
+        }
+
+        // Strip block comments (/** ... */ and /* ... */)
+        $content = (string) preg_replace('/\/\*[\s\S]*?\*\//', '', $content);
+
+        // Strip single-line comments (// ...)
+        $content = (string) preg_replace('/\/\/[^\n]*/', '', $content);
+
+        $lines = explode("\n", $content);
+        $result = [];
+        $ifdefDepth = 0;
+        $insideIfdef = false;
+
+        foreach ($lines as $line) {
+            $trimmed = ltrim($line);
+
+            // Skip preprocessor directives, tracking #if depth
+            if (str_starts_with($trimmed, '#')) {
+                if (preg_match('/^#\s*(?:if|ifdef|ifndef)\b/', $trimmed)) {
+                    $ifdefDepth++;
+                    $insideIfdef = true;
+                } elseif (preg_match('/^#\s*endif\b/', $trimmed)) {
+                    $ifdefDepth--;
+                    if ($ifdefDepth <= 0) {
+                        $ifdefDepth = 0;
+                        $insideIfdef = false;
+                    }
+                }
+
+                continue;
+            }
+
+            // Skip extern "C" { and its closing }
+            if (preg_match('/^\s*extern\s+"C"\s*\{/', $trimmed)) {
+                continue;
+            }
+
+            // Expand DECLARE_OPAQUE_HANDLE(Name) → typedef struct Name_s* Name
+            $expanded = preg_replace(
+                '/DECLARE_OPAQUE_HANDLE\(\s*(\w+)\s*\)\s*;/',
+                'typedef struct ${1}_s* ${1};',
+                $trimmed
+            );
+            if ($expanded !== $trimmed) {
+                $result[] = $expanded;
+
+                continue;
+            }
+
+            // Strip DAVE_EXPORT attribute from function declarations
+            $stripped = str_replace('DAVE_EXPORT ', '', $trimmed);
+
+            // Skip empty lines and lone closing braces (from extern "C")
+            if ($stripped === '' || $stripped === '}') {
+                continue;
+            }
+
+            $result[] = $stripped;
+        }
+
+        $output = implode("\n", $result);
+
+        return trim($output) !== '' ? $output : null;
+    }
+
+    private static function ffi(): ?FFI
     {
         self::load();
 
