@@ -30,7 +30,9 @@ it('encrypts outbound frames and decrypts inbound frames with callbacks', functi
         960,
         false,
         $key,
-        fn (string $frame): string => "enc:$frame"
+        fn (string $frame): string => "enc:$frame",
+        null,
+        0
     );
 
     $inbound = new Packet(
@@ -69,7 +71,9 @@ it('keeps outbound audio when the frame encryptor does not return a string', fun
         123,
         false,
         $key,
-        fn (string $frame): int => strlen($frame)
+        fn (string $frame): int => strlen($frame),
+        null,
+        0
     );
 
     expect($packet->getAudioData())->toBe('audio')
@@ -108,7 +112,7 @@ it('returns null or false for empty and incomplete input', function (): void {
 
 it('returns false when inbound decryption fails authentication', function (): void {
     $key = random_bytes(SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES);
-    $outbound = new Packet('audio', 42, 99, 1234, false, $key);
+    $outbound = new Packet('audio', 42, 99, 1234, false, $key, nonce: 0);
     $tampered = $outbound->getEncryptedMessage();
     $offset = HeaderValuesEnum::RTP_HEADER_OR_NONCE_LENGTH->value;
     $tampered = substr_replace($tampered, chr(ord($tampered[$offset]) ^ 0xFF), $offset, 1);
