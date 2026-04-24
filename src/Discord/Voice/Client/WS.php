@@ -36,6 +36,7 @@ use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
 use Ratchet\Client\Connector;
 use Ratchet\Client\WebSocket;
+use Ratchet\RFC6455\Messaging\Frame;
 use Ratchet\RFC6455\Messaging\Message;
 use React\EventLoop\TimerInterface;
 use React\Promise\PromiseInterface;
@@ -278,10 +279,15 @@ final class WS
 
     /**
      * Sends a DAVE binary payload over the voice websocket.
+     *
+     * Wrap the bytes in an explicit binary Frame — sending raw payload through
+     * Pawl's WebSocket::send goes out as a text frame and Discord rejects DAVE
+     * frames received as text with 4002 "Error while decoding payload".
      */
     protected function sendDaveBinary(int $opcode, string $payload = ''): void
     {
-        $this->socket->send((new BinaryFrame(null, $opcode, $payload))->toClientPayload());
+        $bytes = (new BinaryFrame(null, $opcode, $payload))->toClientPayload();
+        $this->socket->send(new Frame($bytes, true, Frame::OP_BINARY));
     }
 
     /**
@@ -357,7 +363,9 @@ final class WS
 
         $protocolVersion = $this->resolveDaveProtocolVersion($this->extractProtocolVersion($data->d));
         if ($protocolVersion > 0) {
-            $this->initializeDaveRuntimeState($protocolVersion);
+            if ($this->initializeDaveRuntimeState($protocolVersion)) {
+                $this->sendDaveKeyPackage();
+            }
         } else {
             $this->daveState->resetProtocolState();
             $this->daveState->setProtocolVersion(0);
@@ -423,7 +431,10 @@ final class WS
         $hello = $this->discord->factory(Hello::class, (array) $data->d, true);
 
         $this->hbInterval = $this->vc->heartbeatInterval = $hello->heartbeat_interval;
-        $this->sendHeartbeat();
+        // Don't send the first heartbeat immediately — @discordjs/voice waits one
+        // full interval and only fires from the periodic timer. Sending an early
+        // heartbeat is correlated with Discord force-disconnecting (4014) right
+        // after DAVE setup.
         $this->heartbeat = $this->discord->loop->addPeriodicTimer(
             $this->hbInterval / 1000,
             fn () => $this->sendHeartbeat()
@@ -634,26 +645,22 @@ final class WS
     {
         $this->discord->logger->debug('DAVE MLS Proposals', ['data' => $data]);
 
-        if (! ($data instanceof BinaryFrame)) {
+        if (! ($data instanceof BinaryFrame) || $this->daveState->session === null) {
             return;
         }
 
-        $payload = null;
-        if ($this->daveState->session !== null) {
-            $payload = DaveRuntime::buildMlsCommitWelcomeWithSession(
-                $this->daveState->session,
-                $data->payload,
-                $this->daveState->recognizedUsersIncludingSelf()
-            );
-        }
+        // Mirror @discordjs/voice (DAVESession.processProposals + Networking.onWsBinary):
+        // unconditionally call into libdave with the *connected* clients (NOT self),
+        // and only emit MLS_COMMIT_WELCOME if libdave returned a commit. libdave is
+        // the authority on whether we have enough state to commit.
+        $payload = DaveRuntime::buildMlsCommitWelcomeWithSession(
+            $this->daveState->session,
+            $data->payload,
+            $this->daveState->recognizedUsers()
+        );
 
         if ($payload === null) {
-            $payload = DaveRuntime::buildMlsCommitWelcome($data->payload, $this->daveState->protocolVersion);
-        }
-
-        if ($payload === null) {
-            $this->sendDaveInvalidCommitWelcome();
-
+            // libdave returned no commit; don't ack as invalid — discord.js stays silent here.
             return;
         }
 
@@ -676,7 +683,9 @@ final class WS
                 $transitionId,
                 $this->daveState->pendingProtocolVersion ?? $this->daveState->protocolVersion
             );
-            $this->sendDaveTransitionReady($transitionId);
+            if ($transitionId !== 0) {
+                $this->sendDaveTransitionReady($transitionId);
+            }
 
             return;
         }
@@ -692,7 +701,9 @@ final class WS
                 $transitionId,
                 $this->daveState->pendingProtocolVersion ?? $this->daveState->protocolVersion
             );
-            $this->sendDaveTransitionReady($transitionId);
+            if ($transitionId !== 0) {
+                $this->sendDaveTransitionReady($transitionId);
+            }
 
             return;
         }
@@ -725,7 +736,10 @@ final class WS
             $transitionId,
             $this->daveState->pendingProtocolVersion ?? $this->daveState->protocolVersion
         );
-        $this->sendDaveTransitionReady($transitionId);
+        // Mirror @discordjs/voice: skip ready ack for transition_id 0 (initial / re-init).
+        if ($transitionId !== 0) {
+            $this->sendDaveTransitionReady($transitionId);
+        }
     }
 
     protected function handleDaveMlsWelcome($data)
@@ -737,10 +751,14 @@ final class WS
         }
 
         [$transitionId, $welcome] = $this->splitTransitionPayload($data->payload);
+        // Use recognized users without self to mirror @discordjs/voice. libdave's
+        // VerifyWelcomeState walks the welcome roster and ensures every member is
+        // recognized — self is always part of the roster (we just got welcomed)
+        // but doesn't need to be in the application-level recognized set.
         $joinedGroup = DaveRuntime::processWelcome(
             $this->daveState->session,
             $welcome,
-            $this->daveState->recognizedUsersIncludingSelf()
+            $this->daveState->recognizedUsers()
         );
 
         if (! $joinedGroup) {
@@ -749,11 +767,16 @@ final class WS
             return;
         }
 
+        $this->daveState->isMember = true;
         $this->prepareDaveMediaTransition(
             $transitionId,
             $this->daveState->pendingProtocolVersion ?? $this->daveState->protocolVersion
         );
-        $this->sendDaveTransitionReady($transitionId);
+        // For transition_id 0 (initial bootstrap), discord.js does NOT send ready —
+        // it just emits a 'transitioned' event locally. Mirror that behavior.
+        if ($transitionId !== 0) {
+            $this->sendDaveTransitionReady($transitionId);
+        }
     }
 
     protected function handleDaveMlsInvalidCommitWelcome($data)
@@ -1029,11 +1052,10 @@ final class WS
 
     private function resolveDaveGroupId(): int|string|null
     {
-        if (isset($this->vc->channel->id)) {
-            return $this->vc->channel->id;
-        }
-
-        return $this->vc->channel->guild_id ?? null;
+        // Use a single ?? chain — the previous form (isset on ->id, then ?? on
+        // ->guild_id) returned the channel id even when it was a numeric 0,
+        // and otherwise diverged from `null` semantics on undefined properties.
+        return $this->vc->channel->id ?? $this->vc->channel->guild_id ?? null;
     }
 
     public function getDaveProtocolVersion(): int
@@ -1051,10 +1073,12 @@ final class WS
      */
     public function sendHeartbeat(): void
     {
-        $data = ['t' => (int) microtime(true)];
-        if ($this->daveState->lastReceivedSequence !== null) {
-            $data['seq_ack'] = $this->daveState->lastReceivedSequence;
-        }
+        // Match @discordjs/voice exactly: t is millisecond timestamp, seq_ack
+        // always present (defaulting to 0 when nothing has been received yet).
+        $data = [
+            't' => (int) (microtime(true) * 1000),
+            'seq_ack' => $this->daveState->lastReceivedSequence ?? 0,
+        ];
 
         $this->send(VoicePayload::new(Op::VOICE_HEARTBEAT, $data));
         $this->discord->logger->debug('sending heartbeat');
@@ -1131,16 +1155,20 @@ final class WS
             return;
         }
 
+        // Match @discordjs/voice's identify field ordering exactly: server_id,
+        // user_id, session_id, token, max_dave_protocol_version. Discord's parser
+        // has been observed to behave differently when session_id appears after
+        // max_dave_protocol_version (4014 right after MLS welcome).
         $data = [
             'server_id' => $this->vc->channel->guild_id,
-            'user_id' => $this->data['user_id'],
-            'token' => $this->data['token'],
-            'max_dave_protocol_version' => $this->maxDaveProtocolVersion,
+            'user_id'   => $this->data['user_id'],
         ];
         if (isset($this->discord->voice_sessions[$this->vc->channel->guild_id])) {
             $this->data['session'] = $this->discord->voice_sessions[$this->vc->channel->guild_id];
             $data['session_id'] = $this->data['session'];
         }
+        $data['token'] = $this->data['token'];
+        $data['max_dave_protocol_version'] = $this->maxDaveProtocolVersion;
 
         $payload = VoicePayload::new(Op::VOICE_IDENTIFY, $data);
 

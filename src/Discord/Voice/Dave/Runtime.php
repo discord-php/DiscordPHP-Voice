@@ -339,6 +339,13 @@ CDEF;
         [$recognizedPointers, $recognizedBuffers] = self::makeStringPointerArray($recognizedUserIds);
         [$buffer, $length] = self::makeOutputByteBuffer();
 
+        // libdave's ProcessProposals signature is `const char* const*` —
+        // we have to pass the address of the first pointer so it sees a
+        // contiguous array, not a pointer to a single FFI pointer object.
+        $recognizedPointerArg = $recognizedPointers !== null && count($recognizedUserIds) > 0
+            ? FFI::addr($recognizedPointers[0])
+            : null;
+
         try {
             self::call(
                 $ffi,
@@ -346,7 +353,7 @@ CDEF;
                 $session->raw(),
                 $proposalPointer,
                 $proposalLength,
-                $recognizedPointers,
+                $recognizedPointerArg,
                 count($recognizedUserIds),
                 FFI::addr($buffer[0]),
                 FFI::addr($length[0])
@@ -934,9 +941,9 @@ CDEF;
         $buffers = [];
 
         foreach (array_values($strings) as $index => $string) {
-            $buffer = $ffi->new('char['.(strlen($string) + 1).']', false);
-            FFI::memcpy($buffer, $string, strlen($string));
-            $buffer[strlen($string)] = 0;
+            $len = strlen($string);
+            $buffer = $ffi->new('char['.($len + 1).']', false);
+            FFI::memcpy($buffer, $string . "\0", $len + 1);
             $buffers[] = $buffer;
             $pointers[$index] = FFI::addr($buffer[0]);
         }

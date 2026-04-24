@@ -212,11 +212,16 @@ final class Manager
             return; // We might have left the voice channel already.
         }
 
-        $client->setData([
-            'session' => $state->session_id,
-            'deaf' => $state->deaf,
-            'mute' => $state->mute,
-        ]);
+        // Update state fields directly so we do NOT re-trigger a boot through
+        // VoiceClient::setData. Discord may send subsequent VOICE_STATE_UPDATEs
+        // (e.g. after DAVE MLS welcome) carrying a refreshed session id; rebooting
+        // the voice WS at that point uses stale token/endpoint and immediately
+        // disconnects with 4014/4006.
+        $client->data['session'] = $state->session_id;
+        $client->data['deaf'] = $state->deaf;
+        $client->data['mute'] = $state->mute;
+        $client->deaf = $state->deaf;
+        $client->mute = $state->mute;
 
         $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id]);
         $this->discord->voice_sessions[$channel->guild_id] = $state->session_id;

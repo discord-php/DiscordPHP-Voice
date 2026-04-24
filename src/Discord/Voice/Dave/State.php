@@ -31,6 +31,8 @@ final class State
 
     public ?int $groupId = null;
 
+    public bool $isMember = false;
+
     public int $protocolVersion = 0;
 
     public ?int $epoch = null;
@@ -163,6 +165,7 @@ final class State
         $this->pendingProtocolVersion = null;
         $this->latestPreparedTransitionVersion = null;
         $this->passthroughMode = true;
+        $this->isMember = false;
     }
 
     public function close(): void

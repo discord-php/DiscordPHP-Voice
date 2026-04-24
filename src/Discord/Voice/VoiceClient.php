@@ -272,7 +272,7 @@ class VoiceClient extends EventEmitter
      *
      * @var TimerInterface|null Timer
      */
-    public ?TimerInterface $readOpusTimer;
+    public ?TimerInterface $readOpusTimer = null;
 
     /**
      * Audio Buffer.
@@ -780,7 +780,13 @@ class VoiceClient extends EventEmitter
             $this->readOpusTimer = null;
         }
 
-        $this->setSpeaking(self::NOT_SPEAKING);
+        if ($this->ready) {
+            try {
+                $this->setSpeaking(self::NOT_SPEAKING);
+            } catch (\Throwable $e) {
+                // best-effort during teardown; the websocket may already be gone
+            }
+        }
         $this->streamTime = 0;
         $this->startTime = 0;
         $this->paused = false;
@@ -1586,7 +1592,8 @@ class VoiceClient extends EventEmitter
     {
         $this->data = array_merge($this->data, $data);
 
-        if (isset($this->data['token'], $this->data['endpoint'], $this->data['session'], $this->data['dnsConfig'])) {
+        if (isset($this->data['token'], $this->data['endpoint'], $this->data['session'], $this->data['dnsConfig'])
+            && ! isset($this->ws)) {
             $this->endpoint = str_replace([':80', ':443'], '', $this->data['endpoint']);
             $this->dnsConfig = $this->data['dnsConfig'];
             $this->data['user_id'] ??= $this->discord->id;
