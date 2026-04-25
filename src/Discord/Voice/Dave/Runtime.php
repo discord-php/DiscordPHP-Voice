@@ -170,6 +170,8 @@ CDEF;
             return null;
         }
 
+        // @todo implement direct FFI path (currently only reachable via configureCallbacks in tests;
+        //       production code uses encryptWithEncryptor() on a per-handle EncryptorHandle instead)
         return null;
     }
 
@@ -187,6 +189,8 @@ CDEF;
             return null;
         }
 
+        // @todo implement direct FFI path (currently only reachable via configureCallbacks in tests;
+        //       production code uses decryptWithDecryptor() on a per-handle DecryptorHandle instead)
         return null;
     }
 
@@ -204,6 +208,8 @@ CDEF;
             return null;
         }
 
+        // @todo implement direct FFI path (currently only reachable via configureCallbacks in tests;
+        //       production code uses buildMlsCommitWelcomeWithSession() with a live SessionHandle instead)
         return null;
     }
 
