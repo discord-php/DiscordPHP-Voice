@@ -54,14 +54,15 @@ trait BufferArrayAccessTrait
     }
 
     /**
-     * Writes a unsigned integer.
+     * Writes an unsigned 32-bit integer in big-endian byte order so that
+     * {@see self::readUInt()} round-trips the same value.
      *
      * @param int $value  The value that will be written.
      * @param int $offset The offset that the value will be written.
      */
     public function writeUInt(int $value, int $offset): self
     {
-        return $this->insert(FormatPackEnum::I, $value, $offset, 4);
+        return $this->insert(FormatPackEnum::N, $value, $offset, 4);
     }
 
     /**

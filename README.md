@@ -26,7 +26,7 @@ Before you start using this Library, you **need** to know how PHP works, you nee
 - Use `./scripts/setup-libdave.sh` to fetch the published `discord/libdave` release asset into `.cache/libdave` without vendoring the binary into git. The script auto-detects your OS and architecture (Linux, macOS, Windows — x64 and ARM64).
 - Export `DISCORDPHP_DAVE_LIBRARY` pointing to the platform library (e.g. `.cache/libdave/lib/libdave.so` on Linux) to force the runtime to use the repo-local shared library path.
 - CI uses the same setup script and enables `ext-ffi` so native DAVE coverage stays runnable.
-- If libdave is unavailable, the client automatically falls back to protocol version `0` (transport-only behavior).
+- libdave is **required** for voice connections. `Manager::__construct()` and the voice WebSocket throw `LibDaveNotFoundException` immediately when [`ext-ffi`](https://www.php.net/manual/en/book.ffi.php) or a working libdave library cannot be loaded — there is currently no automatic fallback to protocol version `0`. Discord has required the DAVE E2EE protocol for all voice and video connections since March 1st, 2026.
 
 #### Local setup
 

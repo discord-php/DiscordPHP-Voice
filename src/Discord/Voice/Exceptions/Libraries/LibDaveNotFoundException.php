@@ -41,7 +41,7 @@ class LibDaveNotFoundException extends \Exception implements VoiceException
             .'To install libdave, run: bash scripts/setup-libdave.sh from the project root, or see https://github.com/discord/libdave for manual installation.';
 
         $loadError = DaveRuntime::getLastLoadError();
-        if ($loadError !== '') {
+        if (is_string($loadError) && $loadError !== '') {
             $message .= "\nLoad error: {$loadError}";
         }
 

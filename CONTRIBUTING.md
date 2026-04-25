@@ -4,7 +4,7 @@ We welcome contributions. Follow the steps below to get set up and keep things c
 
 ## Prerequisites
 
-- PHP 8.1.2 or higher
+- PHP 8.3 or higher (matching `composer.json`'s `^8.3` requirement)
 - Composer
 - FFmpeg — `apt install ffmpeg` / `brew install ffmpeg`
 - libopus — `apt install libopus-dev` / `brew install opus`
@@ -27,7 +27,7 @@ export DISCORDPHP_DAVE_LIBRARY="$PWD/.cache/libdave/lib/libdave.so"
 
 ## Running Tests
 
-- `composer unit` — full suite with libdave
+- `composer unit` — run the full Pest suite (set `DISCORDPHP_DAVE_LIBRARY` first to exercise libdave-dependent tests, e.g. `export DISCORDPHP_DAVE_LIBRARY="$PWD/.cache/libdave/lib/libdave.so"` on Linux, `.../libdave.dylib` on macOS, `.../bin/libdave.dll` on Windows)
 - `composer unit-no-dave` — skip libdave-dependent tests
 - `composer pest` — run tests in parallel
 
