@@ -133,16 +133,16 @@ it('handleSpeaking registers the user payload in speakingStatus and emits speaki
     $sentPayloads = [];
     $ws = makeWsForHandlersTest($this, $sentPayloads);
 
-    // NB: omit `ssrc` to avoid the protected-property write at WS.php:396 which
-    // throws "Cannot access protected property" outside VoiceClient's class scope.
     $speaking = new class() {
         public string $user_id = '12345';
+        public int $ssrc = 99;
         public bool $speaking = true;
     };
     setHandlersFactoryReturn($ws, $speaking);
 
     invokeHandlersMethod($ws, 'handleSpeaking', [new Payload(Op::VOICE_SPEAKING, [
         'user_id' => '12345',
+        'ssrc' => 99,
         'speaking' => 1,
     ])]);
 
@@ -150,6 +150,7 @@ it('handleSpeaking registers the user payload in speakingStatus and emits speaki
 
     expect($ws->vc->speakingStatus)->toHaveKey('12345')
         ->and($ws->vc->speakingStatus['12345'])->toBe($speaking)
+        ->and(getHandlersSsrcMap($ws->vc))->toBe([99 => '12345'])
         ->and($events)->toContain('speaking')
         ->and($events)->toContain('speaking.12345');
 });

@@ -198,7 +198,7 @@ class VoiceClient extends EventEmitter
      *
      * @var array<int, string>
      */
-    protected array $ssrcToUserId = [];
+    public array $ssrcToUserId = [];
 
     /**
      * Collection of voice decoders.
