@@ -630,6 +630,21 @@ final class WS
         }
     }
 
+    /**
+     * Handle an inbound opcode 26 (VOICE_DAVE_MLS_KEY_PACKAGE) frame from the gateway.
+     *
+     * Opcode 26 is primarily client→server: we send our own key package to the gateway
+     * via {@see sendDaveKeyPackage()} during the DAVE epoch-1 setup.  The gateway may
+     * also forward a remote member's key package back to us as an informational notice —
+     * that is what this handler receives.
+     *
+     * The gateway (server) is responsible for aggregating all key packages and driving
+     * the subsequent proposal/commit flow.  We passively receive the forwarded package;
+     * no action is required on the client side.
+     *
+     * Per the Discord DAVE spec: "Key packages are only used one time" — each time we
+     * need to join or rejoin a session we generate and send a fresh key package.
+     */
     protected function handleDaveMlsKeyPackage($data): void
     {
         $this->discord->logger->debug('DAVE MLS Key Package received', ['data' => $data]);
@@ -723,7 +738,7 @@ final class WS
         $result = DaveRuntime::processCommit($this->daveState->session, $commit);
 
         if ($result === null || ($result['failed'] ?? true)) {
-            $this->handleInvalidDaveTransition($transitionId);
+            $this->handleInvalidDaveTransition($transitionId, true);
 
             return;
         }
