@@ -679,11 +679,28 @@ final class WS
         }
 
         if ($payload === null) {
-            $this->sendDaveInvalidCommitWelcome();
+            // Per spec, INVALID_COMMIT_WELCOME (op 31) is only for unprocessable
+            // op 29/30 messages, not for proposal failures.  Sending it here causes
+            // Discord to re-send the same stale proposals indefinitely.  Instead we
+            // count consecutive failures and disconnect after 3 so the voice client
+            // reconnects and obtains a fresh DAVE epoch from the gateway.
+            $this->daveState->proposalFailureCount++;
+            $this->discord->logger->warning('DAVE: failed to build MLS commit from proposals', [
+                'consecutive_failures' => $this->daveState->proposalFailureCount,
+                'recognized_users'     => $this->daveState->recognizedUsersIncludingSelf(),
+            ]);
+
+            if ($this->daveState->proposalFailureCount >= 3) {
+                $this->discord->logger->error(
+                    'DAVE: too many consecutive proposal failures; disconnecting to force fresh epoch'
+                );
+                $this->socket->close();
+            }
 
             return;
         }
 
+        $this->daveState->proposalFailureCount = 0;
         $this->sendDaveBinary(Op::VOICE_DAVE_MLS_COMMIT_WELCOME, $payload);
     }
 

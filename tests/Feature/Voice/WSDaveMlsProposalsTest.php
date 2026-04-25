@@ -54,31 +54,42 @@ it('mls proposals send commit welcome when runtime builds payload', function ():
     expect($out->payload)->toBe('commit:1:proposals');
 });
 
-it('mls proposals send invalid commit welcome when runtime cannot build payload', function (): void {
+it('mls proposals increment failure counter when runtime cannot build payload', function (): void {
     Runtime::configureCallbacks(null, null, fn (string $payload, int $protocolVersion): ?string => null);
 
     $sentPayload = null;
-    $ws = makeWsForProposalsTest($this, function (string $payload) use (&$sentPayload): void {
+    [$ws, $state] = makeWsForProposalsTestWithState($this, function (string $payload) use (&$sentPayload): void {
         $sentPayload = $payload;
     });
 
     $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_PROPOSALS, 'proposals');
     invokeProtectedMethod($ws, 'handleDaveMlsProposals', [$frame]);
 
-    expect($sentPayload)->toBeString();
-    /** @var string $sentPayload */
-    $out = BinaryFrame::fromClientPayload($sentPayload);
-    expect($out)->not->toBeNull();
-    /** @var BinaryFrame $out */
-    expect($out->sequence)->toBeNull();
-    expect($out->opcode)->toBe(Op::VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME);
-    expect($out->payload)->toBe('');
+    // Nothing is sent — sending INVALID_COMMIT_WELCOME for proposal failures
+    // triggers an infinite loop where Discord re-sends the same stale proposals.
+    expect($sentPayload)->toBeNull();
+    expect($state->proposalFailureCount)->toBe(1);
+});
+
+it('mls proposals close socket after 3 consecutive failures', function (): void {
+    Runtime::configureCallbacks(null, null, fn (string $payload, int $protocolVersion): ?string => null);
+
+    $closeCalled = false;
+    [$ws] = makeWsForProposalsTestWithState($this, function (string $p): void {}, $closeCalled);
+
+    $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_PROPOSALS, 'proposals');
+    invokeProtectedMethod($ws, 'handleDaveMlsProposals', [$frame]);
+    invokeProtectedMethod($ws, 'handleDaveMlsProposals', [$frame]);
+    invokeProtectedMethod($ws, 'handleDaveMlsProposals', [$frame]);
+
+    expect($closeCalled)->toBeTrue();
 });
 
 /**
  * @param callable(string): void $sendHook
+ * @return array{WS, State}
  */
-function makeWsForProposalsTest(TestCase $test, callable $sendHook): WS
+function makeWsForProposalsTestWithState(TestCase $test, callable $sendHook, bool &$closeCalled = false): array
 {
     $ws = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();
     $discord = (new \ReflectionClass(Discord::class))->newInstanceWithoutConstructor();
@@ -99,13 +110,26 @@ function makeWsForProposalsTest(TestCase $test, callable $sendHook): WS
 
     $socket = invokeProtectedMethod($test, 'getMockBuilder', [WebSocket::class])
         ->disableOriginalConstructor()
-        ->onlyMethods(['send'])
+        ->onlyMethods(['send', 'close'])
         ->getMock();
     $socket->method('send')->willReturnCallback($sendHook);
+    $socket->method('close')->willReturnCallback(function () use (&$closeCalled): void {
+        $closeCalled = true;
+    });
 
     $socketProperty = new \ReflectionProperty(WS::class, 'socket');
     $socketProperty->setAccessible(true);
     $socketProperty->setValue($ws, $socket);
+
+    return [$ws, $state];
+}
+
+/**
+ * @param callable(string): void $sendHook
+ */
+function makeWsForProposalsTest(TestCase $test, callable $sendHook): WS
+{
+    [$ws] = makeWsForProposalsTestWithState($test, $sendHook);
 
     return $ws;
 }
