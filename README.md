@@ -47,6 +47,18 @@ export DISCORDPHP_DAVE_LIBRARY="$PWD/.cache/libdave/lib/libdave.so"
 The script auto-detects your OS and architecture (Linux, macOS, Windows — x64 and ARM64). Set `DISCORDPHP_DAVE_LIBRARY` to the path printed by the script.
 Use the bundled Pest runner for local validation. `composer unit` runs the default suite with TestDox output, while `composer pest` keeps the parallel full-suite command.
 
+## Composer Scripts
+
+| Script | Description |
+|--------|-------------|
+| `composer unit` | Run the test suite (`pest --testdox`) |
+| `composer check` | Run Pint style check + tests (CI-safe, no rewrites) |
+| `composer cs` | Auto-format with Pint |
+| `composer cs:check` | Check style without rewriting files |
+| `composer phpstan` | Run static analysis (level 5) |
+| `composer infection` | Run mutation testing (slow — local only) |
+| `composer coverage` | Run tests with Xdebug coverage report |
+
 ### Basic Example
 
 ```php
@@ -95,9 +107,29 @@ Documentation for the latest version can be found [here](//discord-php.github.io
 
 Having issues? See [**docs/TROUBLESHOOTING.md**](docs/TROUBLESHOOTING.md) for solutions to common problems including missing libraries (libdave, ffmpeg, opus, libsodium), permission errors, and playback state issues.
 
+## Exceptions
+
+All library exceptions implement the [`VoiceException`](src/Discord/Voice/Exceptions/VoiceException.php) marker interface, so you can catch any voice error with a single handler:
+
+```php
+use Discord\Voice\Exceptions\VoiceException;
+
+try {
+    $manager->join($channel);
+} catch (VoiceException $e) {
+    echo "Voice error: " . $e->getMessage();
+}
+```
+
+Common exceptions include `LibDaveNotFoundException`, `EnterChannelDeniedException`, `CantSpeakInChannelException`, `FFmpegNotFoundException`, and `LibSodiumNotFoundException`.
+
 ## Contributing
 
 We are open to contributions. However, please make sure you follow our coding standards (PSR-4 autoloading and custom styling). Please run php-cs-fixer before opening a pull request by running `composer run-script cs`.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, coding standards, and PR guidelines.
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## License
 

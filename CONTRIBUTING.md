@@ -51,6 +51,8 @@ composer phpstan
 
 Runs PHPStan at level 5. Fix all errors before opening a PR.
 
+PHPStan is configured in `phpstan.neon` (level 5; `src/Discord/Voice/Helpers` and `OpEnum.php` are excluded as legacy/intentional code).
+
 ### Mutation Testing
 
 [Infection](https://infection.github.io/) is available for deeper test quality validation. It is slow and not run in CI — use locally when adding significant new logic:

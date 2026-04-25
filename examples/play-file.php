@@ -15,11 +15,15 @@ declare(strict_types=1);
 
 // Usage: BOT_TOKEN=<token> CHANNEL_ID=<id> php play-file.php
 
+// All voice library exceptions implement \Discord\Voice\Exceptions\VoiceException,
+// so you can catch them all with a single handler — see the catch block below.
+
 use Discord\Discord;
 use Discord\Parts\Channel\Channel;
 use Discord\Voice\Exceptions\Channels\CantSpeakInChannelException;
 use Discord\Voice\Exceptions\Channels\EnterChannelDeniedException;
 use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;
+use Discord\Voice\Exceptions\VoiceException;
 use Discord\Voice\VoiceClient;
 use Discord\WebSockets\Event;
 
@@ -78,6 +82,9 @@ $discord->on('ready', function (Discord $discord): void {
                 echo 'Bot does not have permission to join that channel.' . PHP_EOL;
             } elseif ($e instanceof CantSpeakInChannelException) {
                 echo 'Bot does not have permission to speak in that channel.' . PHP_EOL;
+            } elseif ($e instanceof VoiceException) {
+                // Catches any other voice library error not matched above
+                echo 'Voice error: ' . $e->getMessage() . PHP_EOL;
             } else {
                 echo 'Failed to join: ' . $e->getMessage() . PHP_EOL;
             }

@@ -4,6 +4,7 @@ Common errors and how to fix them.
 
 ## Table of Contents
 
+- [Catch Any Voice Exception](#catch-any-voice-exception)
 - [LibDaveNotFoundException — libdave not found](#libdavenotfoundexception--libdave-not-found)
 - [FFmpegNotFoundException — ffmpeg not found](#ffmpegnotfoundexception--ffmpeg-not-found)
 - [OpusNotFoundException — libopus not found](#opusnotfoundexception--libopus-not-found)
@@ -14,6 +15,26 @@ Common errors and how to fix them.
 - [AudioAlreadyPlayingException — audio already playing](#audioalreadyplayingexception--audio-already-playing)
 - [ClientNotReadyException — client not ready](#clientnotreadyexception--client-not-ready)
 - [BufferTimedOutException — audio stream stalled](#buffertimeoutexception--audio-stream-stalled)
+
+---
+
+## Catch Any Voice Exception
+
+All library exceptions implement the `VoiceException` marker interface. You can catch any voice-related error with a single handler instead of listing every exception type:
+
+```php
+use Discord\Voice\Exceptions\VoiceException;
+
+try {
+    $manager->join($channel)->then(function ($client) {
+        // ...
+    });
+} catch (VoiceException $e) {
+    echo 'Voice error: ' . $e->getMessage() . PHP_EOL;
+}
+```
+
+Individual exception classes (`LibDaveNotFoundException`, `EnterChannelDeniedException`, etc.) remain available for fine-grained handling when needed.
 
 ---
 
