@@ -1245,6 +1245,14 @@ class VoiceClient extends EventEmitter
         }
 
         if (! is_string($encrypted)) {
+            ++$daveState->encryptFailureCount;
+
+            if ($daveState->encryptFailureCount % 100 === 0) {
+                $this->discord->getLogger()->warning('DAVE encrypt failure count: '.$daveState->encryptFailureCount, [
+                    'protocol_version' => $protocolVersion,
+                ]);
+            }
+
             $this->discord->getLogger()->error('Failed to encrypt outgoing DAVE frame; dropping frame to preserve E2EE integrity.', [
                 'protocol_version' => $protocolVersion,
                 'frame_length' => strlen($frame),
@@ -1302,6 +1310,14 @@ class VoiceClient extends EventEmitter
         }
 
         if ($decrypted === null) {
+            ++$daveState->decryptFailureCount;
+
+            if ($daveState->decryptFailureCount % 100 === 0) {
+                $this->discord->getLogger()->warning('DAVE decrypt failure count: '.$daveState->decryptFailureCount, [
+                    'protocol_version' => $protocolVersion,
+                ]);
+            }
+
             $this->discord->getLogger()->warning('Failed to decrypt incoming DAVE frame.', [
                 'protocol_version' => $protocolVersion,
                 'frame_length' => strlen($frame),

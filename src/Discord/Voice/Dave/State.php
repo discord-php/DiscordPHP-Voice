@@ -47,6 +47,10 @@ final class State
 
     public ?int $lastReceivedSequence = null;
 
+    public int $encryptFailureCount = 0;
+
+    public int $decryptFailureCount = 0;
+
     public function __destruct()
     {
         $this->close();
@@ -163,6 +167,8 @@ final class State
         $this->pendingProtocolVersion = null;
         $this->latestPreparedTransitionVersion = null;
         $this->passthroughMode = true;
+        $this->encryptFailureCount = 0;
+        $this->decryptFailureCount = 0;
     }
 
     public function close(): void
