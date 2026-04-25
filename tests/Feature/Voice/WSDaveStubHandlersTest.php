@@ -52,10 +52,15 @@ it('handleDaveMlsKeyPackage accepts binary frame passively without sending', fun
         $sends[] = $payload;
     });
 
+    $state = getWsDaveState($ws);
+    $initialVersion = $state->protocolVersion;
+
     $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_KEY_PACKAGE, 'key-package-bytes');
     invokeWsMethod($ws, 'handleDaveMlsKeyPackage', [$frame]);
 
-    expect($sends)->toBeEmpty();
+    expect($sends)->toBeEmpty()
+        ->and($state->externalSenderPackage)->toBeNull()
+        ->and($state->protocolVersion)->toBe($initialVersion);
 });
 
 it('handleDaveMlsCommitWelcome returns early when session is null', function (): void {
