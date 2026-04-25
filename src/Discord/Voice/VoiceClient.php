@@ -355,7 +355,11 @@ class VoiceClient extends EventEmitter
         $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
 
         if (extension_loaded('ffi')) {
-            $this->setDecoder(OpusFfi::new());
+            try {
+                $this->setDecoder(OpusFfi::new());
+            } catch (\Throwable $e) {
+                // libopus not available; Opus FFI decoder will not be used
+            }
         }
 
         if ($this->shouldBoot) {
