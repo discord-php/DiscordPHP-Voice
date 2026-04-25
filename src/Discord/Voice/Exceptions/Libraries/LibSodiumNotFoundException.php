@@ -15,11 +15,13 @@ declare(strict_types=1);
 
 namespace Discord\Voice\Exceptions\Libraries;
 
+use Discord\Voice\Exceptions\VoiceException;
+
 /**
  * Thrown when libsodium or libsodium-php cannot be found.
  *
  * @since 3.2.1
  */
-class LibSodiumNotFoundException extends \Exception
+class LibSodiumNotFoundException extends \Exception implements VoiceException
 {
 }

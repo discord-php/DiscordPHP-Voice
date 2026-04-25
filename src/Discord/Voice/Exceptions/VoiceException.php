@@ -13,15 +13,23 @@ declare(strict_types=1);
  * with this source code in the LICENSE.md file.
  */
 
-namespace Discord\Voice\Exceptions\Libraries;
-
-use Discord\Voice\Exceptions\VoiceException;
+namespace Discord\Voice\Exceptions;
 
 /**
- * Thrown when the FFmpeg binary cannot be found in your PATH.
+ * Marker interface for all DiscordPHP-Voice exceptions.
  *
- * @since 3.2.0
+ * Consumers can catch any library-thrown exception with a single catch block:
+ *
+ * ```php
+ * try {
+ *     $discord->voice->join($channel);
+ * } catch (VoiceException $e) {
+ *     // handles all voice library errors
+ * }
+ * ```
+ *
+ * @since 10.19.0
  */
-class FFmpegNotFoundException extends \Exception implements VoiceException
+interface VoiceException extends \Throwable
 {
 }

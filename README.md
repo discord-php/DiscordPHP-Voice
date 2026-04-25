@@ -41,15 +41,50 @@ Use the bundled Pest runner for local validation. `composer unit` runs the defau
 ### Basic Example
 
 ```php
-<?php
-// todo
+$discord->on('ready', function (Discord $discord) {
+    $channel = $discord->getChannel('YOUR_CHANNEL_ID');
+
+    $discord->voice->join($channel)->then(function (VoiceClient $vc) {
+        $vc->on('ready', function () use ($vc) {
+            $vc->playFile('/path/to/audio.mp3');
+        });
+
+        $vc->on('end', function () use ($vc) {
+            $vc->disconnect();
+        });
+    });
+});
 ```
 
-See [examples folder](examples) for more.
+### Recording
+
+```php
+$discord->voice->join($channel)->then(function (VoiceClient $vc) use ($discord) {
+    $vc->on('ready', function () use ($vc, $discord) {
+        $vc->record();
+
+        // Fires with raw 16-bit stereo 48 kHz PCM for each speaking user.
+        $vc->on('channel-pcm', function (string $userId, string $pcm) {
+            // write $pcm to a file, pipe to an encoder, etc.
+        });
+
+        $discord->getLoop()->addTimer(10, function () use ($vc) {
+            $vc->stopRecording();
+            $vc->disconnect();
+        });
+    });
+});
+```
+
+See [examples folder](examples) for full runnable scripts.
 
 ## Documentation
 
 Documentation for the latest version can be found [here](//discord-php.github.io/DiscordPHP/guide). Community contributed tutorials can be found on the [wiki](//github.com/discord-php/DiscordPHP/wiki).
+
+## Troubleshooting
+
+Having issues? See [**docs/TROUBLESHOOTING.md**](docs/TROUBLESHOOTING.md) for solutions to common problems including missing libraries (libdave, ffmpeg, opus, libsodium), permission errors, and playback state issues.
 
 ## Contributing
 

@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace Discord\Voice\Exceptions\Libraries;
 
 use Discord\Voice\Dave\Runtime as DaveRuntime;
+use Discord\Voice\Exceptions\VoiceException;
 
 /**
  * Thrown when libdave cannot be loaded and the voice connection cannot proceed.
@@ -26,7 +27,7 @@ use Discord\Voice\Dave\Runtime as DaveRuntime;
  *
  * @since 8.1.0
  */
-class LibDaveNotFoundException extends \Exception
+class LibDaveNotFoundException extends \Exception implements VoiceException
 {
     /**
      * Creates an instance with a descriptive message that includes the Discord

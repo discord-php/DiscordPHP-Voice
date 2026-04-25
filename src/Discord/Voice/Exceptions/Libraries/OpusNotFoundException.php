@@ -15,11 +15,13 @@ declare(strict_types=1);
 
 namespace Discord\Voice\Exceptions\Libraries;
 
+use Discord\Voice\Exceptions\VoiceException;
+
 /**
  * Thrown when FFmpeg is not compiled with libopus.
  *
  * @since 3.2.0
  */
-class OpusNotFoundException extends \Exception
+class OpusNotFoundException extends \Exception implements VoiceException
 {
 }

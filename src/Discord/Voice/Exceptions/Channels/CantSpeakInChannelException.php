@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is a part of the DiscordPHP project.
  *
@@ -13,12 +15,14 @@
 
 namespace Discord\Voice\Exceptions\Channels;
 
+use Discord\Voice\Exceptions\VoiceException;
+
 /**
  * Thrown when the selected Channel does not allow voice.
  *
  * @since 10.0.0
  */
-final class CantSpeakInChannelException extends \RuntimeException
+final class CantSpeakInChannelException extends \RuntimeException implements VoiceException
 {
     public function __construct(?string $message = null)
     {

@@ -22,7 +22,7 @@ use RuntimeException;
  *
  * @since 10.0.0
  */
-class BufferTimedOutException extends RuntimeException
+class BufferTimedOutException extends RuntimeException implements VoiceException
 {
     /**
      * Create a new buffer timeout exception.

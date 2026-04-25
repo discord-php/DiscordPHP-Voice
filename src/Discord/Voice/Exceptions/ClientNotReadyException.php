@@ -18,7 +18,7 @@ namespace Discord\Voice\Exceptions;
  *
  * @since 10.0.0
  */
-final class ClientNotReadyException extends \RuntimeException
+final class ClientNotReadyException extends \RuntimeException implements VoiceException
 {
     public function __construct(?string $message = null)
     {

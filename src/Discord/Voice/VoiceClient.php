@@ -30,7 +30,7 @@ use Discord\Voice\Client\Packet;
 use Discord\Voice\Client\UDP;
 use Discord\Voice\Client\User;
 use Discord\Voice\Client\WS;
-use Discord\Voice\Processes\Dca;
+use Discord\Voice\Processes\DCA;
 use Discord\Voice\Processes\Ffmpeg;
 use Discord\Voice\Processes\OpusDecoderInterface;
 use Discord\Voice\Processes\OpusFfi;
@@ -696,7 +696,7 @@ class VoiceClient extends EventEmitter
 
         // Read magic byte header
         $this->buffer->read(4)->then(function ($mb) {
-            if ($mb !== Dca::DCA_VERSION) {
+            if ($mb !== DCA::DCA_VERSION) {
                 throw new OutdatedDCAException('The DCA magic byte header was not correct.');
             }
 
@@ -1005,7 +1005,7 @@ class VoiceClient extends EventEmitter
         }
 
         $this->paused = false;
-        $this->timestamp = microtime(true) * 1000;
+        $this->timestamp = (int) round(microtime(true) * 1000);
     }
 
     /**

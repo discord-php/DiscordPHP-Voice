@@ -15,11 +15,13 @@ declare(strict_types=1);
 
 namespace Discord\Voice\Exceptions\Libraries;
 
+use Discord\Voice\Exceptions\VoiceException;
+
 /**
  * Thrown when DCA could not be found.
  *
  * @since 3.2.0
  */
-class DCANotFoundException extends \Exception
+class DCANotFoundException extends \Exception implements VoiceException
 {
 }
