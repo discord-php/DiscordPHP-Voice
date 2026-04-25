@@ -1,6 +1,6 @@
 DiscordPHP Voice
 ====
-[![Latest Stable Version](http://poser.pugx.org/discord-php-helpers/voice/v)](https://packagist.org/packages/discord-php-helpers/voice) [![Total Downloads](http://poser.pugx.org/discord-php-helpers/voice/downloads)](https://packagist.org/packages/discord-php-helpers/voice) [![Latest Unstable Version](http://poser.pugx.org/discord-php-helpers/voice/v/unstable)](https://packagist.org/packages/discord-php-helpers/voice) [![License](http://poser.pugx.org/discord-php-helpers/voice/license)](https://packagist.org/packages/discord-php-helpers/voice) [![PHP Version Require](http://poser.pugx.org/discord-php-helpers/voice/require/php)](https://packagist.org/packages/discord-php-helpers/voice)
+[![Latest Stable Version](http://poser.pugx.org/discord-php-helpers/voice/v)](https://packagist.org/packages/discord-php-helpers/voice) [![Total Downloads](http://poser.pugx.org/discord-php-helpers/voice/downloads)](https://packagist.org/packages/discord-php-helpers/voice) [![Latest Unstable Version](http://poser.pugx.org/discord-php-helpers/voice/v/unstable)](https://packagist.org/packages/discord-php-helpers/voice) [![License](http://poser.pugx.org/discord-php-helpers/voice/license)](https://packagist.org/packages/discord-php-helpers/voice) [![PHP Version Require](http://poser.pugx.org/discord-php-helpers/voice/require/php)](https://packagist.org/packages/discord-php-helpers/voice) [![codecov](https://codecov.io/gh/discord-php/DiscordPHP-Voice/graph/badge.svg)](https://codecov.io/gh/discord-php/DiscordPHP-Voice)
 
 [![PHP Discorders](https://discord.com/api/guilds/115233111977099271/widget.png?style=banner1)](https://discord.gg/dphp)
 
@@ -19,6 +19,7 @@ Before you start using this Library, you **need** to know how PHP works, you nee
 
 - **[📊 Visual DAVE Protocol Guide →](docs/DAVE.md)** — Mermaid diagrams covering architecture, MLS lifecycle, media encryption pipeline, and all DAVE opcodes.
 - **[🎵 Audio Pipeline Guide →](docs/AUDIO_PIPELINE.md)** — Mermaid diagrams covering outbound/inbound audio flow, playback state machine, and format chain.
+- **[📡 Protocol Reference →](docs/PROTOCOL.md)** — Voice gateway opcodes, DAVE opcodes, and close codes reference table.
 - DAVE protocol negotiation is now supported at the voice gateway layer.
 - Binary DAVE voice opcodes are parsed and routed.
 - If [`ext-ffi`](https://www.php.net/manual/en/book.ffi.php) is enabled and `libdave.so` is available, the runtime will load real libdave session and media APIs and detect the maximum supported DAVE protocol version.

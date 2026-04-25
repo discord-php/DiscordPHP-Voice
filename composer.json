@@ -26,7 +26,8 @@
         "ext-ffi": "*",
         "friendsofphp/php-cs-fixer": "^3",
         "pestphp/pest": "^4.1.2",
-        "phpstan/phpstan": "^2.1"
+        "phpstan/phpstan": "^2.1",
+        "infection/infection": "^0.32.7"
     },
     "autoload": {
         "psr-4": {
@@ -43,7 +44,8 @@
         "unit-no-dave": ["pest --testdox"],
         "pest": "pest --parallel",
         "coverage": ["XDEBUG_MODE=coverage pest --coverage-html coverage --testdox"],
-        "check": ["@pint", "@cs:check", "@unit"]
+        "check": ["@pint", "@cs:check", "@unit"],
+        "infection": ["./vendor/bin/infection --min-msi=60 --min-covered-msi=75 --no-progress"]
     },
     "scripts-descriptions": {
         "pint": "Format code with Laravel Pint",
@@ -54,11 +56,13 @@
         "unit-no-dave": "Run unit tests with Pest (without libdave)",
         "pest": "Run tests in parallel with Pest",
         "coverage": "Run tests with Xdebug coverage report",
-        "check": "Run all checks: Pint, CS-Fixer (dry run), and unit tests"
+        "check": "Run all checks: Pint, CS-Fixer (dry run), and unit tests",
+        "infection": "Run Infection mutation testing (slow — use locally, not in CI)"
     },
     "config": {
         "allow-plugins": {
-            "pestphp/pest-plugin": true
+            "pestphp/pest-plugin": true,
+            "infection/extension-installer": true
         }
     },
     "minimum-stability": "dev",

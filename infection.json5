@@ -1,0 +1,18 @@
+{
+    "$schema": "https://raw.githubusercontent.com/infection/infection/master/resources/schema.json",
+    "source": {
+        "directories": ["src/Discord/Voice"],
+        "excludes": ["Helpers"]
+    },
+    "testFramework": "phpunit",
+    "testFrameworkOptions": "--compact",
+    "minMsi": 60,
+    "minCoveredMsi": 75,
+    "mutators": {
+        "@default": true
+    },
+    "logs": {
+        "text": "infection.log",
+        "summary": "infection-summary.log"
+    }
+}

@@ -52,3 +52,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: editorconfig-checker/action-editorconfig-checker@v2
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: uv, zlib, mbstring, ffi, xdebug
+      - name: Install dependencies
+        run: COMPOSER_ROOT_VERSION=dev-main composer install --no-interaction --prefer-dist
+      - name: Install libdave
+        run: ./scripts/setup-libdave.sh
+      - name: Run coverage
+        env:
+          XDEBUG_MODE: coverage
+          DISCORDPHP_DAVE_LIBRARY: ${{ github.workspace }}/.cache/libdave/lib/libdave.so
+        run: ./vendor/bin/pest --coverage-clover coverage.xml --no-coverage-on-zero
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
