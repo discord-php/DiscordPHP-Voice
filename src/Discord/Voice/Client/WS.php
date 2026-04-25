@@ -295,6 +295,7 @@ final class WS
         }
 
         $this->recordGatewaySequence($frame->sequence);
+        $this->vc->emit('ws-binary-message', [$frame, $this->vc]);
 
         if (! isset(self::VOICE_OP_HANDLERS[$frame->opcode])) {
             $this->discord->logger->debug('unknown voice binary op', ['op' => $frame->opcode]);
@@ -1062,8 +1063,9 @@ final class WS
 
     private function resolveDaveGroupId(): int|string|null
     {
-        if (isset($this->vc->channel->id)) {
-            return $this->vc->channel->id;
+        $channelId = $this->vc->channel->id;
+        if ($channelId !== null) {
+            return $channelId;
         }
 
         return $this->vc->channel->guild_id ?? null;
