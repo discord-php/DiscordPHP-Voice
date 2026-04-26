@@ -686,7 +686,7 @@ final class WS
             $this->daveState->proposalFailureCount++;
             $this->discord->logger->warning('DAVE: failed to build MLS commit from proposals', [
                 'consecutive_failures' => $this->daveState->proposalFailureCount,
-                'recognized_users'     => $this->daveState->recognizedUsersIncludingSelf(),
+                'recognized_users' => $this->daveState->recognizedUsersIncludingSelf(),
             ]);
 
             if ($this->daveState->proposalFailureCount >= 3) {

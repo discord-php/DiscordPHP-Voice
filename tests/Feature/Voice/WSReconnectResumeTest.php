@@ -56,7 +56,7 @@ it('non-critical WS close preserves lastReceivedSequence in daveState', function
 
 it('non-critical WS close preserves voice_sessions session id', function (): void {
     $discord = null;
-    $ws      = makeWsForCloseTest($this, discord: $discord);
+    $ws = makeWsForCloseTest($this, discord: $discord);
 
     expect($discord->voice_sessions['guild-1'])->toBe('session-1');
 
@@ -84,7 +84,7 @@ it('non-critical WS close preserves voice_sessions session id', function (): voi
 
 it('WS own heartbeat timer is cancelled when WebSocket closes', function (): void {
     $cancelledTimers = [];
-    $ws              = makeWsForCloseTest($this, cancelledTimers: $cancelledTimers);
+    $ws = makeWsForCloseTest($this, cancelledTimers: $cancelledTimers);
 
     $heartbeatTimer = $this->getMockBuilder(TimerInterface::class)->getMock();
 
@@ -104,9 +104,9 @@ it('WS own heartbeat timer is cancelled when WebSocket closes', function (): voi
 
 it('vc heartbeat timer is cancelled when WebSocket closes', function (): void {
     $cancelledTimers = [];
-    $ws              = makeWsForCloseTest($this, cancelledTimers: $cancelledTimers);
+    $ws = makeWsForCloseTest($this, cancelledTimers: $cancelledTimers);
 
-    $vcHeartbeatTimer  = $this->getMockBuilder(TimerInterface::class)->getMock();
+    $vcHeartbeatTimer = $this->getMockBuilder(TimerInterface::class)->getMock();
     $ws->vc->heartbeat = $vcHeartbeatTimer;
 
     $ws->handleClose(Op::CLOSE_VOICE_SERVER_CRASH, 'server crash');
@@ -129,9 +129,9 @@ it('vc heartbeat timer is cancelled when WebSocket closes', function (): void {
 //   • WS sends Identify when voice_sessions is absent.
 
 it('reconnect after non-critical close sends Resume opcode 7 with seq_ack', function (): void {
-    $sentPayloads      = [];
-    $discord           = null;
-    $ws                = makeWsForCloseTest($this, discord: $discord, sentPayloads: $sentPayloads);
+    $sentPayloads = [];
+    $discord = null;
+    $ws = makeWsForCloseTest($this, discord: $discord, sentPayloads: $sentPayloads);
 
     invokeCloseTestWsMethod($ws, 'recordGatewaySequence', [55]);
 
@@ -166,7 +166,8 @@ it('reconnect after non-critical close sends Resume opcode 7 with seq_ack', func
     // Production bug: because voice_sessions was cleared by handleClose, the
     // reconnect uses Identify (op 0) instead of Resume (op 7). The assertion
     // below fails with current code, clearly documenting the broken behaviour.
-    expect($decoded['op'])->toBe(Op::VOICE_RESUME,
+    expect($decoded['op'])->toBe(
+        Op::VOICE_RESUME,
         'Reconnect after a resumable close should send Resume (op 7), not Identify (op 0)'
     );
     expect($decoded['d'])->toHaveKey('seq_ack');
@@ -177,7 +178,7 @@ it('reconnect after non-critical close sends Resume opcode 7 with seq_ack', func
 
 it('handleResume sends op 7 with seq_ack regardless of voice_sessions state', function (): void {
     $sentPayloads = [];
-    $ws           = makeWsForCloseTest($this, sentPayloads: $sentPayloads);
+    $ws = makeWsForCloseTest($this, sentPayloads: $sentPayloads);
 
     invokeCloseTestWsMethod($ws, 'recordGatewaySequence', [99]);
 
@@ -202,9 +203,9 @@ it('handleResume sends op 7 with seq_ack regardless of voice_sessions state', fu
  * Build a WS instance wired with a mock Discord, mock VoiceClient, mock
  * WebSocket, and a mock event loop.
  *
- * @param array<TimerInterface>   $cancelledTimers  Receives every timer passed to loop->cancelTimer()
- * @param array<string>           $sentPayloads     Receives every raw JSON string passed to socket->send()
- * @param Discord|null            $discord          Receives the Discord instance (output by reference)
+ * @param array<TimerInterface> $cancelledTimers Receives every timer passed to loop->cancelTimer()
+ * @param array<string>         $sentPayloads    Receives every raw JSON string passed to socket->send()
+ * @param Discord|null          $discord         Receives the Discord instance (output by reference)
  */
 function makeWsForCloseTest(
     TestCase $test,
@@ -214,9 +215,9 @@ function makeWsForCloseTest(
 ): WS {
     Runtime::configureCallbacks(availabilityOverride: false);
 
-    $ws              = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();
+    $ws = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();
     $discordInstance = (new \ReflectionClass(Discord::class))->newInstanceWithoutConstructor();
-    $state           = new State();
+    $state = new State();
 
     // Logger
     $loggerProp = new \ReflectionProperty(Discord::class, 'logger');
@@ -247,8 +248,8 @@ function makeWsForCloseTest(
         ->getMock();
     $voiceClient->method('emit')->willReturn(null);
 
-    $channel          = (new \ReflectionClass(Channel::class))->newInstanceWithoutConstructor();
-    $attrProp         = new \ReflectionProperty(Channel::class, 'attributes');
+    $channel = (new \ReflectionClass(Channel::class))->newInstanceWithoutConstructor();
+    $attrProp = new \ReflectionProperty(Channel::class, 'attributes');
     $attrProp->setAccessible(true);
     $attrProp->setValue($channel, ['guild_id' => 'guild-1', 'id' => 'channel-1']);
     $voiceClient->channel = $channel;

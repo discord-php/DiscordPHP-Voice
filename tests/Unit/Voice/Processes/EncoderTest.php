@@ -98,7 +98,7 @@ it('honours custom volume and bitrate when encoding through ffmpeg', function ()
 it('escapes filenames passed to ffmpeg encode and decode to prevent shell injection', function (): void {
     setEncoderExec(Ffmpeg::class, '/opt/ffmpeg');
 
-    $payload = "evil; rm -rf / #";
+    $payload = 'evil; rm -rf / #';
     $encodeCmd = getEncoderProcessCmd(Ffmpeg::encode($payload));
     $decodeCmd = getEncoderProcessCmd(Ffmpeg::decode($payload));
 

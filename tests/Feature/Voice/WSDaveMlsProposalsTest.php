@@ -75,7 +75,8 @@ it('mls proposals close socket after 3 consecutive failures', function (): void 
     Runtime::configureCallbacks(null, null, fn (string $payload, int $protocolVersion): ?string => null);
 
     $closeCalled = false;
-    [$ws] = makeWsForProposalsTestWithState($this, function (string $p): void {}, $closeCalled);
+    [$ws] = makeWsForProposalsTestWithState($this, function (string $p): void {
+    }, $closeCalled);
 
     $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_PROPOSALS, 'proposals');
     invokeProtectedMethod($ws, 'handleDaveMlsProposals', [$frame]);
@@ -86,7 +87,7 @@ it('mls proposals close socket after 3 consecutive failures', function (): void 
 });
 
 /**
- * @param callable(string): void $sendHook
+ * @param  callable(string): void $sendHook
  * @return array{WS, State}
  */
 function makeWsForProposalsTestWithState(TestCase $test, callable $sendHook, bool &$closeCalled = false): array

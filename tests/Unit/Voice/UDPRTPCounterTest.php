@@ -96,9 +96,9 @@ it('successive sendBuffer calls advance seq timestamp and nonce uniquely in RTP 
         // Nonce counter occupies the last 4 bytes, little-endian.
         $nonceBE = unpack('Vnonce', substr($raw, -4))['nonce'];
 
-        $seqs[]       = $hdr['seq'];
+        $seqs[] = $hdr['seq'];
         $timestamps[] = $hdr['ts'];
-        $nonces[]     = $nonceBE;
+        $nonces[] = $nonceBE;
     }
 
     // All three fields must be unique across packets.
@@ -198,7 +198,7 @@ it('handleMessages silently drops packets 8 bytes or shorter without crashing', 
  * socket I/O, and wires up a VoiceClient + WS stub with a zero-protocol-
  * version DaveState so encryptDaveFrame() is a pass-through.
  *
- * @param  array<int,string> $sentBytes  Captures raw bytes of every outbound packet.
+ * @param array<int,string> $sentBytes Captures raw bytes of every outbound packet.
  */
 function makeUdpRtpCounterMock(
     TestCase $test,
@@ -258,7 +258,7 @@ function makeUdpRtpCounterMock(
  * Required because PHPUnit\Framework\TestCase::getMockBuilder() is protected
  * and cannot be called directly from free functions outside the class scope.
  *
- * @param  array<int, mixed> $arguments
+ * @param array<int, mixed> $arguments
  */
 function invokeRtpCounterTestMethod(object $object, string $method, array $arguments = []): mixed
 {

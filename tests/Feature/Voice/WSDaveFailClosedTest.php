@@ -43,7 +43,8 @@ it('handleDavePrepareEpoch closes the socket when DAVE session creation fails (f
     Runtime::configureCallbacks(createSessionCallback: fn (?string $authSessionId): ?\Discord\Voice\Dave\SessionHandle => null);
 
     $closeCalled = false;
-    [$ws] = makeWsForDaveFailClosedTest($this, function (string $payload): void {}, $closeCalled);
+    [$ws] = makeWsForDaveFailClosedTest($this, function (string $payload): void {
+    }, $closeCalled);
 
     $data = (object) ['d' => ['epoch' => 1, 'dave_protocol_version' => 1]];
     invokeWsDaveFailClosedMethod($ws, 'handleDavePrepareEpoch', [$data]);
@@ -60,7 +61,8 @@ it('handleDavePrepareEpoch closes the socket when DAVE session creation fails (f
 it('handleDavePrepareEpoch resets passthroughMode=true via resetProtocolState before closing', function (): void {
     Runtime::configureCallbacks(createSessionCallback: fn (?string $authSessionId): ?\Discord\Voice\Dave\SessionHandle => null);
 
-    [$ws, $state] = makeWsForDaveFailClosedTest($this, function (string $payload): void {});
+    [$ws, $state] = makeWsForDaveFailClosedTest($this, function (string $payload): void {
+    });
     $state->passthroughMode = false; // simulate previously active DAVE
 
     $data = (object) ['d' => ['epoch' => 1, 'dave_protocol_version' => 1]];
@@ -101,7 +103,8 @@ it('State passthroughMode is false when protocolVersion is 1 (DAVE encryption is
 });
 
 it('handleDaveExecuteTransition to v1 disables passthroughMode, making DAVE encryption required', function (): void {
-    [$ws, $state] = makeWsForDaveFailClosedTest($this, function (string $payload): void {});
+    [$ws, $state] = makeWsForDaveFailClosedTest($this, function (string $payload): void {
+    });
     $state->prepareTransition(3, 1);
 
     $data = (object) ['d' => ['transition_id' => 3]];
@@ -112,7 +115,8 @@ it('handleDaveExecuteTransition to v1 disables passthroughMode, making DAVE encr
 });
 
 it('handleDaveExecuteTransition to v0 restores passthroughMode=true (DAVE encryption no longer required)', function (): void {
-    [$ws, $state] = makeWsForDaveFailClosedTest($this, function (string $payload): void {});
+    [$ws, $state] = makeWsForDaveFailClosedTest($this, function (string $payload): void {
+    });
     $state->setProtocolVersion(1); // DAVE was previously active
     $state->prepareTransition(4, 0);
 
@@ -239,7 +243,7 @@ it('VoiceClient encryptDaveFrame returning empty string causes Packet to encrypt
 // ---------------------------------------------------------------------------
 
 /**
- * @param callable(string): void $sendHook
+ * @param  callable(string): void $sendHook
  * @return array{0: WS, 1: State}
  */
 function makeWsForDaveFailClosedTest(TestCase $test, callable $sendHook, bool &$closeCalled = false): array

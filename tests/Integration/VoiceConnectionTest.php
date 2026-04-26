@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-/**
- * Integration tests — require a real Discord bot token and voice channel.
+/*
+ * This file is a part of the DiscordPHP project.
  *
- * Set DISCORD_BOT_TOKEN and CHANNEL_ID in the environment (or a .env file
- * loaded before running Pest) before executing these tests. They are skipped
- * automatically when the variables are absent so they are CI-safe.
+ * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
+ * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
- * Run individually:
- *   DISCORD_BOT_TOKEN=… CHANNEL_ID=… ./vendor/bin/pest tests/Integration/
+ * This file is subject to the MIT license that is bundled
+ * with this source code in the LICENSE.md file.
  */
 
 use Discord\Discord;
@@ -32,7 +32,7 @@ use React\EventLoop\Loop;
 function makeDiscordForIntegration(): Discord
 {
     return new Discord([
-        'token'  => getenv('DISCORD_BOT_TOKEN'),
+        'token' => getenv('DISCORD_BOT_TOKEN'),
         'logger' => new NullLogger(),
         'intents' => Intents::GUILDS | Intents::GUILD_VOICE_STATES,
     ]);
@@ -47,7 +47,7 @@ function runLoop(int $timeoutSec, bool &$done, mixed &$result): void
     $timer = Loop::addTimer($timeoutSec, function () use (&$done, &$result): void {
         if (! $done) {
             $result = new \RuntimeException("Integration test timed out after {$timeoutSec}s");
-            $done   = true;
+            $done = true;
         }
     });
 
@@ -77,20 +77,20 @@ beforeEach(function (): void {
 });
 
 test('bot reaches Discord ready state', function (): void {
-    $done   = false;
+    $done = false;
     $result = null;
 
     $discord = makeDiscordForIntegration();
 
     $discord->on('ready', function (Discord $discord) use (&$done, &$result): void {
         $result = 'ready';
-        $done   = true;
+        $done = true;
         $discord->close();
     });
 
     $discord->on('error', function (\Throwable $e) use (&$done, &$result, $discord): void {
         $result = $e;
-        $done   = true;
+        $done = true;
         $discord->close();
     });
 
@@ -104,8 +104,8 @@ test('bot reaches Discord ready state', function (): void {
 });
 
 test('bot can join voice channel and receive VoiceClient ready', function (): void {
-    $done      = false;
-    $result    = null;
+    $done = false;
+    $result = null;
     $channelId = getenv('CHANNEL_ID');
 
     $discord = makeDiscordForIntegration();
@@ -115,7 +115,7 @@ test('bot can join voice channel and receive VoiceClient ready', function (): vo
 
         if ($channel === null || $channel->type !== Channel::TYPE_VOICE) {
             $result = new \RuntimeException("Channel {$channelId} not found or not a voice channel.");
-            $done   = true;
+            $done = true;
             $discord->close();
 
             return;
@@ -125,20 +125,20 @@ test('bot can join voice channel and receive VoiceClient ready', function (): vo
             function (VoiceClient $vc) use (&$done, &$result, $discord): void {
                 $vc->on('ready', function (VoiceClient $vc) use (&$done, &$result, $discord): void {
                     $result = 'vc-ready';
-                    $done   = true;
+                    $done = true;
                     $vc->disconnect();
                     $discord->close();
                 });
 
                 $vc->on('error', function (\Throwable $e) use (&$done, &$result, $discord): void {
                     $result = $e;
-                    $done   = true;
+                    $done = true;
                     $discord->close();
                 });
             },
             function (\Throwable $e) use (&$done, &$result, $discord): void {
                 $result = $e;
-                $done   = true;
+                $done = true;
                 $discord->close();
             }
         );
@@ -146,7 +146,7 @@ test('bot can join voice channel and receive VoiceClient ready', function (): vo
 
     $discord->on('error', function (\Throwable $e) use (&$done, &$result, $discord): void {
         $result = $e;
-        $done   = true;
+        $done = true;
         $discord->close();
     });
 
@@ -160,10 +160,10 @@ test('bot can join voice channel and receive VoiceClient ready', function (): vo
 });
 
 test('DAVE MLS External Sender opcode is received during voice session', function (): void {
-    $done        = false;
-    $result      = null;
+    $done = false;
+    $result = null;
     $daveOpcodes = [];
-    $channelId   = getenv('CHANNEL_ID');
+    $channelId = getenv('CHANNEL_ID');
 
     $discord = makeDiscordForIntegration();
 
@@ -172,7 +172,7 @@ test('DAVE MLS External Sender opcode is received during voice session', functio
 
         if ($channel === null || $channel->type !== Channel::TYPE_VOICE) {
             $result = new \RuntimeException("Channel {$channelId} not found or not a voice channel.");
-            $done   = true;
+            $done = true;
             $discord->close();
 
             return;
@@ -187,20 +187,20 @@ test('DAVE MLS External Sender opcode is received during voice session', functio
 
                 $vc->on('ready', function (VoiceClient $vc) use (&$done, &$result, $discord): void {
                     $result = 'vc-ready';
-                    $done   = true;
+                    $done = true;
                     $vc->disconnect();
                     $discord->close();
                 });
 
                 $vc->on('error', function (\Throwable $e) use (&$done, &$result, $discord): void {
                     $result = $e;
-                    $done   = true;
+                    $done = true;
                     $discord->close();
                 });
             },
             function (\Throwable $e) use (&$done, &$result, $discord): void {
                 $result = $e;
-                $done   = true;
+                $done = true;
                 $discord->close();
             }
         );
@@ -208,7 +208,7 @@ test('DAVE MLS External Sender opcode is received during voice session', functio
 
     $discord->on('error', function (\Throwable $e) use (&$done, &$result, $discord): void {
         $result = $e;
-        $done   = true;
+        $done = true;
         $discord->close();
     });
 

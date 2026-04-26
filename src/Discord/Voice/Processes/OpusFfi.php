@@ -59,6 +59,7 @@ class OpusFfi implements OpusDecoderInterface
     {
         try {
             new self();
+
             return true;
         } catch (\Throwable) {
             return false;

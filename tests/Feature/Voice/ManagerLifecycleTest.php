@@ -28,7 +28,6 @@ use Discord\WebSockets\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use React\Promise\Deferred;
-use React\Promise\PromiseInterface;
 
 afterEach(function (): void {
     Runtime::reset();
@@ -98,14 +97,18 @@ it('Manager joinChannel resolves its promise when the client emits ready', funct
 
     $voiceSessions = [];
     $promise = $manager->joinChannel($channel, $discord, $voiceSessions);
-    $client   = $manager->clients['guild-lc2'];
+    $client = $manager->clients['guild-lc2'];
 
     // Capture whether/what the promise resolves to before emitting anything.
     $resolved = null;
     $rejected = null;
     $promise->then(
-        function ($value) use (&$resolved): void { $resolved = $value; },
-        function ($reason) use (&$rejected): void { $rejected = $reason; },
+        function ($value) use (&$resolved): void {
+            $resolved = $value;
+        },
+        function ($reason) use (&$rejected): void {
+            $rejected = $reason;
+        },
     );
 
     // Trigger the VOICE_SERVER_UPDATE gateway event so that Manager::serverUpdate()
@@ -134,13 +137,17 @@ it('Manager joinChannel rejects its promise when the client emits error before r
 
     $voiceSessions = [];
     $promise = $manager->joinChannel($channel, $discord, $voiceSessions);
-    $client   = $manager->clients['guild-lc3a'];
+    $client = $manager->clients['guild-lc3a'];
 
     $resolved = null;
     $rejected = null;
     $promise->then(
-        function ($value) use (&$resolved): void { $resolved = $value; },
-        function ($reason) use (&$rejected): void { $rejected = $reason; },
+        function ($value) use (&$resolved): void {
+            $resolved = $value;
+        },
+        function ($reason) use (&$rejected): void {
+            $rejected = $reason;
+        },
     );
 
     $serverUpdatePart = makeVoiceServerUpdateForLifecycleTest('guild-lc3a', 'tok', 'ep.discord.gg');
@@ -174,13 +181,17 @@ it('Manager joinChannel rejects its promise when the client emits close before r
 
     $voiceSessions = [];
     $promise = $manager->joinChannel($channel, $discord, $voiceSessions);
-    $client   = $manager->clients['guild-lc3b'];
+    $client = $manager->clients['guild-lc3b'];
 
     $resolved = null;
     $rejected = null;
     $promise->then(
-        function ($value) use (&$resolved): void { $resolved = $value; },
-        function ($reason) use (&$rejected): void { $rejected = $reason; },
+        function ($value) use (&$resolved): void {
+            $resolved = $value;
+        },
+        function ($reason) use (&$rejected): void {
+            $rejected = $reason;
+        },
     );
 
     $serverUpdatePart = makeVoiceServerUpdateForLifecycleTest('guild-lc3b', 'tok', 'ep.discord.gg');
@@ -289,8 +300,8 @@ function makeChannelForLifecycleTest(TestCase $test, string $guildId): Channel
     $attrProp->setAccessible(true);
     $attrProp->setValue($channel, [
         'guild_id' => $guildId,
-        'id'       => 'chan-' . $guildId,
-        'bitrate'  => 64000,
+        'id' => 'chan-'.$guildId,
+        'bitrate' => 64000,
     ]);
 
     return $channel;
@@ -318,7 +329,7 @@ function makeVoiceServerUpdateForLifecycleTest(string $guildId, string $token, s
     $attrProp->setAccessible(true);
     $attrProp->setValue($part, [
         'guild_id' => $guildId,
-        'token'    => $token,
+        'token' => $token,
         'endpoint' => $endpoint,
     ]);
 
@@ -338,7 +349,7 @@ function injectVoiceClientPropsForLifecycleTest(
     $vc->discord = $discord;
     $vc->channel = $channel;
     $vc->manager = $manager;
-    $vc->data    = ['deaf' => false, 'mute' => false];
+    $vc->data = ['deaf' => false, 'mute' => false];
 
     $deferredProp = new \ReflectionProperty(VoiceClient::class, 'deferred');
     $deferredProp->setAccessible(true);
