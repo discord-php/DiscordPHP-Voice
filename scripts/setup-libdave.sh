@@ -58,6 +58,19 @@ case "${DETECTED_OS}" in
 esac
 
 # ---------------------------------------------------------------------------
+# Validate destination directory
+# ---------------------------------------------------------------------------
+if [[ -z "${LIBDAVE_DEST_DIR}" ]]; then
+    echo "Error: LIBDAVE_DEST_DIR cannot be empty." >&2
+    exit 1
+fi
+
+if [[ "${LIBDAVE_DEST_DIR}" == "/" ]]; then
+    echo "Error: LIBDAVE_DEST_DIR '${LIBDAVE_DEST_DIR}' is dangerous." >&2
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
 # SHA-256 verification helper
 # ---------------------------------------------------------------------------
 verify_sha256() {
@@ -68,8 +81,8 @@ verify_sha256() {
     elif command -v shasum > /dev/null 2>&1; then
         actual="$(shasum -a 256 "$file" | awk '{print $1}')"
     else
-        echo "Warning: neither sha256sum nor shasum found — skipping checksum verification" >&2
-        return 0
+        echo "Error: neither sha256sum nor shasum found — cannot verify checksum" >&2
+        return 1
     fi
 
     if [[ "${actual}" != "${expected}" ]]; then

@@ -602,12 +602,11 @@ final class WS
         }
 
         if (! $this->initializeDaveRuntimeState($protocolVersion, $epoch === 1)) {
-            $this->discord->logger->error('DAVE session initialization failed; DAVE will remain in passthrough mode.', [
+            $this->discord->logger->error('DAVE session initialization failed; closing voice connection (fail-closed).', [
                 'protocol_version' => $protocolVersion,
                 'epoch' => $epoch,
             ]);
-            $this->daveState->passthroughMode = true;
-            $this->applySelfDaveEncryptor(0);
+            $this->socket->close();
 
             return;
         }
@@ -1126,7 +1125,11 @@ final class WS
 
         $this->vc->clientsConnected = [];
 
-        // Cancel heartbeat timers
+        // Cancel heartbeat timers — both WS's own timer and VoiceClient's timer.
+        if (isset($this->heartbeat)) {
+            $this->discord->loop->cancelTimer($this->heartbeat);
+            unset($this->heartbeat);
+        }
         if (null !== $this->vc->heartbeat) {
             $this->discord->loop->cancelTimer($this->vc->heartbeat);
             $this->vc->heartbeat = null;
@@ -1140,11 +1143,11 @@ final class WS
 
         $this->daveState->close();
         $this->socket->close();
-        $this->discord->voice_sessions[$this->vc->channel->guild_id] = null;
 
         // Don't reconnect on a critical opcode or if closed by user.
         if (in_array($op, Op::getCriticalVoiceCloseCodes()) || $this?->vc->userClose) {
             $this->discord->logger->warning('received critical opcode - not reconnecting', ['op' => $op, 'reason' => $reason]);
+            $this->discord->voice_sessions[$this->vc->channel->guild_id] = null;
             if ($op === Op::CLOSE_INVALID_SESSION) {
                 $this->discord->logger->debug('sessions', ['voice_sessions' => $this->discord->voice_sessions]);
             }
@@ -1180,6 +1183,15 @@ final class WS
     public function handleSendingOfLoginFrame(): void
     {
         if ($this->sentLoginFrame) {
+            return;
+        }
+
+        // If we have a valid session to resume, prefer Resume over Identify.
+        if (isset($this->data['token'], $this->discord->voice_sessions[$this->vc->channel->guild_id])) {
+            $this->handleResume();
+            $this->sentLoginFrame = true;
+            $this->vc->sentLoginFrame = true;
+
             return;
         }
 

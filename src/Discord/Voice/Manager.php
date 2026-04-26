@@ -258,11 +258,12 @@ final class Manager
             $this->removeAllListeners($channel->guild_id);
             $deferred->reject($e);
         });
-        $client->once('close', function () use ($channel) {
+        $client->once('close', function () use ($channel, $deferred) {
             $this->discord->logger->warning('voice manager closed');
             unset($this->discord->voice->clients[$channel->guild_id]);
             unset($this->discord->voice_sessions[$channel->guild_id]);
             $this->removeAllListeners($channel->guild_id);
+            $deferred->reject(new \RuntimeException('Voice connection closed before becoming ready.'));
         });
 
         $client->setData(

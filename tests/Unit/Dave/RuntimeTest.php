@@ -17,6 +17,7 @@ namespace Discord\Tests\Unit\Dave;
 
 use Discord\Voice\Dave\Runtime;
 use Discord\Voice\Dave\SessionHandle;
+use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;
 use PHPUnit\Framework\TestCase;
 
 $originalDaveLibraryPath = null;
@@ -142,6 +143,44 @@ it('setExternalSender returns false for empty sender payload without crash', fun
     $session = makeStubSessionHandle();
 
     $this->assertFalse(Runtime::setExternalSender($session, ''));
+});
+
+it('resolveDefaultLibraryPath throws LibDaveNotFoundException when library files are absent', function (): void {
+    $libFile = match (PHP_OS_FAMILY) {
+        'Darwin' => '.cache/libdave/lib/libdave.dylib',
+        'Windows' => '.cache/libdave/bin/libdave.dll',
+        default => '.cache/libdave/lib/libdave.so',
+    };
+    $packageRoot = dirname((new \ReflectionClass(Runtime::class))->getFileName(), 5);
+    if (is_file($packageRoot.DIRECTORY_SEPARATOR.$libFile) || is_file(getcwd().DIRECTORY_SEPARATOR.$libFile)) {
+        $this->markTestSkipped('libdave is available in cache; test requires missing library.');
+    }
+
+    putenv('DISCORDPHP_DAVE_LIBRARY');
+    Runtime::reset();
+
+    $method = new \ReflectionMethod(Runtime::class, 'resolveDefaultLibraryPath');
+    $method->setAccessible(true);
+
+    $this->expectException(LibDaveNotFoundException::class);
+    $method->invoke(null);
+});
+
+it('isAvailable returns false and does not throw when library files are absent', function (): void {
+    $libFile = match (PHP_OS_FAMILY) {
+        'Darwin' => '.cache/libdave/lib/libdave.dylib',
+        'Windows' => '.cache/libdave/bin/libdave.dll',
+        default => '.cache/libdave/lib/libdave.so',
+    };
+    $packageRoot = dirname((new \ReflectionClass(Runtime::class))->getFileName(), 5);
+    if (is_file($packageRoot.DIRECTORY_SEPARATOR.$libFile) || is_file(getcwd().DIRECTORY_SEPARATOR.$libFile)) {
+        $this->markTestSkipped('libdave is available in cache; test requires missing library.');
+    }
+
+    putenv('DISCORDPHP_DAVE_LIBRARY');
+    Runtime::reset();
+
+    $this->assertFalse(Runtime::isAvailable());
 });
 
 function makeStubSessionHandle(): SessionHandle

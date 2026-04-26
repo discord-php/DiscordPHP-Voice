@@ -93,6 +93,15 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      */
     protected function extract(FormatPackEnum|string $format, int $offset, int $length)
     {
+        if ($offset < 0 || $length < 0 || ($offset + $length) > $this->buffer->getSize()) {
+            throw new \OutOfRangeException(sprintf(
+                'ByteBuffer read out of bounds: offset=%d, length=%d, buffer size=%d',
+                $offset,
+                $length,
+                $this->buffer->getSize()
+            ));
+        }
+
         $encoded = '';
         for ($i = 0; $i < $length; $i++) {
             $encoded .= $this->buffer->offsetGet($offset + $i);

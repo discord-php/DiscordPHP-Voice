@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace Discord\Voice\Dave;
 
+use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;
 use FFI;
 
 final class Runtime
@@ -728,12 +729,22 @@ CDEF;
 
         $libraryPath = getenv('DISCORDPHP_DAVE_LIBRARY');
         if ($libraryPath === false || $libraryPath === '') {
-            $libraryPath = self::resolveDefaultLibraryPath();
+            try {
+                $libraryPath = self::resolveDefaultLibraryPath();
+            } catch (\Exception $e) {
+                self::$lastLoadError = $e->getMessage();
+
+                return;
+            }
+        } elseif (! self::isAbsolutePath($libraryPath)) {
+            self::$lastLoadError = 'DISCORDPHP_DAVE_LIBRARY must be an absolute path; got: '.$libraryPath;
+
+            return;
         }
 
-        $definitions = self::resolveDefinitions($libraryPath);
-
         try {
+            $definitions = self::resolveDefinitions($libraryPath);
+
             self::$ffi = FFI::cdef(
                 $definitions,
                 $libraryPath
@@ -750,7 +761,8 @@ CDEF;
      * Probe order:
      * 1. Package root (relative to __DIR__): .cache/libdave/lib/libdave.{ext}
      * 2. Working directory: .cache/libdave/lib/libdave.{ext}
-     * 3. Bare filename: libdave.{ext} (system library path)
+     *
+     * @throws LibDaveNotFoundException when the library cannot be found in either location.
      */
     private static function resolveDefaultLibraryPath(): string
     {
@@ -759,7 +771,6 @@ CDEF;
             'Windows' => '.cache/libdave/bin/libdave.dll',
             default => '.cache/libdave/lib/libdave.so',
         };
-        $libFile = basename($relative);
 
         // Package root: __DIR__ is src/Discord/Voice/Dave — walk up 4 dirs
         $packageRoot = dirname(__DIR__, 4);
@@ -774,7 +785,16 @@ CDEF;
             return $cwdPath;
         }
 
-        return $libFile;
+        throw LibDaveNotFoundException::fromRuntimeError(
+            'libdave library not found in package cache or absolute path. Install with scripts/setup-libdave.sh or set DISCORDPHP_DAVE_LIBRARY.'
+        );
+    }
+
+    private static function isAbsolutePath(string $path): bool
+    {
+        // Unix absolute path starts with /
+        // Windows absolute path starts with a drive letter like C:\ or C:/
+        return str_starts_with($path, '/') || (PHP_OS_FAMILY === 'Windows' && preg_match('/^[A-Za-z]:[\\\\\/]/', $path) === 1);
     }
 
     /**

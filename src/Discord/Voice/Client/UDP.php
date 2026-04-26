@@ -111,7 +111,8 @@ final class UDP extends Socket
     public function handleMessages(string $secret): self
     {
         return $this->on('message', function (string $message) use ($secret) {
-            if (strlen($message) <= 8) {
+            // Minimum valid RTP+encryption overhead: 12 (header) + 4 (nonce) + 16 (auth tag) = 32 bytes
+            if (strlen($message) < 32) {
                 return null;
             }
 
@@ -258,7 +259,7 @@ final class UDP extends Socket
      */
     public function insertSilence(): void
     {
-        while (--$this->silenceRemaining > 0) {
+        while ($this->silenceRemaining-- > 0) {
             $this->sendBuffer(self::SILENCE_FRAME);
         }
     }
@@ -286,8 +287,25 @@ final class UDP extends Socket
         $this->send($packet->getEncryptedMessage());
 
         $this->streamTime = (int) microtime(true);
-
         $this->ws->vc->emit('packet-sent', [$packet]);
+
+        // Advance counters — shared path for both audio and silence frames.
+        if (++$this->ws->vc->seq >= 2 ** 16) {
+            $this->ws->vc->seq = 0;
+        }
+
+        if (++$this->ws->vc->nonce >= 2 ** 32) {
+            $this->ws->vc->nonce = 0;
+            $this->ws->vc->discord->getLogger()->critical(
+                'Voice nonce counter wrapped at 2^32. Triggering reconnect.',
+                ['guild' => $this->ws->vc->channel->guild_id ?? null]
+            );
+            $this->ws->vc->handleVoiceServerChange($this->ws->vc->data ?? []);
+        }
+
+        if (($this->ws->vc->timestamp += ($this->ws->vc->frameSize * 48)) >= 2 ** 32) {
+            $this->ws->vc->timestamp = 0;
+        }
     }
 
     /**

@@ -30,12 +30,26 @@ use Discord\Voice\Exceptions\VoiceException;
 class LibDaveNotFoundException extends \Exception implements VoiceException
 {
     /**
-     * Creates an instance with a descriptive message that includes the Discord
-     * announcement link, installation instructions, and the runtime load error
-     * (if one is available from {@see DaveRuntime::getLastLoadError()}).
+     * Creates an instance from a message string.
+     *
+     * When {@param $message} is provided it is used verbatim; this is the path
+     * taken by {@see Runtime::resolveDefaultLibraryPath()} when the library
+     * file cannot be found on disk.
+     *
+     * When {@param $message} is omitted (empty string), a descriptive message
+     * is built that includes the Discord announcement link, installation
+     * instructions, and the runtime load error (if one is available from
+     * {@see DaveRuntime::getLastLoadError()}). This is the path taken by
+     * callers that check {@see DaveRuntime::isAvailable()} after a failed load.
+     *
+     * @throws LibDaveNotFoundException
      */
-    public static function fromRuntimeError(): self
+    public static function fromRuntimeError(string $message = ''): self
     {
+        if ($message !== '') {
+            return new self($message);
+        }
+
         $message = "libdave is required but could not be loaded. Discord has required the DAVE E2EE protocol for all voice and video connections since March 1st, 2026.\n"
             ."Discord announcement: https://discord.com/developers/docs/change-log#future-deprecation-and-discontinuation-of-non-e2ee-voice\n"
             .'To install libdave, run: bash scripts/setup-libdave.sh from the project root, or see https://github.com/discord/libdave for manual installation.';

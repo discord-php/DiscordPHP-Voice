@@ -92,6 +92,11 @@ class OggPage
                 $rawHeaderData = $data;
                 $header = unpack(self::FORMAT, $data);
 
+                if ($header['page_segments'] === 0) {
+                    // RFC 3533 §6: a valid Ogg page must contain at least one lace value.
+                    throw new \UnexpectedValueException('Invalid Ogg page: page_segments must not be zero (RFC 3533 §6).');
+                }
+
                 return $buffer->read($header['page_segments'], timeout: $timeout);
             })
             // Reading page segment lengths
@@ -99,6 +104,11 @@ class OggPage
                 $rawSegmentTable = $data;
                 $pageSegments = unpack('C*', $data);
                 $data = array_sum($pageSegments);
+
+                if ($data > 65025) {
+                    // Ogg spec maximum: 255 segments × 255 bytes each = 65025 bytes.
+                    throw new \UnexpectedValueException("Invalid Ogg page: body size {$data} exceeds maximum 65025 bytes (255 segments × 255 bytes).");
+                }
 
                 return $buffer->read($data, timeout: $timeout);
             })

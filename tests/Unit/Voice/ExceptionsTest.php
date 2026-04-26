@@ -94,6 +94,15 @@ it('Library exceptions extend Exception and implement VoiceException', function 
         ->and($e->getMessage())->toBe('lib message');
 })->with('library_exceptions');
 
+it('LibDaveNotFoundException::fromRuntimeError uses provided message directly without appending load error', function (): void {
+    setLastLoadError('some unrelated load error');
+    $e = LibDaveNotFoundException::fromRuntimeError('libdave library not found in package cache.');
+
+    expect($e)->toBeInstanceOf(LibDaveNotFoundException::class)
+        ->and($e->getMessage())->toBe('libdave library not found in package cache.')
+        ->and($e->getMessage())->not->toContain('Load error:');
+});
+
 it('LibDaveNotFoundException::fromRuntimeError builds base message without load error suffix when error is empty', function (): void {
     setLastLoadError('');
     $e = LibDaveNotFoundException::fromRuntimeError();

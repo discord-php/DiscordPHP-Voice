@@ -96,6 +96,28 @@ it('accepts ogg pages with a correct CRC checksum', function (): void {
         ->and($page->segmentData)->toBe('opus');
 });
 
+it('rejects ogg pages with zero page_segments (RFC 3533 §6)', function (): void {
+    $buffer = new Buffer();
+    $buffer->write(buildOggPageFixture(segments: [], segmentData: ''));
+
+    expect(fn () => await(OggPage::fromBuffer($buffer)))
+        ->toThrow(UnexpectedValueException::class, 'page_segments must not be zero');
+});
+
+it('accepts ogg pages with body at the 65025-byte Ogg spec cap (255 × 255)', function (): void {
+    // 255 segments of 255 bytes each is the maximum valid Ogg page body.
+    // The body-size guard uses > 65025, so exactly 65025 bytes must be accepted.
+    $segments = array_fill(0, 255, 255);
+    $body = str_repeat("\x00", 65025);
+    $buffer = new Buffer();
+    $buffer->write(buildOggPageFixture(segments: $segments, segmentData: $body));
+
+    $page = await(OggPage::fromBuffer($buffer));
+
+    expect($page)->toBeInstanceOf(OggPage::class)
+        ->and(strlen($page->segmentData))->toBe(65025);
+});
+
 function buildOggPageFixture(
     array $segments,
     string $segmentData,

@@ -4,11 +4,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-env:
-  DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-  TEST_CHANNEL: ${{ secrets.TEST_CHANNEL }}
-  TEST_CHANNEL_NAME: ${{ secrets.TEST_CHANNEL_NAME }}
-
 jobs:
   unit-lint:
     name: Pest and Lint
@@ -43,6 +38,10 @@ jobs:
         run: composer unit
       - name: Run PHPLint
         run: phplint
+      - name: Run PHPStan
+        run: COMPOSER_ROOT_VERSION=dev-main ./vendor/bin/phpstan analyse --no-progress
+      - name: Check code style
+        run: ./vendor/bin/php-cs-fixer fix --dry-run --diff
 
   editorconfig:
     name: EditorConfig

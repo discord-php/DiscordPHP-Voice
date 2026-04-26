@@ -19,11 +19,11 @@
         "chat": "https://discord.gg/dphp"
     },
     "require": {
-        "php": "^8.3"
+        "php": "^8.3",
+        "ext-ffi": "*"
     },
     "require-dev": {
         "team-reflex/discord-php": "dev-master",
-        "ext-ffi": "*",
         "friendsofphp/php-cs-fixer": "^3",
         "pestphp/pest": "^4.1.2",
         "phpstan/phpstan": "^2.1"
@@ -43,7 +43,7 @@
         "unit-no-dave": ["pest --testdox"],
         "pest": "pest --parallel",
         "coverage": ["XDEBUG_MODE=coverage pest --coverage-html coverage --testdox"],
-        "check": ["@pint", "@cs:check", "@unit"]
+        "check": ["@cs:check", "@unit"]
     },
     "scripts-descriptions": {
         "pint": "Format code with Laravel Pint",
