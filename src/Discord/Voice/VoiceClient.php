@@ -203,7 +203,7 @@ class VoiceClient extends EventEmitter
     /**
      * Collection of voice decoders.
      *
-     * @var ExCollectionInterface<Process> Voice decoders.
+     * @var array<int, Process> Voice decoders.
      */
     public array $voiceDecoders = [];
 
@@ -1041,7 +1041,7 @@ class VoiceClient extends EventEmitter
         $this->ready = false;
 
         // Close processes for audio encoding
-        if (count($this?->voiceDecoders ?? []) > 0) {
+        if (count($this->voiceDecoders) > 0) {
             foreach ($this->voiceDecoders as $decoder) {
                 $decoder->close();
             }
