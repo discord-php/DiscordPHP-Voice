@@ -52,8 +52,8 @@ it('createDecoder() is called exactly once for a new SSRC and reused on subseque
 
     initVcForReceiveExt($vc);
     $vc->record();
-    $vc->voiceDecoders  = [];
-    $vc->receiveStreams  = [];
+    $vc->voiceDecoders = [];
+    $vc->receiveStreams = [];
 
     $ssrc = 1001;
     $col = Collection::for(Speaking::class, 'ssrc');
@@ -162,7 +162,7 @@ it('when opusdecoder is null (OpusFfi unavailable) valid frames are not written 
     $vc->record();
     $vc->voiceDecoders = [];
     $vc->receiveStreams = [];
-    $vc->opusdecoder    = null; // explicitly no FFI decoder available
+    $vc->opusdecoder = null; // explicitly no FFI decoder available
 
     $ssrc = 3001;
     $col = Collection::for(Speaking::class, 'ssrc');
@@ -242,8 +242,8 @@ it('removeDecoder() removes the decoder, receive stream and SSRC map entry for t
     $closed = false;
     $fakeDecoder = makeFakeDecoderExtWithClose($closed);
 
-    $vc->voiceDecoders  = [$ssrc => $fakeDecoder];
-    $vc->receiveStreams  = [$ssrc => new ReceiveStream()];
+    $vc->voiceDecoders = [$ssrc => $fakeDecoder];
+    $vc->receiveStreams = [$ssrc => new ReceiveStream()];
 
     $ssrcMapProp = new \ReflectionProperty(VoiceClient::class, 'ssrcToUserId');
     $ssrcMapProp->setAccessible(true);
@@ -268,8 +268,8 @@ it('removeDecoder() is a no-op when the SSRC has no associated decoder', functio
     $col = Collection::for(Speaking::class, 'ssrc');
     $col->pushItem(makeSpeakingExt($ssrc, 'user-unknown'));
     setVcSpeakingStatusExt($vc, $col);
-    $vc->voiceDecoders  = []; // no decoder for this SSRC
-    $vc->receiveStreams  = [];
+    $vc->voiceDecoders = []; // no decoder for this SSRC
+    $vc->receiveStreams = [];
 
     $removeDecoder = new \ReflectionMethod(VoiceClient::class, 'removeDecoder');
     $removeDecoder->setAccessible(true);
@@ -293,8 +293,8 @@ it('stopRecording() calls close() on every active decoder before clearing voiceD
     $fakeDecoderA = makeFakeDecoderExtWithClose($closedA);
     $fakeDecoderB = makeFakeDecoderExtWithClose($closedB);
 
-    $vc->voiceDecoders  = [1 => $fakeDecoderA, 2 => $fakeDecoderB];
-    $vc->receiveStreams  = [];
+    $vc->voiceDecoders = [1 => $fakeDecoderA, 2 => $fakeDecoderB];
+    $vc->receiveStreams = [];
     setVcSpeakingStatusExt($vc, Collection::for(Speaking::class, 'ssrc'));
 
     $ssrcMapProp = new \ReflectionProperty(VoiceClient::class, 'ssrcToUserId');
@@ -353,8 +353,8 @@ it('createDecoder() refuses to add a new decoder once MAX_DECODERS (25) is reach
     for ($i = 0; $i < 25; ++$i) {
         $decoders[$i] = makeFakeDecoderExtSimple();
     }
-    $vc->voiceDecoders  = $decoders;
-    $vc->receiveStreams  = [];
+    $vc->voiceDecoders = $decoders;
+    $vc->receiveStreams = [];
     $col = Collection::for(Speaking::class, 'ssrc');
     $col->pushItem(makeSpeakingExt(9999, 'user-overflow'));
     setVcSpeakingStatusExt($vc, $col);
@@ -422,10 +422,10 @@ function makeSpeakingExt(int $ssrc, string $userId): Speaking
     $attrs = new \ReflectionProperty(Speaking::class, 'attributes');
     $attrs->setAccessible(true);
     $attrs->setValue($speaking, [
-        'ssrc'     => $ssrc,
-        'user_id'  => $userId,
+        'ssrc' => $ssrc,
+        'user_id' => $userId,
         'speaking' => 1,
-        'delay'    => 0,
+        'delay' => 0,
     ]);
 
     return $speaking;
@@ -454,13 +454,15 @@ function makeReceivePacketExt(int $ssrc, string $decryptedAudio): Packet
  */
 function makeFakeDecoderExt(bool $writable): object
 {
-    return new class ($writable) {
+    return new class($writable) {
         public $stdin;
 
         public function __construct(bool $w)
         {
-            $this->stdin = new class ($w) {
-                public function __construct(private bool $w) {}
+            $this->stdin = new class($w) {
+                public function __construct(private bool $w)
+                {
+                }
 
                 public function isWritable(): bool
                 {
@@ -482,13 +484,15 @@ function makeFakeDecoderExt(bool $writable): object
  */
 function makeFakeDecoderExtTracking(bool $writable, int &$writeCount): object
 {
-    return new class ($writable, $writeCount) {
+    return new class($writable, $writeCount) {
         public $stdin;
 
         public function __construct(bool $w, int &$count)
         {
-            $this->stdin = new class ($w, $count) {
-                public function __construct(private bool $w, private int &$count) {}
+            $this->stdin = new class($w, $count) {
+                public function __construct(private bool $w, private int &$count)
+                {
+                }
 
                 public function isWritable(): bool
                 {
@@ -512,14 +516,14 @@ function makeFakeDecoderExtTracking(bool $writable, int &$writeCount): object
  */
 function makeFakeDecoderExtWithClose(bool &$closed): object
 {
-    return new class ($closed) {
+    return new class($closed) {
         public $stdin;
         private bool $isClosed;
 
         public function __construct(bool &$c)
         {
             $this->isClosed = &$c;
-            $this->stdin    = new class {
+            $this->stdin = new class {
                 public function isWritable(): bool
                 {
                     return false;
@@ -560,6 +564,8 @@ function makeFakeDecoderExtSimple(): object
             return false;
         }
 
-        public function close(): void {}
+        public function close(): void
+        {
+        }
     };
 }

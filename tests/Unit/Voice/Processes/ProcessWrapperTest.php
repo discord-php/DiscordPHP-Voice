@@ -92,7 +92,7 @@ it('builds ffmpeg encode commands with stdin defaults and pre-arguments', functi
 
     $process = Ffmpeg::encode(null, -6, 192000, ['-re', '-nostdin']);
 
-    expect(getProcessCommand($process))->toBe("/opt/ffmpeg '-re' '-nostdin' -protocol_whitelist file,http,https,tcp,tls,crypto,pipe -i 'pipe:0' -map_metadata -1 -f opus -c:a libopus -ar 48000 -af 'volume=-6dB' -ac 2 -b:a 192000 -loglevel warning pipe:1");
+    expect(getProcessCommand($process))->toBe("/opt/ffmpeg '-re' '-nostdin' -protocol_whitelist http,https,tcp,tls,crypto,pipe -i 'pipe:0' -map_metadata -1 -f opus -c:a libopus -ar 48000 -af 'volume=-6dB' -ac 2 -b:a 192000 -loglevel warning pipe:1");
 });
 
 it('builds ffmpeg decode commands for stdout output by default', function (): void {
@@ -130,7 +130,7 @@ it('routes explicit ffmpeg magic calls through binary detection', function (): v
     $process = Ffmpeg::__callStatic('encode', [null, 1, 128000, ['-re']]);
 
     expect($process)->toBeInstanceOf(Process::class)
-        ->and(getProcessCommand($process))->toBe(FIXTURE_BINARIES."/ffmpeg '-re' -protocol_whitelist file,http,https,tcp,tls,crypto,pipe -i 'pipe:0' -map_metadata -1 -f opus -c:a libopus -ar 48000 -af 'volume=1dB' -ac 2 -b:a 128000 -loglevel warning pipe:1");
+        ->and(getProcessCommand($process))->toBe(FIXTURE_BINARIES."/ffmpeg '-re' -protocol_whitelist http,https,tcp,tls,crypto,pipe -i 'pipe:0' -map_metadata -1 -f opus -c:a libopus -ar 48000 -af 'volume=1dB' -ac 2 -b:a 128000 -loglevel warning pipe:1");
 });
 
 it('throws for missing or invalid ffmpeg magic calls', function (): void {

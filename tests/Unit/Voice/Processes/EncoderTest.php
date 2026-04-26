@@ -74,7 +74,7 @@ it('builds an ffmpeg encode process with the documented opus pipeline arguments'
     $cmd = getEncoderProcessCmd(Ffmpeg::encode());
 
     expect($cmd)->toStartWith('/opt/ffmpeg ')
-        ->toContain('-protocol_whitelist file,http,https,tcp,tls,crypto,pipe')
+        ->toContain('-protocol_whitelist http,https,tcp,tls,crypto,pipe')
         ->toContain("-i 'pipe:0'")
         ->toContain('-f opus')
         ->toContain('-c:a libopus')

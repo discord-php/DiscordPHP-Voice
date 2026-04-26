@@ -146,7 +146,7 @@ it('rejects https://localhost/ — loopback hostname (desired policy — current
     );
     expect($rejection)->toBeInstanceOf(\InvalidArgumentException::class)
         ->and($rejection->getMessage())->toContain('private or reserved');
-})->skip('hostname blocking out of scope, only literal IPs are blocked');
+});
 
 it('rejects https://[::1]/ — IPv6 loopback (desired policy — currently fails)', function () {
     $rejection = playFileSec_captureIncludingThrown(
@@ -240,7 +240,7 @@ it('ffmpeg encode protocol whitelist does not include file (desired policy — c
     expect($matches)->not->toBeEmpty('ffmpeg command must contain a -protocol_whitelist flag');
     $protocols = explode(',', $matches[1]);
     expect($protocols)->not->toContain('file');
-})->skip('file protocol removal from ffmpeg whitelist not yet implemented');
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

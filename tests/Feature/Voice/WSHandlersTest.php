@@ -515,10 +515,10 @@ function makeHandlersSpeaking(string $userId, ?int $ssrc, bool $isSpeaking): Spe
     $attrs = new \ReflectionProperty(Speaking::class, 'attributes');
     $attrs->setAccessible(true);
     $attrs->setValue($speaking, [
-        'user_id'  => $userId,
-        'ssrc'     => $ssrc,
+        'user_id' => $userId,
+        'ssrc' => $ssrc,
         'speaking' => $isSpeaking ? 1 : 0,
-        'delay'    => 0,
+        'delay' => 0,
     ]);
 
     return $speaking;

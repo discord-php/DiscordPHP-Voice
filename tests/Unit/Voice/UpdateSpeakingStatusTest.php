@@ -15,7 +15,6 @@ declare(strict_types=1);
 
 namespace Discord\Tests\Unit\Voice;
 
-use Discord\Helpers\Collection;
 use Discord\Voice\Speaking;
 use Discord\Voice\VoiceClient;
 
@@ -88,10 +87,10 @@ function makeSpeakingForUpdate(?int $ssrc, string $userId): object
     $attrs = new \ReflectionProperty(Speaking::class, 'attributes');
     $attrs->setAccessible(true);
     $attrs->setValue($speaking, [
-        'ssrc'     => $ssrc,
-        'user_id'  => $userId,
+        'ssrc' => $ssrc,
+        'user_id' => $userId,
         'speaking' => 1,
-        'delay'    => 0,
+        'delay' => 0,
     ]);
 
     return $speaking;

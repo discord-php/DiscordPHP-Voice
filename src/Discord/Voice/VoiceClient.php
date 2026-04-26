@@ -458,10 +458,18 @@ class VoiceClient extends EventEmitter
                 return $deferred->promise();
             }
 
-            // Block literal private/reserved/loopback IP addresses to prevent SSRF.
-            // DNS-based rebinding is explicitly out of scope.
+            // Block literal private/reserved/loopback IP addresses and known loopback
+            // hostnames to prevent SSRF. Full DNS resolution is explicitly out of scope.
             $host = parse_url($file, PHP_URL_HOST);
             if ($host !== null) {
+                if (in_array(strtolower($host), ['localhost'], true)) {
+                    $deferred->reject(new \InvalidArgumentException(
+                        'Remote playback does not allow private or reserved hostnames.'
+                    ));
+
+                    return $deferred->promise();
+                }
+
                 $bare = ltrim(rtrim($host, ']'), '['); // strip IPv6 brackets
                 if (filter_var($bare, FILTER_VALIDATE_IP) !== false) {
                     $isPublic = filter_var($bare, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;

@@ -139,7 +139,7 @@ it('a CI workflow file runs a code-style check', function (): void {
 it('every workflow that uses GITHUB_TOKEN declares explicit permissions', function (): void {
     $workflowsDir = workflowsDir();
 
-    foreach (glob($workflowsDir . '/*.yml') as $file) {
+    foreach (glob($workflowsDir.'/*.yml') as $file) {
         $content = file_get_contents($file);
 
         if (! str_contains($content, 'GITHUB_TOKEN')) {
@@ -160,19 +160,19 @@ it('every workflow that uses GITHUB_TOKEN declares explicit permissions', functi
 
 function loadComposer(): array
 {
-    $path = dirname(__DIR__, 3) . '/composer.json';
+    $path = dirname(__DIR__, 3).'/composer.json';
 
     return json_decode(file_get_contents($path), true);
 }
 
 function workflowsDir(): string
 {
-    return dirname(__DIR__, 3) . '/.github/workflows';
+    return dirname(__DIR__, 3).'/.github/workflows';
 }
 
 function workflowsContain(string $needle): bool
 {
-    foreach (glob(workflowsDir() . '/*.yml') as $file) {
+    foreach (glob(workflowsDir().'/*.yml') as $file) {
         if (str_contains(file_get_contents($file), $needle)) {
             return true;
         }
