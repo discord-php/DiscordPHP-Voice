@@ -47,7 +47,7 @@ $discord->on('ready', function (Discord $discord): void {
     }
 
     // Join the voice channel. Returns a promise that resolves with a VoiceClient.
-    $discord->voice->join($channel)->then(
+    $discord->voice->joinChannel($channel)->then(
         function (VoiceClient $vc): void {
             echo 'Joined voice channel, waiting for ready...' . PHP_EOL;
 

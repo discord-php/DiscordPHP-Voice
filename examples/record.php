@@ -39,7 +39,7 @@ $discord->on('ready', function (Discord $discord): void {
         return;
     }
 
-    $discord->voice->join($channel)->then(
+    $discord->voice->joinChannel($channel)->then(
         function (VoiceClient $vc) use ($discord): void {
             $vc->on('ready', function () use ($vc, $discord): void {
                 echo 'VoiceClient ready, starting recording...' . PHP_EOL;

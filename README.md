@@ -65,7 +65,7 @@ Use the bundled Pest runner for local validation. `composer unit` runs the defau
 $discord->on('ready', function (Discord $discord) {
     $channel = $discord->getChannel('YOUR_CHANNEL_ID');
 
-    $discord->voice->join($channel)->then(function (VoiceClient $vc) {
+    $discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) {
         $vc->on('ready', function () use ($vc) {
             $vc->playFile('/path/to/audio.mp3');
         });
@@ -80,7 +80,7 @@ $discord->on('ready', function (Discord $discord) {
 ### Recording
 
 ```php
-$discord->voice->join($channel)->then(function (VoiceClient $vc) use ($discord) {
+$discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) use ($discord) {
     $vc->on('ready', function () use ($vc, $discord) {
         $vc->record();
 
@@ -115,7 +115,7 @@ All library exceptions implement the [`VoiceException`](src/Discord/Voice/Except
 use Discord\Voice\Exceptions\VoiceException;
 
 try {
-    $manager->join($channel);
+    $manager->joinChannel($channel, $discord, $voiceSessions);
 } catch (VoiceException $e) {
     echo "Voice error: " . $e->getMessage();
 }

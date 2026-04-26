@@ -36,8 +36,8 @@ it('rejects file:// URLs in playFile URL validation (CRIT-1)', function () {
     $schemes = $reflection->getValue();
 
     expect($schemes)->toBeArray()
-        ->and($schemes)->toContain('http')
         ->and($schemes)->toContain('https')
+        ->and($schemes)->not->toContain('http')
         ->and($schemes)->not->toContain('file')
         ->and($schemes)->not->toContain('rtmp')
         ->and($schemes)->not->toContain('concat')

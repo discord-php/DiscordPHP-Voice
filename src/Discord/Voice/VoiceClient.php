@@ -67,7 +67,7 @@ class VoiceClient extends EventEmitter
     /**
      * Allowed URL schemes for playFile().
      */
-    private const ALLOWED_URL_SCHEMES = ['http', 'https'];
+    private const ALLOWED_URL_SCHEMES = ['https'];
 
     /**
      * Maximum number of concurrent voice decoders to prevent resource exhaustion.

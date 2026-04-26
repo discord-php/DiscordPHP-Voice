@@ -22,7 +22,7 @@ namespace Discord\Voice\Exceptions;
  *
  * ```php
  * try {
- *     $discord->voice->join($channel);
+ *     $discord->voice->joinChannel($channel);
  * } catch (VoiceException $e) {
  *     // handles all voice library errors
  * }

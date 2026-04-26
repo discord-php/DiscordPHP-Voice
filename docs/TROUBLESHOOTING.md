@@ -26,7 +26,7 @@ All library exceptions implement the `VoiceException` marker interface. You can 
 use Discord\Voice\Exceptions\VoiceException;
 
 try {
-    $manager->join($channel)->then(function ($client) {
+    $manager->joinChannel($channel, $discord, $voiceSessions)->then(function ($client) {
         // ...
     });
 } catch (VoiceException $e) {
@@ -290,7 +290,7 @@ $vc->on('end', function () use ($vc) {
 Always start playback inside the `ready` event:
 
 ```php
-$discord->voice->join($channel)->then(function (VoiceClient $vc) {
+$discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) {
     $vc->on('ready', function () use ($vc) {
         // Safe to call playback methods here:
         $vc->playFile('/path/to/audio.mp3');
