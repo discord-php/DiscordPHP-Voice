@@ -17,7 +17,9 @@ namespace Discord\Voice\Dave;
 
 final class BinaryFrame
 {
+    /** 1 byte: opcode (uint8). */
     private const CLIENT_MIN_HEADER_SIZE = 1;
+    /** 3 bytes: sequence (uint16 big-endian) + opcode (uint8). */
     private const SERVER_MIN_HEADER_SIZE = 3;
     private const SERVER_HEADER_UNPACK_FORMAT = 'nsequence/Copcode';
     private const CLIENT_HEADER_UNPACK_FORMAT = 'Copcode';
@@ -29,15 +31,19 @@ final class BinaryFrame
     ) {
     }
 
+    /**
+     * @param  string      $payload Raw binary payload received from the voice gateway server.
+     * @return static|null Null if the payload is too short to contain the server header or unpack fails.
+     */
     public static function fromServerPayload(string $payload): ?self
     {
         if (strlen($payload) < self::SERVER_MIN_HEADER_SIZE) {
-            return null;
+            return null; // payload too short to contain the 3-byte server header
         }
 
         $header = unpack(self::SERVER_HEADER_UNPACK_FORMAT, substr($payload, 0, self::SERVER_MIN_HEADER_SIZE));
         if (! $header) {
-            return null;
+            return null; // unpack failed — malformed header bytes
         }
 
         return new self(
@@ -55,15 +61,19 @@ final class BinaryFrame
         return self::fromServerPayload($payload);
     }
 
+    /**
+     * @param  string      $payload Raw binary payload received from a voice gateway client.
+     * @return static|null Null if the payload is too short to contain the client header or unpack fails.
+     */
     public static function fromClientPayload(string $payload): ?self
     {
         if (strlen($payload) < self::CLIENT_MIN_HEADER_SIZE) {
-            return null;
+            return null; // payload too short to contain the 1-byte client header
         }
 
         $header = unpack(self::CLIENT_HEADER_UNPACK_FORMAT, substr($payload, 0, self::CLIENT_MIN_HEADER_SIZE));
         if (! $header) {
-            return null;
+            return null; // unpack failed — malformed header byte
         }
 
         return new self(
