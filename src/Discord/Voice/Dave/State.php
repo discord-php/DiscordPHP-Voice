@@ -15,6 +15,19 @@ declare(strict_types=1);
 
 namespace Discord\Voice\Dave;
 
+/**
+ * Per-connection DAVE E2EE state.
+ *
+ * Owns the MLS session lifetime, protocol version, passthrough mode,
+ * and all key-ratchet / decryptor / encryptor handles. Destruction
+ * ordering matters: encryptor/decryptors must be destroyed before
+ * key-ratchets, before the session (enforced by close() and __destruct()).
+ *
+ * State machine summary:
+ *  prepareProtocolVersion() → passthroughMode=true (waiting for transition)
+ *  executeTransition()      → passthroughMode=false (media E2EE active)
+ *  resetProtocolState()     → passthroughMode=true (all handles freed)
+ */
 final class State
 {
     /** @var array<string, bool> */
@@ -122,6 +135,36 @@ final class State
         }
 
         $this->lastReceivedSequence = $sequence;
+    }
+
+    public function recordExternalSender(string $senderPackage): void
+    {
+        $this->externalSenderPackage = $senderPackage;
+    }
+
+    public function markKeyPackageSent(): void
+    {
+        $this->keyPackageSent = true;
+    }
+
+    public function incrementEncryptFailures(): void
+    {
+        $this->encryptFailureCount++;
+    }
+
+    public function incrementDecryptFailures(): void
+    {
+        $this->decryptFailureCount++;
+    }
+
+    public function incrementProposalFailures(): void
+    {
+        $this->proposalFailureCount++;
+    }
+
+    public function resetProposalFailures(): void
+    {
+        $this->proposalFailureCount = 0;
     }
 
     public function replaceSession(?SessionHandle $session): void

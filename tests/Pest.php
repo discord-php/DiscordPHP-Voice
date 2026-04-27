@@ -15,4 +15,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
+require_once __DIR__.'/Feature/Voice/WSDaveTestFixtures.php';
+
 pest()->extend(TestCase::class)->in('Feature', 'Unit');

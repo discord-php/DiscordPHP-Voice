@@ -20,7 +20,13 @@ use Discord\Voice\ByteBuffer\FormatPackEnum;
 use Discord\Voice\Exceptions\Libraries\LibSodiumNotFoundException;
 
 /**
- * A voice packet received from Discord.
+ * An RTP voice packet: builds outbound frames and decodes inbound frames.
+ *
+ * Decrypt flow order for inbound packets:
+ *  1. AES-256-GCM transport decrypt (libsodium) — `sodium_crypto_aead_aes256gcm_decrypt()`
+ *  2. Strip RTP header extension payload — `RtpHeader::stripExtensionPayload()`
+ *  3. Optional DAVE inbound callback — `inboundFrameDecryptor` (injected by VoiceClient);
+ *     calls `DaveRuntime::decryptWithDecryptor()` when `passthroughMode = false`.
  *
  * Huge thanks to Austin and Michael from JDA for the constants and audio
  * packets. Check out their repo:
@@ -216,8 +222,11 @@ final class Packet
                 $this->key
             );
 
-            if ($resultMessage !== false) {
-                $resultMessage = $this->stripRtpExtensionPayload($resultMessage, $message);
+            if ($resultMessage !== false && RtpHeader::hasExtension($message)) {
+                $baseHeaderSize = RtpHeader::headerSize($message);
+                $syntheticPacket = substr($message, 0, $baseHeaderSize + 4).$resultMessage;
+                $stripped = RtpHeader::stripExtensionPayload($syntheticPacket, $baseHeaderSize);
+                $resultMessage = substr($stripped, $baseHeaderSize);
             }
 
             if ($resultMessage !== false && is_callable($this->inboundFrameDecryptor)) {
@@ -329,9 +338,8 @@ final class Packet
             return null;
         }
 
-        $firstByte = ord($message[0]);
-        $this->headerSize = HeaderValuesEnum::RTP_HEADER_OR_NONCE_LENGTH->value + (($firstByte & 0x0F) * 4);
-        if (($firstByte & 0x10) !== 0) {
+        $this->headerSize = RtpHeader::headerSize($message);
+        if (RtpHeader::hasExtension($message)) {
             $this->headerSize += 4;
         }
 
@@ -344,24 +352,6 @@ final class Packet
     public function getHeader(): ?string
     {
         return $this->header ?? null;
-    }
-
-    private function stripRtpExtensionPayload(string $frame, string $message): string|false
-    {
-        if ((ord($message[0]) & 0x10) === 0) {
-            return $frame;
-        }
-
-        $csrcCount = ord($message[0]) & 0x0F;
-        $extensionLengthOffset = HeaderValuesEnum::RTP_HEADER_OR_NONCE_LENGTH->value + ($csrcCount * 4) + 2;
-        $extLengthData = substr($message, $extensionLengthOffset, 2);
-        $unpacked = unpack('nwords', $extLengthData);
-
-        if (! is_array($unpacked)) {
-            return false;
-        }
-
-        return substr($frame, 4 * $unpacked['words']);
     }
 
     /**

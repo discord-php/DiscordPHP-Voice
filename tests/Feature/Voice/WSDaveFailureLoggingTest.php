@@ -52,7 +52,7 @@ it('handleDaveMlsExternalSender logs error when setExternalSender returns false'
     expect($errorLogs)->not->toBeEmpty();
 
     $allLogText = implode(' ', $logs);
-    expect($allLogText)->toContain('Failed to set DAVE MLS external sender');
+    expect($allLogText)->toContain('DAVE: failed to set MLS external sender');
 });
 
 it('handleDaveMlsExternalSender still stores externalSenderPackage even when setExternalSender fails', function (): void {
@@ -94,7 +94,7 @@ it('handleDaveExecuteTransition logs error when setSessionProtocolVersion return
     expect($errorLogs)->not->toBeEmpty();
 
     $allLogText = implode(' ', $logs);
-    expect($allLogText)->toContain('Failed to set DAVE session protocol version');
+    expect($allLogText)->toContain('DAVE: failed to set session protocol version');
 });
 
 it('handleDaveExecuteTransition still executes the transition even when setSessionProtocolVersion fails', function (): void {

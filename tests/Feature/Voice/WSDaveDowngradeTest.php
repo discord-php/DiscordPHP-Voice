@@ -32,7 +32,7 @@ afterEach(function (): void {
 // t2: handleDaveExecuteTransition — v1→v0 downgrade (warning + session reset)
 // ---------------------------------------------------------------------------
 
-it('handleDaveExecuteTransition logs warning with previous_version when downgrading to protocol version 0', function (): void {
+it('handleDaveExecuteTransition logs warning with previous version when downgrading to protocol version 0', function (): void {
     $logs = [];
     $ws = makeWsForDowngradeTest($this, $logs);
 
@@ -47,7 +47,7 @@ it('handleDaveExecuteTransition logs warning with previous_version when downgrad
     expect($warningLogs)->not->toBeEmpty();
 
     $allText = implode(' ', $logs);
-    expect($allText)->toContain('previous_version');
+    expect($allText)->toContain('from v1 to v0');
 });
 
 it('handleDaveExecuteTransition sets daveState protocolVersion to 0 after v0 downgrade', function (): void {
