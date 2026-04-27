@@ -260,7 +260,9 @@ function makeWsForFixesTest(TestCase $test, ?callable $sendHook = null): WS
         ->disableOriginalConstructor()
         ->onlyMethods(['send'])
         ->getMock();
-    $socket->method('send')->willReturnCallback($sendHook);
+    $socket->method('send')->willReturnCallback(function (mixed $payload) use ($sendHook): void {
+        $sendHook($payload instanceof \Ratchet\RFC6455\Messaging\Frame ? $payload->getPayload() : $payload);
+    });
 
     $socketProp = new \ReflectionProperty(WS::class, 'socket');
     $socketProp->setAccessible(true);

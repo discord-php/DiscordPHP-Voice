@@ -17,6 +17,7 @@ namespace Discord\Tests\Unit\Dave;
 
 use Discord\Voice\Dave\DecryptorHandle;
 use Discord\Voice\Dave\EncryptorHandle;
+use Discord\Voice\Dave\KeyRatchetHandle;
 use Discord\Voice\Dave\NativeHandle;
 use Discord\Voice\Dave\SessionHandle;
 use Discord\Voice\Dave\State;
@@ -79,6 +80,20 @@ it('prepares and executes transitions only when the transition id matches', func
     expect($state->protocolVersion)->toBe(3)
         ->and($state->pendingTransitionId)->toBeNull()
         ->and($state->pendingProtocolVersion)->toBeNull();
+});
+
+it('keeps media passthrough enabled for a prepared protocol until transition execution', function (): void {
+    $state = new State();
+
+    $state->prepareProtocolVersion(1);
+    expect($state->protocolVersion)->toBe(1)
+        ->and($state->passthroughMode)->toBeTrue();
+
+    $state->prepareTransition(22, 1);
+    $state->executeTransition(22);
+
+    expect($state->protocolVersion)->toBe(1)
+        ->and($state->passthroughMode)->toBeFalse();
 });
 
 it('tracks recognized users and only appends self when needed', function (): void {
@@ -192,42 +207,58 @@ it('removes users and closes tracked handles without resetting metadata', functi
     $state->addRecognizedUsers(['7', '8']);
 
     $removedDecryptor = makeDecryptorHandle();
+    $removedKeyRatchet = makeKeyRatchetHandle();
     $state->setDecryptor('8', $removedDecryptor);
+    $state->setKeyRatchet('8', $removedKeyRatchet);
     $state->removeRecognizedUser('8');
 
     expect($state->recognizedUsers())->toBe(['7'])
-        ->and($state->getDecryptor('8'))->toBeNull();
+        ->and($state->getDecryptor('8'))->toBeNull()
+        ->and($state->getKeyRatchet('8'))->toBeNull();
     expectHandleDestroyed($removedDecryptor);
+    expectHandleDestroyed($removedKeyRatchet);
 
     $session = makeSessionHandle();
     $encryptor = makeEncryptorHandle();
     $decryptor = makeDecryptorHandle();
+    $keyRatchet = makeKeyRatchetHandle();
+    $selfKeyRatchet = makeKeyRatchetHandle();
 
     $state->replaceSession($session);
     $state->replaceEncryptor($encryptor);
     $state->setDecryptor('7', $decryptor);
+    $state->setKeyRatchet('7', $keyRatchet);
+    $state->setSelfKeyRatchet($selfKeyRatchet);
     $state->close();
 
     expect($state->session)->toBeNull()
         ->and($state->encryptor)->toBeNull()
         ->and($state->getDecryptor('7'))->toBeNull()
+        ->and($state->getKeyRatchet('7'))->toBeNull()
+        ->and($state->getSelfKeyRatchet())->toBeNull()
         ->and($state->protocolVersion)->toBe(2)
         ->and($state->recognizedUsers())->toBe(['7']);
 
     expectHandleDestroyed($session);
     expectHandleDestroyed($encryptor);
     expectHandleDestroyed($decryptor);
+    expectHandleDestroyed($keyRatchet);
+    expectHandleDestroyed($selfKeyRatchet);
 });
 
 it('destroys tracked handles when the state is destructed', function (): void {
     $session = makeSessionHandle();
     $encryptor = makeEncryptorHandle();
     $decryptor = makeDecryptorHandle();
+    $keyRatchet = makeKeyRatchetHandle();
+    $selfKeyRatchet = makeKeyRatchetHandle();
 
     $state = new State();
     $state->replaceSession($session);
     $state->replaceEncryptor($encryptor);
     $state->setDecryptor('1', $decryptor);
+    $state->setKeyRatchet('1', $keyRatchet);
+    $state->setSelfKeyRatchet($selfKeyRatchet);
 
     unset($state);
     gc_collect_cycles();
@@ -235,6 +266,8 @@ it('destroys tracked handles when the state is destructed', function (): void {
     expectHandleDestroyed($session);
     expectHandleDestroyed($encryptor);
     expectHandleDestroyed($decryptor);
+    expectHandleDestroyed($keyRatchet);
+    expectHandleDestroyed($selfKeyRatchet);
 });
 
 function makeSessionHandle(): SessionHandle
@@ -250,6 +283,11 @@ function makeEncryptorHandle(): EncryptorHandle
 function makeDecryptorHandle(): DecryptorHandle
 {
     return new DecryptorHandle(new \stdClass());
+}
+
+function makeKeyRatchetHandle(): KeyRatchetHandle
+{
+    return new KeyRatchetHandle(new \stdClass());
 }
 
 function expectHandleDestroyed(NativeHandle $handle): void

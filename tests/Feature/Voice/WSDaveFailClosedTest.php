@@ -270,7 +270,9 @@ function makeWsForDaveFailClosedTest(TestCase $test, callable $sendHook, bool &$
         ->disableOriginalConstructor()
         ->onlyMethods(['send', 'close'])
         ->getMock();
-    $socket->method('send')->willReturnCallback($sendHook);
+    $socket->method('send')->willReturnCallback(function (mixed $payload) use ($sendHook): void {
+        $sendHook(payloadFromFailClosedSend($payload));
+    });
     $socket->method('close')->willReturnCallback(function () use (&$closeCalled): void {
         $closeCalled = true;
     });
@@ -336,6 +338,13 @@ function invokeWsDaveFailClosedMethod(object $object, string $method, array $arg
     $reflectionMethod->setAccessible(true);
 
     return $reflectionMethod->invokeArgs($object, $arguments);
+}
+
+function payloadFromFailClosedSend(mixed $payload): string
+{
+    return $payload instanceof \Ratchet\RFC6455\Messaging\Frame
+        ? $payload->getPayload()
+        : $payload;
 }
 
 function makeVoiceClientForDaveFailClosedTest(int $protocolVersion): VoiceClient

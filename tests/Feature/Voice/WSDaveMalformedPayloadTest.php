@@ -58,7 +58,9 @@ function makeWsForMalformedPayloadTest(TestCase $test, callable $sendHook, int $
         ->disableOriginalConstructor()
         ->onlyMethods(['send'])
         ->getMock();
-    $socket->method('send')->willReturnCallback($sendHook);
+    $socket->method('send')->willReturnCallback(function (mixed $payload) use ($sendHook): void {
+        $sendHook(payloadFromMalformedSend($payload));
+    });
 
     $socketProperty = new \ReflectionProperty(WS::class, 'socket');
     $socketProperty->setAccessible(true);
@@ -88,6 +90,13 @@ function injectFakeSessionForMalformedTest(WS $ws): SessionHandle
     $state->replaceSession($fakeSession);
 
     return $fakeSession;
+}
+
+function payloadFromMalformedSend(mixed $payload): string
+{
+    return $payload instanceof \Ratchet\RFC6455\Messaging\Frame
+        ? $payload->getPayload()
+        : $payload;
 }
 
 // ─── 1: Empty payload to handleDaveMlsCommitWelcome ───────────────────────────

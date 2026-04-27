@@ -86,6 +86,19 @@ it('decryptDaveFrame passes frame through unchanged when DAVE protocol version i
     expect($voiceClient->decryptDaveFrame('audio'))->toBe('audio');
 });
 
+it('decryptDaveFrame passes frame through unchanged while DAVE transition is not executed', function (): void {
+    Runtime::configureCallbacks(
+        frameDecryptor: fn (string $frame, int $protocolVersion): ?string => null
+    );
+
+    $voiceClient = makeVoiceClientWithProtocolVersion(1);
+    $daveState = getDaveStateFromClient($voiceClient);
+    $daveState->passthroughMode = true;
+
+    expect($voiceClient->decryptDaveFrame('audio'))->toBe('audio')
+        ->and($daveState->decryptFailureCount)->toBe(0);
+});
+
 // VULN-21 regression: encryptDaveFrame must drop frame (return '') when encryption fails and DAVE is active.
 
 it('encryptDaveFrame drops frame by returning empty string when encryption fails and passthroughMode is false', function (): void {

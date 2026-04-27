@@ -240,7 +240,9 @@ function makeWsForTransitionsTest(TestCase $test, callable $sendHook): WS
         ->disableOriginalConstructor()
         ->onlyMethods(['send'])
         ->getMock();
-    $socket->method('send')->willReturnCallback($sendHook);
+    $socket->method('send')->willReturnCallback(function (mixed $payload) use ($sendHook): void {
+        $sendHook(payloadFromTransitionsSend($payload));
+    });
 
     $socketProperty = new \ReflectionProperty(WS::class, 'socket');
     $socketProperty->setAccessible(true);
@@ -266,4 +268,11 @@ function invokeTransitionsWsMethod(object $object, string $method, array $argume
     $reflectionMethod->setAccessible(true);
 
     return $reflectionMethod->invokeArgs($object, $arguments);
+}
+
+function payloadFromTransitionsSend(mixed $payload): string
+{
+    return $payload instanceof \Ratchet\RFC6455\Messaging\Frame
+        ? $payload->getPayload()
+        : $payload;
 }

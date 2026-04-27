@@ -190,7 +190,9 @@ function makeWsForAnnounceCommitTest(
         ->disableOriginalConstructor()
         ->onlyMethods(['send'])
         ->getMock();
-    $socket->method('send')->willReturnCallback($sendHook);
+    $socket->method('send')->willReturnCallback(function (mixed $payload) use ($sendHook): void {
+        $sendHook(payloadFromAnnounceCommitSend($payload));
+    });
 
     $socketProperty = new \ReflectionProperty(WS::class, 'socket');
     $socketProperty->setAccessible(true);
@@ -208,4 +210,11 @@ function invokeAnnounceCommitMethod(object $object, string $method, array $argum
     $reflectionMethod->setAccessible(true);
 
     return $reflectionMethod->invokeArgs($object, $arguments);
+}
+
+function payloadFromAnnounceCommitSend(mixed $payload): string
+{
+    return $payload instanceof \Ratchet\RFC6455\Messaging\Frame
+        ? $payload->getPayload()
+        : $payload;
 }

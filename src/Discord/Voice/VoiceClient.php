@@ -1226,7 +1226,7 @@ class VoiceClient extends EventEmitter
 
         $daveState = $this->udp->ws->getDaveState();
         $protocolVersion = $daveState->protocolVersion;
-        if ($protocolVersion <= 0) {
+        if ($protocolVersion <= 0 || $daveState->passthroughMode) {
             return $frame;
         }
 
@@ -1284,7 +1284,7 @@ class VoiceClient extends EventEmitter
 
         $daveState = $this->udp->ws->getDaveState();
         $protocolVersion = $daveState->protocolVersion;
-        if ($protocolVersion <= 0) {
+        if ($protocolVersion <= 0 || $daveState->passthroughMode) {
             return $frame;
         }
 

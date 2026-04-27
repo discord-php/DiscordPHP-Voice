@@ -58,7 +58,9 @@ function makeWsForErrorRecoveryTest(TestCase $test, callable $sendHook, int $pro
         ->disableOriginalConstructor()
         ->onlyMethods(['send'])
         ->getMock();
-    $socket->method('send')->willReturnCallback($sendHook);
+    $socket->method('send')->willReturnCallback(function (mixed $payload) use ($sendHook): void {
+        $sendHook(payloadFromErrorRecoverySend($payload));
+    });
 
     $socketProperty = new \ReflectionProperty(WS::class, 'socket');
     $socketProperty->setAccessible(true);
@@ -73,6 +75,13 @@ function getErrorRecoveryDaveState(WS $ws): State
     $prop->setAccessible(true);
 
     return $prop->getValue($ws);
+}
+
+function payloadFromErrorRecoverySend(mixed $payload): string
+{
+    return $payload instanceof \Ratchet\RFC6455\Messaging\Frame
+        ? $payload->getPayload()
+        : $payload;
 }
 
 /**

@@ -962,7 +962,7 @@ CDEF;
         foreach (array_values($strings) as $index => $string) {
             $buffer = $ffi->new('char['.(strlen($string) + 1).']', false);
             FFI::memcpy($buffer, $string, strlen($string));
-            $buffer[strlen($string)] = 0;
+            $buffer[strlen($string)] = "\0";
             $buffers[] = $buffer;
             $pointers[$index] = FFI::addr($buffer[0]);
         }

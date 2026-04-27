@@ -23,6 +23,11 @@ final class State
     /** @var array<string, DecryptorHandle> */
     private array $decryptors = [];
 
+    /** @var array<string, KeyRatchetHandle> */
+    private array $keyRatchets = [];
+
+    private ?KeyRatchetHandle $selfKeyRatchet = null;
+
     public ?SessionHandle $session = null;
 
     public ?EncryptorHandle $encryptor = null;
@@ -69,6 +74,14 @@ final class State
     {
         $this->protocolVersion = $version;
         $this->passthroughMode = $version <= 0;
+    }
+
+    public function prepareProtocolVersion(int $version): void
+    {
+        $wasActive = $this->protocolVersion > 0 && ! $this->passthroughMode;
+
+        $this->protocolVersion = $version;
+        $this->passthroughMode = $version <= 0 || ! $wasActive;
     }
 
     public function prepareTransition(int $transitionId, ?int $protocolVersion = null): void
@@ -149,6 +162,42 @@ final class State
         return $this->decryptors[(string) $userId] ?? null;
     }
 
+    public function setKeyRatchet(int|string $userId, ?KeyRatchetHandle $keyRatchet): void
+    {
+        $userId = (string) $userId;
+
+        if (isset($this->keyRatchets[$userId]) && $this->keyRatchets[$userId] !== $keyRatchet) {
+            $this->keyRatchets[$userId]->destroy();
+        }
+
+        if ($keyRatchet === null) {
+            unset($this->keyRatchets[$userId]);
+
+            return;
+        }
+
+        $this->keyRatchets[$userId] = $keyRatchet;
+    }
+
+    public function getKeyRatchet(int|string $userId): ?KeyRatchetHandle
+    {
+        return $this->keyRatchets[(string) $userId] ?? null;
+    }
+
+    public function setSelfKeyRatchet(?KeyRatchetHandle $keyRatchet): void
+    {
+        if ($this->selfKeyRatchet !== null && $this->selfKeyRatchet !== $keyRatchet) {
+            $this->selfKeyRatchet->destroy();
+        }
+
+        $this->selfKeyRatchet = $keyRatchet;
+    }
+
+    public function getSelfKeyRatchet(): ?KeyRatchetHandle
+    {
+        return $this->selfKeyRatchet;
+    }
+
     public function clearDecryptors(): void
     {
         foreach ($this->decryptors as $decryptor) {
@@ -158,11 +207,22 @@ final class State
         $this->decryptors = [];
     }
 
+    public function clearKeyRatchets(): void
+    {
+        foreach ($this->keyRatchets as $keyRatchet) {
+            $keyRatchet->destroy();
+        }
+
+        $this->keyRatchets = [];
+        $this->setSelfKeyRatchet(null);
+    }
+
     public function resetProtocolState(): void
     {
-        $this->replaceSession(null);
         $this->replaceEncryptor(null);
         $this->clearDecryptors();
+        $this->clearKeyRatchets();
+        $this->replaceSession(null);
 
         $this->protocolVersion = 0;
         $this->epoch = null;
@@ -177,9 +237,10 @@ final class State
 
     public function close(): void
     {
-        $this->replaceSession(null);
         $this->replaceEncryptor(null);
         $this->clearDecryptors();
+        $this->clearKeyRatchets();
+        $this->replaceSession(null);
     }
 
     /**
@@ -198,6 +259,7 @@ final class State
 
         unset($this->recognizedUserIds[$userId]);
         $this->setDecryptor($userId, null);
+        $this->setKeyRatchet($userId, null);
     }
 
     /**

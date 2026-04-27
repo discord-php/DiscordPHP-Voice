@@ -296,8 +296,10 @@ function makeWsForSessionInitTest(TestCase $test, array &$sentPayloads): WS
         ->disableOriginalConstructor()
         ->onlyMethods(['send', 'close'])
         ->getMock();
-    $socket->method('send')->willReturnCallback(function (string $payload) use (&$sentPayloads): void {
-        $sentPayloads[] = $payload;
+    $socket->method('send')->willReturnCallback(function (mixed $payload) use (&$sentPayloads): void {
+        $sentPayloads[] = $payload instanceof \Ratchet\RFC6455\Messaging\Frame
+            ? $payload->getPayload()
+            : $payload;
     });
 
     $socketProperty = new \ReflectionProperty(WS::class, 'socket');

@@ -207,6 +207,10 @@ final class Manager
             return; // This voice state update isn't for our guild.
         }
 
+        if ((string) $state->user_id !== (string) $this->discord->id) {
+            return; // Voice state updates are per-user; ignore other users in the guild.
+        }
+
         $client = $this->getClient($channel);
         if (! $client) {
             return; // We might have left the voice channel already.

@@ -246,7 +246,9 @@ function makeWsForReconnectTest(TestCase $test, callable $sendHook): WS
         ->disableOriginalConstructor()
         ->onlyMethods(['send'])
         ->getMock();
-    $socket->method('send')->willReturnCallback($sendHook);
+    $socket->method('send')->willReturnCallback(function (mixed $payload) use ($sendHook): void {
+        $sendHook(payloadFromReconnectSend($payload));
+    });
 
     $daveStateProperty = new \ReflectionProperty(WS::class, 'daveState');
     $daveStateProperty->setAccessible(true);
@@ -283,6 +285,13 @@ function getReconnectDaveState(WS $ws): State
     $prop->setAccessible(true);
 
     return $prop->getValue($ws);
+}
+
+function payloadFromReconnectSend(mixed $payload): string
+{
+    return $payload instanceof \Ratchet\RFC6455\Messaging\Frame
+        ? $payload->getPayload()
+        : $payload;
 }
 
 function setReconnectWsFlag(WS $ws, string $property, mixed $value): void

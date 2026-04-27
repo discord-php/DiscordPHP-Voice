@@ -18,6 +18,7 @@ namespace Discord\Tests\Unit\Dave;
 use Discord\Voice\Dave\Runtime;
 use Discord\Voice\Dave\SessionHandle;
 use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;
+use FFI;
 use PHPUnit\Framework\TestCase;
 
 $originalDaveLibraryPath = null;
@@ -111,6 +112,26 @@ it('round trips passthrough frames with the native encryptor and decryptor', fun
     }
 });
 
+it('null terminates recognized user id strings for native calls', function () use (&$originalDaveLibraryPath): void {
+    requireNativeDaveRuntime($originalDaveLibraryPath);
+
+    $userIds = [
+        '193876797664788480',
+        '123456789012345678',
+        '987654321098765432',
+    ];
+
+    $method = new \ReflectionMethod(Runtime::class, 'makeStringPointerArray');
+    $method->setAccessible(true);
+
+    [$pointers, $buffers] = $method->invoke(null, $userIds);
+
+    foreach ($userIds as $index => $userId) {
+        $this->assertSame($userId, FFI::string($pointers[$index]));
+        $this->assertSame("\0", $buffers[$index][strlen($userId)]);
+    }
+});
+
 // VULN-10 regression: makeBytePointer null guard on empty payload
 
 it('buildMlsCommitWelcomeWithSession returns null for empty proposals payload without crash', function (): void {
@@ -196,10 +217,12 @@ function makeStubSessionHandle(): SessionHandle
 
 function requireNativeDaveRuntime(?string $libraryPath): void
 {
-    if ($libraryPath === null || $libraryPath === '' || ! is_file($libraryPath)) {
-        TestCase::markTestSkipped('Native libdave runtime not configured for this test run.');
+    if ($libraryPath !== null && $libraryPath !== '' && is_file($libraryPath)) {
+        putenv('DISCORDPHP_DAVE_LIBRARY='.$libraryPath);
     }
 
-    putenv('DISCORDPHP_DAVE_LIBRARY='.$libraryPath);
     Runtime::reset();
+    if (! Runtime::isAvailable()) {
+        TestCase::markTestSkipped('Native libdave runtime not available for this test run: '.(Runtime::getLastLoadError() ?? 'unknown error'));
+    }
 }

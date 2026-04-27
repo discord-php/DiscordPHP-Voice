@@ -215,8 +215,10 @@ function makeWsForWelcomeTest(TestCase $test, array &$sentPayloads, int $protoco
         ->getMock();
 
     $socket->method('send')->willReturnCallback(
-        function (string $payload) use (&$sentPayloads): void {
-            $sentPayloads[] = $payload;
+        function (mixed $payload) use (&$sentPayloads): void {
+            $sentPayloads[] = $payload instanceof \Ratchet\RFC6455\Messaging\Frame
+                ? $payload->getPayload()
+                : $payload;
         }
     );
 

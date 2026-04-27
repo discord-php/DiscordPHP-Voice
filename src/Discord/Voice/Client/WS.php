@@ -36,6 +36,7 @@ use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
 use Ratchet\Client\Connector;
 use Ratchet\Client\WebSocket;
+use Ratchet\RFC6455\Messaging\Frame;
 use Ratchet\RFC6455\Messaging\Message;
 use React\EventLoop\TimerInterface;
 use React\Promise\PromiseInterface;
@@ -281,7 +282,11 @@ final class WS
      */
     protected function sendDaveBinary(int $opcode, string $payload = ''): void
     {
-        $this->socket->send((new BinaryFrame(null, $opcode, $payload))->toClientPayload());
+        $this->socket->send(new Frame(
+            (new BinaryFrame(null, $opcode, $payload))->toClientPayload(),
+            true,
+            Frame::OP_BINARY
+        ));
     }
 
     /**
@@ -914,7 +919,7 @@ final class WS
             return false;
         }
 
-        $this->daveState->setProtocolVersion($protocolVersion);
+        $this->daveState->prepareProtocolVersion($protocolVersion);
 
         return true;
     }
@@ -970,8 +975,8 @@ final class WS
         if (! DaveRuntime::configureDecryptorKeyRatchet($decryptor, $keyRatchet)) {
             $this->discord->logger->error('Failed to configure decryptor key ratchet', ['user_id' => $userId]);
         }
-        $keyRatchet->destroy();
 
+        $this->daveState->setKeyRatchet($userId, $keyRatchet);
         $this->daveState->setDecryptor($userId, $decryptor);
     }
 
@@ -1006,7 +1011,7 @@ final class WS
         if (! DaveRuntime::configureEncryptorKeyRatchet($this->daveState->encryptor, $keyRatchet)) {
             $this->discord->logger->error('Failed to configure encryptor key ratchet');
         }
-        $keyRatchet->destroy();
+        $this->daveState->setSelfKeyRatchet($keyRatchet);
     }
 
     private function sendDaveTransitionReady(int $transitionId): void

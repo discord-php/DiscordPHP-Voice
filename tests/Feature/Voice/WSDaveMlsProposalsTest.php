@@ -24,6 +24,7 @@ use Discord\WebSockets\Op;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Ratchet\Client\WebSocket;
+use Ratchet\RFC6455\Messaging\Frame;
 
 afterEach(function (): void {
     Runtime::reset();
@@ -36,17 +37,19 @@ it('mls proposals send commit welcome when runtime builds payload', function ():
         fn (string $payload, int $protocolVersion): ?string => "commit:{$protocolVersion}:{$payload}"
     );
 
-    $sentPayload = null;
-    $ws = makeWsForProposalsTest($this, function (string $payload) use (&$sentPayload): void {
-        $sentPayload = $payload;
+    $sentFrame = null;
+    $ws = makeWsForProposalsTest($this, function (mixed $payload) use (&$sentFrame): void {
+        $sentFrame = $payload;
     });
 
     $frame = new BinaryFrame(1, Op::VOICE_DAVE_MLS_PROPOSALS, 'proposals');
     invokeProtectedMethod($ws, 'handleDaveMlsProposals', [$frame]);
 
-    expect($sentPayload)->toBeString();
-    /** @var string $sentPayload */
-    $out = BinaryFrame::fromClientPayload($sentPayload);
+    expect($sentFrame)->toBeInstanceOf(Frame::class);
+    /** @var Frame $sentFrame */
+    expect($sentFrame->getOpcode())->toBe(Frame::OP_BINARY);
+
+    $out = BinaryFrame::fromClientPayload($sentFrame->getPayload());
     expect($out)->not->toBeNull();
     /** @var BinaryFrame $out */
     expect($out->sequence)->toBeNull();
