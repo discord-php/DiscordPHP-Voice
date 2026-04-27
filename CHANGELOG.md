@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Client\WS` — binary voice gateway frames now emit the `ws-binary-message` event so DAVE binary opcodes reach the application layer
 - `Dave\State::$groupId` — fixed resolution via `isset()` on a magic `__get` property (always returned `false`); now reads directly from the backing store
 - `Client\WS` — stale MLS proposals no longer cause an infinite `INVALID_COMMIT_WELCOME` loop; three consecutive proposal failures close the socket with a descriptive error instead
+- `Client\WS` — first voice WebSocket connections send Identify while true reconnects send Resume with `seq_ack` when available
+- `Client\WS` — outbound DAVE MLS packets are sent as binary WebSocket frames; Session Description now initializes libdave state and sends Opcode 26 key package
+- `Client\WS` — DAVE transition ID `0` executes locally without waiting for Opcode 22; remote decryptors retain key ratchets and use passthrough grace during setup
+- `Client\Packet` — inbound RTP extension payload is stripped after transport decryption and before DAVE frame decryption so libdave receives the expected media frame bytes
 
 ### Changed
 

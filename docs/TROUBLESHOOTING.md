@@ -6,6 +6,7 @@ Common errors and how to fix them.
 
 - [Catch Any Voice Exception](#catch-any-voice-exception)
 - [LibDaveNotFoundException — libdave not found](#libdavenotfoundexception--libdave-not-found)
+- [DAVE decrypt failures or silent inbound audio](#dave-decrypt-failures-or-silent-inbound-audio)
 - [FFmpegNotFoundException — ffmpeg not found](#ffmpegnotfoundexception--ffmpeg-not-found)
 - [OpusNotFoundException — libopus not found](#opusnotfoundexception--libopus-not-found)
 - [LibSodiumNotFoundException — libsodium not found](#libsodiumnotfoundexception--libsodium-not-found)
@@ -92,6 +93,21 @@ export DISCORDPHP_DAVE_LIBRARY=/path/to/libdave.dylib # macOS
 export DISCORDPHP_DAVE_LIBRARY="$PWD/.cache/libdave/lib/libdave.so"
 ./vendor/bin/pest tests/Unit/Dave/RuntimeTest.php
 ```
+
+---
+
+## DAVE decrypt failures or silent inbound audio
+
+**What it means:** Voice connects, but inbound audio is silent or DAVE frame decryption fails after the transport layer succeeds.
+
+**How to check it:**
+
+- Use a current build that sends outbound DAVE MLS packets (Opcode 26/28/31) as binary WebSocket frames. Text-encoding those packets, or passing them through a proxy that rewrites binary frames, will break MLS setup.
+- First voice WebSocket connections should Identify. Only true reconnects should Resume, and Resume/heartbeat payloads include `seq_ack` when a DAVE binary gateway sequence has been received.
+- DAVE media decryption runs after RTP transport decryption. RTP extension payload bytes are stripped before the DAVE decryptor is called, so speech-sized DAVE frames should be passed to libdave without the transport extension prefix.
+- During MLS transitions, remote decryptors are configured with a short passthrough grace while their key ratchets are installed. Transition ID `0` is executed locally and does not wait for Opcode 22.
+
+When sharing logs, do **not** include raw MLS key packages, DAVE binary frame payloads, RTP payloads, session secret keys, or bot tokens. Opcode names, transition IDs, payload lengths, and sanitized error messages are enough for most reports.
 
 ---
 

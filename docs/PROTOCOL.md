@@ -40,19 +40,19 @@ These opcodes are used on the **voice** WebSocket connection (separate from the 
 
 ## DAVE E2EE Opcodes (21–31)
 
-These opcodes extend the voice gateway to support Discord's **DAVE** (Discord Audio/Video E2EE) protocol via MLS (Messaging Layer Security). All are transmitted as binary frames (`BinaryFrame::encode()`). Opcodes marked **handled** have a dedicated handler in [`src/Discord/Voice/Client/WS.php`](../src/Discord/Voice/Client/WS.php).
+These opcodes extend the voice gateway to support Discord's **DAVE** (Discord Audio/Video E2EE) protocol via MLS (Messaging Layer Security). Transition-control opcodes are normal JSON voice payloads; MLS payload opcodes use binary WebSocket frames handled by [`Discord\Voice\Dave\BinaryFrame`](../src/Discord/Voice/Dave/BinaryFrame.php). Opcodes marked **handled** have a dedicated handler in [`src/Discord/Voice/Client/WS.php`](../src/Discord/Voice/Client/WS.php).
 
 | Opcode | Constant | Direction | Description | Handled in `WS.php` |
 |--------|----------|-----------|-------------|---------------------|
 | 21 | `VOICE_DAVE_PREPARE_TRANSITION` | server → client | A downgrade from the DAVE protocol is upcoming. | ✅ `handleDavePrepareTransition` |
-| 22 | `VOICE_DAVE_EXECUTE_TRANSITION` | server → client | Execute a previously announced protocol transition. | ✅ `handleDaveExecuteTransition` |
+| 22 | `VOICE_DAVE_EXECUTE_TRANSITION` | server → client | Execute a previously announced non-zero protocol transition. Transition ID `0` executes locally without waiting for this opcode. | ✅ `handleDaveExecuteTransition` |
 | 23 | `VOICE_DAVE_TRANSITION_READY` | client → server | Acknowledge readiness for a previously announced transition. | ✅ `handleDaveTransitionReady` (sends reply) |
 | 24 | `VOICE_DAVE_PREPARE_EPOCH` | server → client | A DAVE protocol version or MLS group change is upcoming. | ✅ `handleDavePrepareEpoch` |
 | 25 | `VOICE_DAVE_MLS_EXTERNAL_SENDER` | server → client | Credential and public key for the MLS external sender. | ✅ `handleDaveMlsExternalSender` |
-| 26 | `VOICE_DAVE_MLS_KEY_PACKAGE` | client → server | MLS Key Package for a pending group member. | ✅ `handleDaveMlsKeyPackage` (sends reply) |
+| 26 | `VOICE_DAVE_MLS_KEY_PACKAGE` | client → server | MLS Key Package for a pending group member, sent as a binary WebSocket frame after DAVE session initialization. | ✅ `handleDaveMlsKeyPackage` (sends reply) |
 | 27 | `VOICE_DAVE_MLS_PROPOSALS` | server → client | MLS Proposals to be appended or revoked. | ✅ `handleDaveMlsProposals` |
 | 28 | `VOICE_DAVE_MLS_COMMIT_WELCOME` | both | MLS Commit with optional MLS Welcome messages. | ✅ `handleDaveMlsCommitWelcome` (sends reply) |
-| 29 | `VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION` | server → client | MLS Commit to be processed for an upcoming transition. | ✅ `handleDaveMlsAnnounceCommitTransition` |
+| 29 | `VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION` | server → client | MLS Commit to be processed for an upcoming transition. Transition ID `0` is applied immediately after local media preparation. | ✅ `handleDaveMlsAnnounceCommitTransition` |
 | 30 | `VOICE_DAVE_MLS_WELCOME` | server → client | MLS Welcome to group for an upcoming transition. | ✅ `handleDaveMlsWelcome` |
 | 31 | `VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME` | client → server | Flag an invalid commit or welcome and request re-add. | ✅ `handleDaveMlsInvalidCommitWelcome` (sends reply) |
 
@@ -147,10 +147,11 @@ Opcodes **15**, **18**, and **20** (`VOICE_CLIENT_UNKNOWN_15`, `VOICE_CLIENT_UNK
 
 ### DAVE binary frames
 
-DAVE opcodes (21–31) are transmitted as binary WebSocket frames encoded by `Discord\Voice\Dave\BinaryFrame`:
+DAVE MLS payload opcodes are transmitted as binary WebSocket frames encoded by `Discord\Voice\Dave\BinaryFrame`. Server frames include the gateway sequence; client frames carry only the opcode and payload:
 
 ```
-[1 byte opcode] [2 bytes sequence] [N bytes payload]
+Server → Client: [2 bytes sequence] [1 byte opcode] [N bytes payload]
+Client → Server: [1 byte opcode] [N bytes payload]
 ```
 
-The sequence number is stored in `Dave\State::$seq_ack` and reused in heartbeat and resume payloads to signal the last acknowledged gateway sequence to the server.
+Outbound MLS packets such as Opcode 26 key packages, Opcode 28 commit/welcome payloads, and Opcode 31 invalid-commit notices are sent as binary WebSocket frames, not JSON. The last received server sequence number is stored in `Dave\State::$lastReceivedSequence` and reused as `seq_ack` in heartbeat and resume payloads to signal the last acknowledged gateway sequence to the server.

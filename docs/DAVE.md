@@ -101,6 +101,7 @@ sequenceDiagram
     Note over WS: Checks DaveRuntime::isAvailable()<br/>Initializes DaveState with identity<br/>Caps maxDaveProtocolVersion
 
     WS->>GW: Op 0 Identify<br/>{ max_dave_protocol_version: 1 }
+    Note over WS,GW: First voice WebSocket connections send Identify.<br/>True reconnects send Op 7 Resume<br/>with seq_ack when available.
     GW-->>WS: Op 8 Hello<br/>{ heartbeat_interval }
     Note over WS: Starts heartbeat timer
     GW-->>WS: Op 2 Ready<br/>{ ssrc, ip, port, modes }
@@ -117,6 +118,9 @@ sequenceDiagram
     RT-->>WS: EncryptorHandle
     WS->>ST: replaceEncryptor(encryptor)
     WS->>RT: initializeSession(session, version, groupId, selfUserId)
+    WS->>RT: getMarshalledKeyPackage(session)
+    RT-->>WS: keyPackage bytes
+    WS->>GW: Op 26 MLS Key Package<br/>(binary WebSocket frame)
 
     Note over WS: DAVE runtime is now initialized.<br/>Waiting for MLS group formation.
 
@@ -145,9 +149,14 @@ sequenceDiagram
     WS->>WS: initializeDaveRuntimeState(pv, resetState=true)
     Note over WS: Creates/resets session,<br/>creates encryptor,<br/>initializes MLS session
 
-    WS->>RT: getMarshalledKeyPackage(session)
-    RT-->>WS: keyPackage bytes
-    WS->>GW: Op 26 MLS Key Package (binary)<br/>[key package]
+    WS->>WS: sendDaveKeyPackage()
+    alt key package not already sent
+        WS->>RT: getMarshalledKeyPackage(session)
+        RT-->>WS: keyPackage bytes
+        WS->>GW: Op 26 MLS Key Package (binary)<br/>[key package]
+    else already sent by Session Description
+        Note over WS,GW: Opcode 26 was already sent.
+    end
 
     Note over GW,WS: Op 25 may arrive at any time —<br/>before, during, or after key package exchange.
 
@@ -167,7 +176,7 @@ sequenceDiagram
     WS->>RT: processCommit(session, commit)
     RT-->>WS: { failed: false, ignored: false }
     WS->>WS: prepareDaveMediaTransition(transitionId, pv)
-    Note over WS: Prepares decryptors for<br/>all recognized users
+    Note over WS: Prepares decryptors for<br/>all recognized users;<br/>stores key ratchets and uses<br/>passthrough grace during setup
     WS->>GW: Op 23 Transition Ready<br/>{ transition_id }
 
     GW-->>WS: Op 22 Execute Transition<br/>{ transition_id }
@@ -188,14 +197,14 @@ sequenceDiagram
     participant RT as Dave\Runtime
     participant ST as Dave\State
 
-    Note over WS: After connection + Session Description,<br/>DAVE runtime is initialized.<br/>Epoch 1 triggers key package send.
+    Note over WS: After connection + Session Description,<br/>DAVE runtime is initialized and<br/>the initial key package has been sent.
 
     GW-->>WS: Op 30 MLS Welcome (binary)<br/>[transitionId + welcome message]
     WS->>WS: splitTransitionPayload(payload)
     WS->>RT: processWelcome(session, welcome, recognizedUsers)
     RT-->>WS: true (joined group)
     WS->>WS: prepareDaveMediaTransition(transitionId, pv)
-    Note over WS: Creates decryptors for<br/>all recognized users
+    Note over WS: Creates decryptors for<br/>all recognized users;<br/>stores key ratchets and uses<br/>passthrough grace during setup
     WS->>GW: Op 23 Transition Ready<br/>{ transition_id }
 
     GW-->>WS: Op 22 Execute Transition<br/>{ transition_id }
@@ -229,7 +238,7 @@ sequenceDiagram
     WS->>RT: processCommit(session, commit)
     RT-->>WS: { failed: false, ignored: false }
     WS->>WS: prepareDaveMediaTransition(transitionId, pv)
-    Note over WS: Creates/updates decryptors<br/>for all recognized users<br/>with new key ratchets
+    Note over WS: Creates/updates decryptors<br/>for all recognized users<br/>with retained key ratchets and<br/>passthrough grace during setup
     WS->>GW: Op 23 Transition Ready<br/>{ transition_id }
 
     GW-->>WS: Op 22 Execute Transition<br/>{ transition_id }
@@ -237,6 +246,8 @@ sequenceDiagram
     WS->>ST: executeTransition(transitionId)
     Note over ST: New key ratchet in effect
 ```
+
+For non-zero transition IDs, `Client\WS` sends Opcode 23 and waits for Opcode 22 before applying the local media transition. Transition ID `0` is the Discord gateway's immediate-transition shortcut: the client executes it locally without sending Opcode 23 or waiting for Opcode 22.
 
 ### Downgrade to Protocol v0
 
@@ -324,7 +335,8 @@ flowchart LR
 ```mermaid
 flowchart RL
     A["Discord SFU<br/>→ UDP"] --> B["Packet::decrypt()<br/><small>AES-256-GCM transport<br/>strip RTP header</small>"]
-    B --> C{"DAVE<br/>Active?"}
+    B --> B2["Strip RTP extension payload<br/><small>after transport decrypt,<br/>before DAVE frame decrypt</small>"]
+    B2 --> C{"DAVE<br/>Active?"}
     C -->|Yes| D["VoiceClient::<br/>decryptDaveFrame()"]
     C -->|No / Passthrough| E["Raw Opus frame"]
     D --> F["Resolve SSRC<br/>→ userId<br/>→ DecryptorHandle"]
@@ -340,7 +352,10 @@ flowchart RL
     style D fill:#6c5ce7,color:#fff
     style G fill:#6c5ce7,color:#fff
     style B fill:#00b894,color:#fff
+    style B2 fill:#00b894,color:#fff
 ```
+
+Inbound RTP header extensions are removed only after transport decryption succeeds and before `decryptDaveFrame()` runs. This keeps Discord's RTP extension bytes out of the DAVE media frame while preserving normal RTP authentication.
 
 ### Two-Layer Encryption Stack
 
@@ -381,11 +396,11 @@ stateDiagram-v2
 
     Initializing --> AwaitingGroup: initializeDaveRuntimeState()<br/>Session + Encryptor created
 
-    AwaitingGroup --> AwaitingGroup: Prepare Epoch (epoch=1)<br/>Send Key Package (Op 26)
+    AwaitingGroup --> AwaitingGroup: Session Description / Prepare Epoch<br/>Send Key Package (Op 26)
 
     AwaitingGroup --> TransitionPending: Commit/Welcome received<br/>prepareTransition()
 
-    TransitionPending --> Active: executeTransition()<br/>passthroughMode = false
+    TransitionPending --> Active: executeTransition()<br/>or transition_id 0 local completion<br/>passthroughMode = false
 
     Active --> TransitionPending: New Commit/Welcome<br/>(member join/leave)<br/>prepareTransition()
 
@@ -416,14 +431,14 @@ All DAVE-related opcodes handled by `Client\WS`.
 | Opcode | Name | Direction | Format | Handler Method | Description |
 |--------|------|-----------|--------|----------------|-------------|
 | 21 | `DAVE_PREPARE_TRANSITION` | Server → Client | JSON | `handleDavePrepareTransition` | Announces an upcoming downgrade from the DAVE protocol. Contains `transition_id` and `protocol_version`. |
-| 22 | `DAVE_EXECUTE_TRANSITION` | Server → Client | JSON | `handleDaveExecuteTransition` | Confirms execution of a pending transition. Sent after all participants are ready or timeout. |
+| 22 | `DAVE_EXECUTE_TRANSITION` | Server → Client | JSON | `handleDaveExecuteTransition` | Confirms execution of a non-zero pending transition. Transition ID `0` executes locally without waiting for this opcode. |
 | 23 | `DAVE_TRANSITION_READY` | Client → Server | JSON | `handleDaveTransitionReady` | Client signals it has prepared local state and is ready to execute the transition. |
 | 24 | `DAVE_PREPARE_EPOCH` | Server → Client | JSON | `handleDavePrepareEpoch` | Announces a protocol version change or new MLS epoch. `epoch: 1` means a new group is being created. |
 | 25 | `DAVE_MLS_EXTERNAL_SENDER` | Server → Client | **Binary** | `handleDaveMlsExternalSender` | Provides the voice gateway's external sender credential for the MLS group. |
-| 26 | `DAVE_MLS_KEY_PACKAGE` | Client → Server | **Binary** | `handleDaveMlsKeyPackage` | Client sends its MLS key package so it can be proposed for group addition. |
+| 26 | `DAVE_MLS_KEY_PACKAGE` | Client → Server | **Binary** | `handleDaveMlsKeyPackage` | Client sends its MLS key package as a binary WebSocket frame so it can be proposed for group addition. |
 | 27 | `DAVE_MLS_PROPOSALS` | Server → Client | **Binary** | `handleDaveMlsProposals` | Contains MLS Add/Remove proposals from the external sender. Client must process and produce a commit. |
 | 28 | `DAVE_MLS_COMMIT_WELCOME` | Both | **Binary** | `handleDaveMlsCommitWelcome` | Client sends its MLS commit (and optional welcome messages) to the gateway. The gateway may also dispatch it back; the "winning" commit is broadcast via Op 29/30. |
-| 29 | `DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION` | Server → Client | **Binary** | `handleDaveMlsAnnounceCommitTransition` | Gateway broadcasts the winning commit to existing group members with a transition ID. |
+| 29 | `DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION` | Server → Client | **Binary** | `handleDaveMlsAnnounceCommitTransition` | Gateway broadcasts the winning commit to existing group members with a transition ID. Transition ID `0` is executed immediately after local media state is prepared. |
 | 30 | `DAVE_MLS_WELCOME` | Server → Client | **Binary** | `handleDaveMlsWelcome` | Gateway sends an MLS Welcome to new members being added to the group. |
 | 31 | `DAVE_MLS_INVALID_COMMIT_WELCOME` | Client → Server | **Binary** | `handleDaveMlsInvalidCommitWelcome` | Client signals that a commit/welcome was unprocessable. Triggers error recovery (removal + re-addition). A defensive inbound handler also exists. |
 
@@ -445,7 +460,7 @@ Client → Server:
 └────────┴──────────────────────┘
 ```
 
-The sequence number is tracked in `Dave\State::lastReceivedSequence` and included in heartbeat (`seq_ack`) and resume payloads for [buffered resume](https://discord.com/developers/docs/topics/voice-connections#resuming-voice-connection) support.
+The sequence number is tracked in `Dave\State::$lastReceivedSequence` and included in heartbeat (`seq_ack`) and resume payloads for [buffered resume](https://discord.com/developers/docs/topics/voice-connections#resuming-voice-connection) support.
 
 ---
 

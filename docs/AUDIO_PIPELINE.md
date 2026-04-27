@@ -86,7 +86,7 @@ The path from raw bytes arriving on the UDP socket to `channel-pcm` / `channel-o
 graph TD
     RUDP["Discord UDP Voice Server<br/><small>Sends encrypted RTP packets<br/>to the client UDP socket.</small>"]
     RECV["Client\UDP socket<br/><small>ReactPHP datagram listener.<br/>Emits raw bytes on each UDP datagram.</small>"]
-    DEC["Client\Packet::decrypt(data)<br/><small>Strips RTP header, reads SSRC.<br/>Decrypts AES-256-GCM payload.<br/>Calls optional DAVE decrypt callback.</small>"]
+    DEC["Client\Packet::decrypt(data)<br/><small>Strips RTP header, reads SSRC.<br/>Decrypts AES-256-GCM payload.<br/>Strips RTP extension payload before<br/>optional DAVE decrypt callback.</small>"]
     DAVD["VoiceClient::decryptDaveFrame()<br/><small>Optional DAVE E2EE media layer.<br/>Only active when DAVE session<br/>is established for this user.</small>"]
     HAD["VoiceClient::handleAudioData(packet)<br/><small>Routes packet to the correct<br/>per-user decoder.</small>"]
     SSRC["SSRC → userId map<br/><small>speakingStatus + ssrcToUserId<br/>populated by WS speaking events.<br/>Packet dropped if SSRC unknown.</small>"]
@@ -221,4 +221,4 @@ graph LR
     style WIRE fill:#5865f2,color:#fff
 ```
 
-The inbound path reverses this chain: `WIRE → ERTP → RTP → [DAVE decrypt] → Opus → PCM`.
+The inbound path reverses this chain: `WIRE → ERTP → RTP → strip RTP extension payload → [DAVE decrypt] → Opus → PCM`.
