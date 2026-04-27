@@ -148,6 +148,27 @@ it('creates packets from raw buffers and exposes payload data', function (): voi
         ->and($made->getAudioData())->toBeNull();
 });
 
+it('populates versionPlusFlags and payloadType from the RTP header bytes', function (): void {
+    // byte0=0x90: V=2, P=0, X=1 (extension), CC=0
+    // byte1=0x78: M=0, PT=0x78 (120, Discord Opus)
+    $rawPacket = pack('CCnNN', 0x90, 0x78, 5, 100, 42);
+    $packet = packetWithoutConstructor();
+    $packet->unpack($rawPacket);
+
+    expect($packet->versionPlusFlags)->toBe(0x90)
+        ->and($packet->payloadType)->toBe(0x78);
+});
+
+it('populates payloadType with M-bit set for marked RTP packets', function (): void {
+    // byte1=0xF8: M=1, PT=0x78 (120)
+    $rawPacket = pack('CCnNN', 0x80, 0xF8, 1, 0, 0);
+    $packet = packetWithoutConstructor();
+    $packet->unpack($rawPacket);
+
+    expect($packet->versionPlusFlags)->toBe(0x80)
+        ->and($packet->payloadType)->toBe(0xF8);
+});
+
 it('returns false not null when libsodium throws during decryption', function (): void {
     $realKey = random_bytes(SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES);
     $rawPacket = buildExtensionPacket($realKey, 7, 480, 42, 'opus-data', 'EXT!');

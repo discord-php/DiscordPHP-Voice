@@ -116,6 +116,16 @@ final class UDP extends Socket
                 return null;
             }
 
+            // Per RFC 5761: reject non-RTP-v2 packets and RTCP packets (PT 72-95, which maps to
+            // RTCP payload types 200-223 after stripping the marker bit). Discord voice RTP uses
+            // PT=0x78 (120), so this will not affect legitimate audio packets.
+            $byte0 = ord($message[0]);
+            $byte1 = ord($message[1]);
+            $pt = $byte1 & 0x7F;
+            if (($byte0 & 0xC0) !== 0x80 || ($pt >= 72 && $pt <= 95)) {
+                return null;
+            }
+
             if ($this->ws->vc->deaf) {
                 return null;
             }

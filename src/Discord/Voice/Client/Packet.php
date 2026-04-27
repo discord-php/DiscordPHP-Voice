@@ -49,14 +49,14 @@ final class Packet
     protected Buffer $buffer;
 
     /**
-     * The version and flags.
+     * The version and flags (first byte of RTP header: V+P+X+CC bits).
      */
-    public ?string $versionPlusFlags;
+    public ?int $versionPlusFlags = null;
 
     /**
-     * The payload type.
+     * The payload type (second byte of RTP header: M+PT bits).
      */
-    public ?string $payloadType;
+    public ?int $payloadType = null;
 
     /**
      * The encrypted audio.
@@ -150,7 +150,7 @@ final class Packet
             strlen($message) - HeaderValuesEnum::AUTH_TAG_LENGTH->value - HeaderValuesEnum::RTP_HEADER_OR_NONCE_LENGTH->value
         );
 
-        $unpackedMessage = unpack('Cfirst/Csecond/nseq/Ntimestamp/Nssrc', $byteHeader);
+        $unpackedMessage = unpack('Cversion_and_flags/Cpayload_type/nseq/Ntimestamp/Nssrc', $byteHeader);
 
         if (! $unpackedMessage) {
             //$this->log->warning('Failed to unpack voice packet.', ['message' => $message]);
