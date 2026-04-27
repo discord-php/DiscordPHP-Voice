@@ -20,7 +20,7 @@ use Discord\Exceptions\FileNotFoundException;
 use Discord\Voice\Exceptions\Channels\AudioAlreadyPlayingException;
 use Discord\Voice\Exceptions\ClientNotReadyException;
 use Discord\Voice\Exceptions\Libraries\OutdatedDCAException;
-use Discord\Voice\Dave\Runtime as DaveRuntime;
+use Discord\Voice\Dave\MediaCryptoService;
 use Discord\Voice\Helpers\Buffer as RealBuffer;
 use Discord\Helpers\Collection;
 use Discord\Helpers\ExCollectionInterface;
@@ -320,6 +320,11 @@ class VoiceClient extends EventEmitter
      * @var bool
      */
     protected bool $shouldRecord = false;
+
+    /**
+     * DAVE media-layer crypto service (lazy-initialized on first use).
+     */
+    private ?MediaCryptoService $mediaCrypto = null;
 
     /**
      * Constructs the Voice client instance.
@@ -1224,53 +1229,9 @@ class VoiceClient extends EventEmitter
             return $frame;
         }
 
-        $daveState = $this->udp->ws->getDaveState();
-        $protocolVersion = $daveState->protocolVersion;
-        if ($protocolVersion <= 0 || $daveState->passthroughMode) {
-            return $frame;
-        }
+        $this->mediaCrypto ??= new MediaCryptoService($this->udp->ws->getDaveState(), $this->discord->getLogger());
 
-        $encrypted = null;
-
-        if ($daveState->encryptor !== null && $this->ssrc !== null) {
-            $encrypted = DaveRuntime::encryptWithEncryptor($daveState->encryptor, $frame, $this->ssrc);
-        }
-
-        if (! is_string($encrypted)) {
-            $encrypted = DaveRuntime::encryptMediaFrame($frame, $protocolVersion);
-        }
-
-        if (! is_string($encrypted)) {
-            ++$daveState->encryptFailureCount;
-
-            if ($daveState->encryptFailureCount % 100 === 0) {
-                $this->discord->getLogger()->warning('DAVE encrypt failure count: '.$daveState->encryptFailureCount, [
-                    'protocol_version' => $protocolVersion,
-                ]);
-            }
-
-            $this->discord->getLogger()->error('Failed to encrypt outgoing DAVE frame; dropping frame to preserve E2EE integrity.', [
-                'protocol_version' => $protocolVersion,
-                'frame_length' => strlen($frame),
-                'ssrc' => $this->ssrc,
-            ]);
-
-            // Return unencrypted only when DAVE is in passthrough mode (not yet active).
-            // If DAVE is active and encryption failed, drop the frame rather than
-            // sending plaintext audio which would silently break E2EE.
-            if ($daveState->passthroughMode) {
-                return $frame;
-            }
-
-            return '';
-        }
-
-        $this->discord->getLogger()->debug('Encrypted outgoing DAVE frame.', [
-            'protocol_version' => $protocolVersion,
-            'frame_length' => strlen($encrypted),
-        ]);
-
-        return $encrypted;
+        return $this->mediaCrypto->encrypt($frame, $this->ssrc);
     }
 
     /**
@@ -1282,53 +1243,11 @@ class VoiceClient extends EventEmitter
             return $frame;
         }
 
-        $daveState = $this->udp->ws->getDaveState();
-        $protocolVersion = $daveState->protocolVersion;
-        if ($protocolVersion <= 0 || $daveState->passthroughMode) {
-            return $frame;
-        }
+        $this->mediaCrypto ??= new MediaCryptoService($this->udp->ws->getDaveState(), $this->discord->getLogger());
 
-        $decrypted = null;
+        $userId = $packet !== null ? $this->resolveDaveRemoteUserId($packet) : null;
 
-        if ($packet !== null) {
-            $remoteUserId = $this->resolveDaveRemoteUserId($packet);
-            if ($remoteUserId !== null && ($decryptor = $daveState->getDecryptor($remoteUserId)) !== null) {
-                $decrypted = DaveRuntime::decryptWithDecryptor($decryptor, $frame);
-            }
-        }
-
-        if (! is_string($decrypted) && $decrypted !== false) {
-            $decrypted = DaveRuntime::decryptMediaFrame($frame, $protocolVersion);
-        }
-
-        if ($decrypted === false) {
-            return false;
-        }
-
-        if ($decrypted === null) {
-            ++$daveState->decryptFailureCount;
-
-            if ($daveState->decryptFailureCount % 100 === 0) {
-                $this->discord->getLogger()->warning('DAVE decrypt failure count: '.$daveState->decryptFailureCount, [
-                    'protocol_version' => $protocolVersion,
-                ]);
-            }
-
-            $this->discord->getLogger()->warning('Failed to decrypt incoming DAVE frame.', [
-                'protocol_version' => $protocolVersion,
-                'frame_length' => strlen($frame),
-                'ssrc' => $packet?->getSSRC(),
-            ]);
-
-            return false;
-        }
-
-        $this->discord->getLogger()->debug('Decrypted incoming DAVE frame.', [
-            'protocol_version' => $protocolVersion,
-            'frame_length' => strlen($decrypted),
-        ]);
-
-        return $decrypted;
+        return $this->mediaCrypto->decrypt($frame, $userId, $packet?->getSSRC());
     }
 
     private function resolveDaveRemoteUserId(Packet $packet): ?string
