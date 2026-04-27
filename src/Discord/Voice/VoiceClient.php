@@ -272,7 +272,7 @@ class VoiceClient extends EventEmitter
      *
      * @var TimerInterface|null Timer
      */
-    public ?TimerInterface $readOpusTimer;
+    public ?TimerInterface $readOpusTimer = null;
 
     /**
      * Audio Buffer.
