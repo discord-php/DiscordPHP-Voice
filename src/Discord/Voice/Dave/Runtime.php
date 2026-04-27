@@ -101,6 +101,11 @@ CDEF;
      */
     protected static $decryptorKeyRatchetCallback = null;
 
+    /**
+     * @var null|callable(DecryptorHandle, string): string|false|null
+     */
+    protected static $decryptWithDecryptorCallback = null;
+
     protected static ?bool $availabilityOverride = null;
 
     public static function isAvailable(): bool
@@ -158,6 +163,7 @@ CDEF;
         self::$keyRatchetCallback = null;
         self::$decryptorPassthroughCallback = null;
         self::$decryptorKeyRatchetCallback = null;
+        self::$decryptWithDecryptorCallback = null;
         self::$availabilityOverride = null;
     }
 
@@ -173,6 +179,7 @@ CDEF;
      * @param null|callable(SessionHandle, string): ?KeyRatchetHandle $keyRatchetCallback
      * @param null|callable(DecryptorHandle, bool): bool              $decryptorPassthroughCallback
      * @param null|callable(DecryptorHandle, KeyRatchetHandle): bool  $decryptorKeyRatchetCallback
+     * @param null|callable(DecryptorHandle, string): string|false|null $decryptWithDecryptorCallback
      */
     public static function configureCallbacks(
         ?callable $frameEncryptor = null,
@@ -186,7 +193,8 @@ CDEF;
         ?callable $createDecryptorCallback = null,
         ?callable $keyRatchetCallback = null,
         ?callable $decryptorPassthroughCallback = null,
-        ?callable $decryptorKeyRatchetCallback = null
+        ?callable $decryptorKeyRatchetCallback = null,
+        ?callable $decryptWithDecryptorCallback = null
     ): void {
         self::$frameEncryptor = $frameEncryptor;
         self::$frameDecryptor = $frameDecryptor;
@@ -200,6 +208,7 @@ CDEF;
         self::$keyRatchetCallback = $keyRatchetCallback;
         self::$decryptorPassthroughCallback = $decryptorPassthroughCallback;
         self::$decryptorKeyRatchetCallback = $decryptorKeyRatchetCallback;
+        self::$decryptWithDecryptorCallback = $decryptWithDecryptorCallback;
     }
 
     public static function encryptMediaFrame(string $frame, int $protocolVersion): ?string
@@ -715,6 +724,10 @@ CDEF;
 
     public static function decryptWithDecryptor(DecryptorHandle $decryptor, string $frame): string|false|null
     {
+        if (is_callable(self::$decryptWithDecryptorCallback)) {
+            return (self::$decryptWithDecryptorCallback)($decryptor, $frame);
+        }
+
         $ffi = self::ffi();
         if (! $ffi instanceof FFI) {
             return null;

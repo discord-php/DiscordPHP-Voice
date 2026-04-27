@@ -95,8 +95,25 @@ final class MediaCryptoService
 
         $decrypted = null;
 
-        if ($userId !== null && ($decryptor = $this->state->getDecryptor($userId)) !== null) {
-            $decrypted = Runtime::decryptWithDecryptor($decryptor, $frame);
+        $targetDecryptor = $userId !== null ? $this->state->getDecryptor($userId) : null;
+
+        if ($targetDecryptor !== null) {
+            $decrypted = Runtime::decryptWithDecryptor($targetDecryptor, $frame);
+        } else {
+            // No per-user decryptor resolved — SSRC not yet mapped to a userId (speaking event
+            // delayed) or the user is not yet in the MLS group. Iterate all known decryptors;
+            // AEAD authentication failures are non-mutating so trying the wrong handle is safe.
+            foreach ($this->state->getAllDecryptors() as $decryptor) {
+                $attempt = Runtime::decryptWithDecryptor($decryptor, $frame);
+                if (is_string($attempt)) {
+                    $decrypted = $attempt;
+                    break;
+                }
+                if ($attempt === false) {
+                    $decrypted = false;
+                    break;
+                }
+            }
         }
 
         if (! is_string($decrypted) && $decrypted !== false) {

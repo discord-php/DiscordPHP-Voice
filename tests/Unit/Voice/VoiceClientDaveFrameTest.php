@@ -243,8 +243,95 @@ it('State::resetProtocolState resets encryptFailureCount and decryptFailureCount
 });
 
 // ---------------------------------------------------------------------------
-// Additional helpers
+// Fan-out decrypt: SSRC unmapped or userId has no decryptor
 // ---------------------------------------------------------------------------
+
+it('decryptDaveFrame fan-out succeeds when SSRC is unmapped but a decryptor is registered', function (): void {
+    Runtime::configureCallbacks(
+        decryptWithDecryptorCallback: fn (\Discord\Voice\Dave\DecryptorHandle $d, string $frame): string => "fanned:{$frame}",
+    );
+
+    $voiceClient = makeVoiceClientWithProtocolVersion(1);
+    $daveState = getDaveStateFromClient($voiceClient);
+
+    // Register a decryptor for 'user1' but leave ssrcToUserId empty.
+    $daveState->setDecryptor('user1', new \Discord\Voice\Dave\DecryptorHandle('fake'));
+
+    // Build a packet whose SSRC has no ssrcToUserId entry.
+    $packet = makePacketWithSSRCForDaveTest(99999);
+
+    expect($voiceClient->decryptDaveFrame('audio', $packet))->toBe('fanned:audio');
+});
+
+it('decryptDaveFrame fan-out succeeds when userId is known but its decryptor is absent', function (): void {
+    Runtime::configureCallbacks(
+        decryptWithDecryptorCallback: fn (\Discord\Voice\Dave\DecryptorHandle $d, string $frame): string => "fanned:{$frame}",
+    );
+
+    $voiceClient = makeVoiceClientWithProtocolVersion(1);
+    $daveState = getDaveStateFromClient($voiceClient);
+
+    // 'user2' has a decryptor; 'user1' (the mapped user) does not.
+    $daveState->setDecryptor('user2', new \Discord\Voice\Dave\DecryptorHandle('fake'));
+
+    $ssrcMapProp = new \ReflectionProperty(VoiceClient::class, 'ssrcToUserId');
+    $ssrcMapProp->setAccessible(true);
+    $ssrcMapProp->setValue($voiceClient, [12345 => 'user1']);
+
+    $packet = makePacketWithSSRCForDaveTest(12345);
+
+    expect($voiceClient->decryptDaveFrame('audio', $packet))->toBe('fanned:audio');
+});
+
+it('decryptDaveFrame falls back to frameDecryptor when all fan-out decryptors fail', function (): void {
+    Runtime::configureCallbacks(
+        decryptWithDecryptorCallback: fn (\Discord\Voice\Dave\DecryptorHandle $d, string $frame): ?string => null,
+        frameDecryptor: fn (string $frame, int $v): string => "fallback:{$frame}",
+    );
+
+    $voiceClient = makeVoiceClientWithProtocolVersion(1);
+    $daveState = getDaveStateFromClient($voiceClient);
+
+    $daveState->setDecryptor('user1', new \Discord\Voice\Dave\DecryptorHandle('fake'));
+
+    $packet = makePacketWithSSRCForDaveTest(99999);
+
+    expect($voiceClient->decryptDaveFrame('audio', $packet))->toBe('fallback:audio');
+});
+
+it('decryptDaveFrame stops fan-out on explicit false and does not try frameDecryptor', function (): void {
+    $decryptorCalls = 0;
+    $frameCalls = 0;
+
+    Runtime::configureCallbacks(
+        decryptWithDecryptorCallback: function (\Discord\Voice\Dave\DecryptorHandle $d, string $frame) use (&$decryptorCalls): false {
+            $decryptorCalls++;
+
+            return false;
+        },
+        frameDecryptor: function (string $frame, int $v) use (&$frameCalls): string {
+            $frameCalls++;
+
+            return "fallback:{$frame}";
+        },
+    );
+
+    $voiceClient = makeVoiceClientWithProtocolVersion(1);
+    $daveState = getDaveStateFromClient($voiceClient);
+
+    $daveState->setDecryptor('user1', new \Discord\Voice\Dave\DecryptorHandle('fake'));
+    $daveState->setDecryptor('user2', new \Discord\Voice\Dave\DecryptorHandle('fake2'));
+
+    $packet = makePacketWithSSRCForDaveTest(99999);
+
+    $result = $voiceClient->decryptDaveFrame('audio', $packet);
+
+    expect($result)->toBeFalse()
+        ->and($decryptorCalls)->toBe(1)  // stops after first false
+        ->and($frameCalls)->toBe(0);     // frameDecryptor never reached
+});
+
+
 
 function getDaveStateFromClient(VoiceClient $voiceClient): State
 {
@@ -295,4 +382,14 @@ function makeVoiceClientForCountTest(int $protocolVersion, array &$logs): VoiceC
     $voiceClient->discord = $discord;
 
     return $voiceClient;
+}
+
+function makePacketWithSSRCForDaveTest(int $ssrc): Packet
+{
+    $packet = (new \ReflectionClass(Packet::class))->newInstanceWithoutConstructor();
+    $ssrcProp = new \ReflectionProperty(Packet::class, 'ssrc');
+    $ssrcProp->setAccessible(true);
+    $ssrcProp->setValue($packet, $ssrc);
+
+    return $packet;
 }

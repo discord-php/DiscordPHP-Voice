@@ -207,6 +207,14 @@ final class State
         return $this->decryptors[(string) $userId] ?? null;
     }
 
+    /**
+     * @return array<string, DecryptorHandle>
+     */
+    public function getAllDecryptors(): array
+    {
+        return $this->decryptors;
+    }
+
     public function setKeyRatchet(int|string $userId, ?KeyRatchetHandle $keyRatchet): void
     {
         $userId = (string) $userId;
