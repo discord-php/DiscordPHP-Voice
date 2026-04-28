@@ -62,7 +62,7 @@ Use the bundled Pest runner for local validation. `composer unit` runs the defau
 ### Basic Example
 
 ```php
-$discord->on('ready', function (Discord $discord) {
+$discord->on('init', function (Discord $discord) {
     $channel = $discord->getChannel('YOUR_CHANNEL_ID');
 
     $discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) {
@@ -80,12 +80,13 @@ $discord->on('ready', function (Discord $discord) {
 ### Recording
 
 ```php
+// Raw PCM events — handle audio yourself
 $discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) use ($discord) {
     $vc->on('ready', function () use ($vc, $discord) {
         $vc->record();
 
-        // Fires with raw 16-bit stereo 48 kHz PCM for each speaking user.
-        $vc->on('channel-pcm', function (string $userId, string $pcm) {
+        // Fires with raw 16-bit stereo 48 kHz PCM for each decoded Opus frame.
+        $vc->on('channel-pcm', function (string $pcm) {
             // write $pcm to a file, pipe to an encoder, etc.
         });
 
@@ -96,6 +97,27 @@ $discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) use ($di
     });
 });
 ```
+
+```php
+use Discord\Voice\Recording\RecordingFormat;
+
+// Automatic per-user WAV files — no manual file handling needed
+$discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) use ($discord) {
+    $vc->on('ready', function () use ($vc, $discord) {
+        $vc->record(
+            RecordingFormat::WAV,
+            fn(string $userId) => "/tmp/recording_{$userId}.wav"
+        );
+
+        $discord->getLoop()->addTimer(10, function () use ($vc) {
+            $vc->stopRecording(); // finalizes and closes all WAV files
+            $vc->disconnect();
+        });
+    });
+});
+```
+
+> **Recording formats:** `RecordingFormat::PCM` emits raw PCM events (default). `RecordingFormat::WAV` writes self-contained WAV files per user (pure PHP). `RecordingFormat::OGG` writes OGG Opus files per user (requires ffmpeg).
 
 See [examples folder](examples) for full runnable scripts.
 

@@ -33,7 +33,7 @@ $discord = new Discord([
     'token' => getenv('BOT_TOKEN'),
 ]);
 
-$discord->on('ready', function (Discord $discord): void {
+$discord->on('init', function (Discord $discord): void {
     echo 'Bot is ready.' . PHP_EOL;
 
     // Resolve the voice channel. Adjust guild/channel lookup as needed.

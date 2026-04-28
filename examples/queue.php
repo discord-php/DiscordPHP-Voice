@@ -133,7 +133,7 @@ $discord = new Discord([
     'token' => getenv('BOT_TOKEN'),
 ]);
 
-$discord->on('ready', function (Discord $discord): void {
+$discord->on('init', function (Discord $discord): void {
     echo 'Bot is ready.' . PHP_EOL;
 
     $channel = $discord->getChannel(getenv('CHANNEL_ID'));

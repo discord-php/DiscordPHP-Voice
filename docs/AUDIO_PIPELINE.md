@@ -80,10 +80,10 @@ graph TD
 
 ## Inbound Audio Pipeline
 
-The path from raw bytes arriving on the UDP socket to `channel-pcm` / `channel-opus` events emitted by `VoiceClient`.
+The path from raw bytes arriving on the UDP socket to `channel-pcm` / `channel-opus` events emitted by `VoiceClient`, and optionally to per-user recording files.
 
 ```mermaid
-graph TD
+flowchart TD
     RUDP["Discord UDP Voice Server<br/><small>Sends encrypted RTP packets<br/>to the client UDP socket.</small>"]
     RECV["Client\UDP socket<br/><small>ReactPHP datagram listener.<br/>Emits raw bytes on each UDP datagram.</small>"]
     DEC["Client\Packet::decrypt(data)<br/><small>Strips RTP header, reads SSRC.<br/>Decrypts AES-256-GCM payload.<br/>Strips RTP extension payload before<br/>optional DAVE decrypt callback.</small>"]
@@ -91,11 +91,13 @@ graph TD
     HAD["VoiceClient::handleAudioData(packet)<br/><small>Routes packet to the correct<br/>per-user decoder.</small>"]
     SSRC["SSRC → userId map<br/><small>speakingStatus + ssrcToUserId<br/>populated by WS speaking events.<br/>Packet dropped if SSRC unknown.</small>"]
     LIMIT["MAX_DECODERS = 25<br/><small>If 25 active decoders already exist,<br/>new users are silently dropped<br/>to prevent resource exhaustion.</small>"]
-    USER["Client\User (per user)<br/><small>Value object: SSRC, userId,<br/>Opus decoder Process,<br/>ReceiveStream, Speaking part.</small>"]
-    OPDEC["Opus decoder Process<br/><small>Decodes Opus frames to<br/>48 kHz / stereo / 16-bit PCM.</small>"]
+    USER["Client\User (per user)<br/><small>Value object: SSRC, userId,<br/>OpusFfi decoder, ReceiveStream,<br/>Speaking part.</small>"]
+    OPDEC["Per-SSRC OpusFfi decoder<br/><small>ffiDecoders[ssrc]: dedicated instance<br/>per speaker. Isolates Opus codec state<br/>(SILK/CELT predictors, PLC context).<br/>Decodes Opus to 48 kHz / stereo / 16-bit PCM.</small>"]
     RS["ReceiveStream (per user)<br/><small>Emits 'pcm' and 'opus' events<br/>with the decoded/raw frame data.</small>"]
-    EVCPCM["VoiceClient event: channel-pcm<br/><small>Payload: (User $user, string $pcm)<br/>Emitted once per inbound PCM frame.</small>"]
-    EVCOPUS["VoiceClient event: channel-opus<br/><small>Payload: (User $user, string $opus)<br/>Emitted once per inbound Opus frame.</small>"]
+    EVCPCM["VoiceClient event: channel-pcm<br/><small>Payload: (string $pcm, VoiceClient $vc)<br/>Emitted once per inbound PCM frame.</small>"]
+    EVCOPUS["VoiceClient event: channel-opus<br/><small>Payload: (string $opus, VoiceClient $vc)<br/>Emitted once per inbound Opus frame.</small>"]
+    WAVWRITER["WavWriter (per user)<br/><small>RecordingFormat::WAV<br/>Pure-PHP WAV accumulator.<br/>Writes .wav file on stopRecording().</small>"]
+    FFMPEGOGG["ffmpeg stdin (per user)<br/><small>RecordingFormat::OGG<br/>Per-user child process.<br/>Receives PCM over stdin,<br/>writes .ogg Opus file.</small>"]
 
     RUDP -->|"UDP datagram"| RECV
     RECV -->|"raw bytes"| DEC
@@ -111,6 +113,8 @@ graph TD
     OPDEC -->|"PCM bytes"| RS
     RS -->|"pcm event"| EVCPCM
     RS -->|"opus event"| EVCOPUS
+    RS -->|"RecordingFormat::WAV"| WAVWRITER
+    RS -->|"RecordingFormat::OGG"| FFMPEGOGG
 
     style RUDP fill:#5865f2,color:#fff
     style RECV fill:#ff9f43,color:#fff
@@ -118,12 +122,29 @@ graph TD
     style DAVD fill:#6c5ce7,color:#fff
     style HAD fill:#00b894,color:#fff
     style USER fill:#4a9eff,color:#fff
+    style OPDEC fill:#00b894,color:#fff
     style EVCPCM fill:#00cec9,color:#fff
     style EVCOPUS fill:#00cec9,color:#fff
+    style WAVWRITER fill:#fdcb6e,color:#333
+    style FFMPEGOGG fill:#fdcb6e,color:#333
     style LIMIT fill:#fdcb6e,color:#333
     style DROP1 fill:#d63031,color:#fff
     style DROP2 fill:#d63031,color:#fff
 ```
+
+### Per-SSRC decoder isolation
+
+Each SSRC (speaker) gets a dedicated `OpusFfi` decoder instance — this isolates Opus codec state (SILK/CELT pitch predictors, PLC context) per speaker so multiple simultaneous speakers do not corrupt each other's audio. Previously a single shared decoder caused buzzing artifacts whenever the active speaker changed.
+
+### Recording formats
+
+When `record()` is called with a `RecordingFormat`, the voice client automatically manages per-user output files:
+
+| Format | Implementation | External dependency |
+|---|---|---|
+| `RecordingFormat::PCM` | Fires `channel-pcm` event with raw 16-bit PCM bytes | None |
+| `RecordingFormat::WAV` | Pure-PHP `WavWriter` accumulates PCM; writes `.wav` file on `stopRecording()` | None |
+| `RecordingFormat::OGG` | Spawns a per-user `ffmpeg` process; stdin receives PCM, output is an OGG Opus file | `ffmpeg` on PATH |
 
 ---
 

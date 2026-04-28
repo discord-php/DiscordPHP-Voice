@@ -14,6 +14,7 @@ declare(strict_types=1);
  */
 
 // Usage: BOT_TOKEN=<token> CHANNEL_ID=<id> RECORD_SECONDS=10 php record.php
+// For WAV output: add RecordingFormat::WAV and an output path callback — see inline comment below.
 
 use Discord\Discord;
 use Discord\Parts\Channel\Channel;
@@ -27,7 +28,7 @@ $discord = new Discord([
     'token' => getenv('BOT_TOKEN'),
 ]);
 
-$discord->on('ready', function (Discord $discord): void {
+$discord->on('init', function (Discord $discord): void {
     echo 'Bot is ready.' . PHP_EOL;
 
     $channel = $discord->getChannel(getenv('CHANNEL_ID'));
@@ -48,15 +49,24 @@ $discord->on('ready', function (Discord $discord): void {
                 $vc->record();
 
                 // channel-pcm fires for every decoded PCM frame received from a user.
-                // $userId is the Discord snowflake; $pcm is raw 16-bit stereo 48 kHz PCM.
-                $vc->on('channel-pcm', function (string $userId, string $pcm): void {
+                // $pcm is raw 16-bit stereo 48 kHz PCM bytes.
+                $vc->on('channel-pcm', function (string $pcm): void {
                     // Handle the PCM data — write to a file, pipe into an encoder, etc.
-                    echo sprintf('Received %d bytes of PCM from user %s' . PHP_EOL, strlen($pcm), $userId);
+                    echo sprintf('Received %d bytes of PCM' . PHP_EOL, strlen($pcm));
                 });
 
                 // channel-opus fires with the raw Opus packet before decoding.
                 // Use this if you want to forward Opus directly without re-encoding.
                 // $vc->on('channel-opus', function (string $userId, string $opus): void { ... });
+
+                // --- Alternative: automatic per-user WAV files ---
+                // use Discord\Voice\Recording\RecordingFormat;
+                //
+                // $vc->record(
+                //     RecordingFormat::WAV,
+                //     fn(string $userId) => __DIR__ . "/recording_{$userId}.wav"
+                // );
+                // // channel-pcm still fires; stopRecording() finalizes the WAV files automatically.
 
                 $recordSeconds = (int) (getenv('RECORD_SECONDS') ?: 10);
                 echo sprintf('Recording for %d seconds...' . PHP_EOL, $recordSeconds);

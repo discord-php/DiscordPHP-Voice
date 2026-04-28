@@ -7,7 +7,9 @@ Common errors and how to fix them.
 - [Catch Any Voice Exception](#catch-any-voice-exception)
 - [LibDaveNotFoundException — libdave not found](#libdavenotfoundexception--libdave-not-found)
 - [DAVE decrypt failures or silent inbound audio](#dave-decrypt-failures-or-silent-inbound-audio)
+- [Buzzing or static audio when recording](#buzzing-or-static-audio-when-recording)
 - [FFmpegNotFoundException — ffmpeg not found](#ffmpegnotfoundexception--ffmpeg-not-found)
+- [OGG recording requires ffmpeg](#ogg-recording-requires-ffmpeg)
 - [OpusNotFoundException — libopus not found](#opusnotfoundexception--libopus-not-found)
 - [LibSodiumNotFoundException — libsodium not found](#libsodiumnotfoundexception--libsodium-not-found)
 - [DCANotFoundException / OutdatedDCAException — DCA binary missing or outdated](#dcanotfoundexception--outdateddcaexception--dca-binary-missing-or-outdated)
@@ -111,6 +113,27 @@ When sharing logs, do **not** include raw MLS key packages, DAVE binary frame pa
 
 ---
 
+## Buzzing or static audio when recording
+
+**What it means:** Recorded audio plays back with buzzing, static, or a "warbling" effect — especially noticeable between words or whenever a speaker pauses and resumes.
+
+**Root cause (historical — fixed in current version):** The Opus codec (Discord uses the SILK/CELT hybrid mode) is stateful. Each decoder maintains inter-frame pitch predictors and packet-loss concealment (PLC) context that must survive across 20 ms frames. Older versions of this library created a new native Opus decoder on every single frame and immediately destroyed it, discarding all accumulated codec state and producing audible buzzing at every frame boundary.
+
+**Current behaviour:** Each SSRC (speaker) now has a dedicated, long-lived `OpusFfi` decoder instance. The decoder is created on the first packet from a speaker and reused for all subsequent frames. Codec state is fully isolated per speaker so multiple simultaneous speakers do not corrupt each other's audio.
+
+**If you still hear buzzing after updating:**
+
+1. Confirm you are on the latest version: `composer show discord-php-helpers/voice`
+2. Verify `ext-ffi` is enabled and `libopus` is found:
+   ```bash
+   php -r "var_dump(extension_loaded('ffi'));"
+   php -r "var_dump(FFI::load('path/to/libopus.so'));" 2>&1 | head -5
+   ```
+3. Check that `OpusFfi::isAvailable()` returns `true` in your environment — if it returns `false`, the FFI Opus decoder is not loaded and audio decoding falls back to raw Opus frames (no PCM output).
+4. If you have a **custom** `OpusDecoderInterface` implementation that creates/destroys a native decoder per call, update it to persist the decoder handle across calls.
+
+---
+
 ## FFmpegNotFoundException — ffmpeg not found
 
 **What it means:** `ffmpeg` was not found on your system `PATH`. ffmpeg is required to encode audio for playback via `playFile()` and `playRawStream()`.
@@ -139,6 +162,14 @@ When sharing logs, do **not** include raw MLS key packages, DAVE binary frame pa
 ```bash
 ffmpeg -version
 ```
+
+### Recording to OGG format requires ffmpeg
+
+When calling `record(RecordingFormat::OGG, ...)`, the voice client spawns a `ffmpeg` process per speaker to encode PCM to OGG Opus. If `ffmpeg` is not on your system `PATH`, the process will silently fail to start and no OGG file will be produced.
+
+Install ffmpeg (see [FFmpegNotFoundException](#ffmpegnotfoundexception--ffmpeg-not-found) above) and verify with `ffmpeg -version` before using `RecordingFormat::OGG`.
+
+`RecordingFormat::WAV` does not require ffmpeg — it uses a pure-PHP writer.
 
 ---
 

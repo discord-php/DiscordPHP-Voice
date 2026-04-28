@@ -17,8 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `composer check` aggregate script (pint + cs:check + unit)
 - `composer cs:check` dry-run style check
 - EditorConfig CI validation job
-- Comprehensive test suite expansion (402 tests / 1094 assertions): new files cover voice exceptions, VoiceClient playback guards, VoiceClient receive flow, Manager join-channel permission checks, WS gateway handlers, WS heartbeat/resume seq_ack bookkeeping, UDP transport (IP discovery + sendBuffer), Packet encrypt/decrypt roundtrip, Ogg edge cases (BOS/EOS/continued/multi-segment), Dave Runtime callback overrides, small-parts (User / HeaderValuesEnum / Dave handles / UserConnected), and process wrappers (Ffmpeg / DCA / OpusFfi)
+- Comprehensive test suite expansion (581 tests): new files cover voice exceptions, VoiceClient playback guards, VoiceClient receive flow, Manager join-channel permission checks, WS gateway handlers, WS heartbeat/resume seq_ack bookkeeping, UDP transport (IP discovery + sendBuffer), Packet encrypt/decrypt roundtrip, Ogg edge cases (BOS/EOS/continued/multi-segment), Dave Runtime callback overrides, small-parts (User / HeaderValuesEnum / Dave handles / UserConnected), and process wrappers (Ffmpeg / DCA / OpusFfi)
 - `tests/Integration/VoiceConnectionTest.php` — live voice gateway connection tests (require `DISCORD_BOT_TOKEN` + `CHANNEL_ID` env vars)
+- `Discord\Voice\Recording\RecordingFormat` — backed enum (`PCM`, `WAV`, `OGG`) with `extension()`, `label()`, and `requiresFfmpeg()` helpers
+- `Discord\Voice\Recording\WavWriter` — pure-PHP per-user WAV file writer for Discord audio (48 kHz stereo s16le); used internally by `record()` when `RecordingFormat::WAV` is requested
+- `VoiceClient::record()` now accepts an optional `?RecordingFormat $format` and `?callable $outputPath` — when both are provided, the client automatically creates per-user audio files (WAV via `WavWriter`; OGG via ffmpeg); bare `record()` call is 100% backward-compatible
+- `tests/Unit/Voice/Recording/` — 19 new tests covering `RecordingFormat`, `WavWriter`, and `VoiceClient` format recording integration
 
 ### Fixed
 
@@ -33,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Client\WS` — outbound DAVE MLS packets are sent as binary WebSocket frames; Session Description now initializes libdave state and sends Opcode 26 key package
 - `Client\WS` — DAVE transition ID `0` executes locally without waiting for Opcode 22; remote decryptors retain key ratchets and use passthrough grace during setup
 - `Client\Packet` — inbound RTP extension payload is stripped after transport decryption and before DAVE frame decryption so libdave receives the expected media frame bytes
+- `Processes\OpusFfi` — decoder handle is now created once per `channels:rate` combination and reused across all frames; previously creating and destroying the native Opus decoder on every 20 ms frame discarded SILK/CELT pitch predictors and produced audible buzzing/static on all recorded audio
+- `Processes\OpusFfi` — PCM buffer size corrected from `$frameSize * $channels * 2` to `$frameSize * $channels`; removed spurious `* 2` that had confused "samples" with "bytes"
+- `VoiceClient` — per-speaker Opus codec state is now isolated; each SSRC gets its own `OpusFfi` decoder instance (`$ffiDecoders[]`) so speakers no longer corrupt each other's codec state when multiple users are talking simultaneously
+- `VoiceClient::$readOpusTimer` — property now initialized to `null`; previously accessing it in `reset()` before any playback had started threw "Typed property must not be accessed before initialization"
 
 ### Changed
 
