@@ -17,6 +17,7 @@ namespace Discord\Voice\Helpers;
 
 use Discord\Voice\Exceptions\BufferTimedOutException;
 use Evenement\EventEmitter;
+use Evenement\EventEmitterTrait;
 use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
 use React\Promise\Deferred;
@@ -26,8 +27,10 @@ use React\Stream\WritableStreamInterface;
 /**
  * @since 6.0.0
  */
-class Buffer extends EventEmitter implements WritableStreamInterface
+class Buffer implements WritableStreamInterface
 {
+    use EventEmitterTrait;
+
     /**
      * Internal buffer.
      *

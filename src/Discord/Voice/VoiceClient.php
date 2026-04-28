@@ -40,6 +40,7 @@ use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
 use Evenement\EventEmitter;
+use Evenement\EventEmitterTrait;
 use Ratchet\Client\WebSocket;
 use React\ChildProcess\Process;
 use React\Datagram\Socket;
@@ -55,8 +56,10 @@ use React\Stream\ReadableStreamInterface;
  *
  * @since 10.19.0
  */
-class VoiceClient extends EventEmitter
+class VoiceClient
 {
+    use EventEmitterTrait;
+
     /** Not speaking. */
     public const NOT_SPEAKING = 0;
     /** Normal transmission of voice audio. */
