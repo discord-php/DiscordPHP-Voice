@@ -34,6 +34,8 @@ use Discord\Voice\Processes\DCA;
 use Discord\Voice\Processes\Ffmpeg;
 use Discord\Voice\Processes\OpusDecoderInterface;
 use Discord\Voice\Processes\OpusFfi;
+use Discord\Voice\Recording\RecordingFormat;
+use Discord\Voice\Recording\WavWriter;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
@@ -328,6 +330,35 @@ class VoiceClient extends EventEmitter
      * @var bool
      */
     protected bool $shouldRecord = false;
+
+    /**
+     * Active WavWriter instances keyed by SSRC (populated when record() is called
+     * with RecordingFormat::WAV and an output path callback).
+     *
+     * @var array<int, WavWriter>
+     */
+    protected array $recordingWriters = [];
+
+    /**
+     * Active ffmpeg OGG encoder processes keyed by SSRC (populated when record()
+     * is called with RecordingFormat::OGG and an output path callback).
+     *
+     * @var array<int, Process>
+     */
+    protected array $recordingProcesses = [];
+
+    /**
+     * The active recording format, set when record() is called with a format.
+     */
+    protected ?RecordingFormat $recordingFormat = null;
+
+    /**
+     * Callback that returns the output file path for a given user ID string,
+     * set when record() is called with a non-null $outputPath.
+     *
+     * @var \Closure(string): string|null
+     */
+    protected ?\Closure $recordingOutputPath = null;
 
     /**
      * DAVE media-layer crypto service (lazy-initialized on first use).
@@ -1324,6 +1355,30 @@ class VoiceClient extends EventEmitter
                 $this->receiveStreams[$ss->ssrc]->on('pcm', fn ($d) => $this->emit('channel-pcm', [$d, $this]));
 
                 $this->receiveStreams[$ss->ssrc]->on('opus', fn ($d) => $this->emit('channel-opus', [$d, $this]));
+
+                // Wire per-user WAV writer when WAV format recording is active.
+                if ($this->recordingFormat === RecordingFormat::WAV && $this->recordingOutputPath !== null) {
+                    $userId = $this->ssrcToUserId[$ss->ssrc] ?? (string) $ss->ssrc;
+                    $path = ($this->recordingOutputPath)($userId);
+                    $writer = new WavWriter($path);
+                    $writer->open();
+                    $this->recordingWriters[$ss->ssrc] = $writer;
+                    $this->receiveStreams[$ss->ssrc]->on('pcm', function (string $pcm) use ($writer): void {
+                        $writer->write($pcm);
+                    });
+                }
+
+                // Wire per-user OGG ffmpeg encoder when OGG format recording is active.
+                if ($this->recordingFormat === RecordingFormat::OGG && $this->recordingOutputPath !== null) {
+                    $userId = $this->ssrcToUserId[$ss->ssrc] ?? (string) $ss->ssrc;
+                    $path = ($this->recordingOutputPath)($userId);
+                    $ffmpegProcess = new Process("ffmpeg -y -f s16le -ar 48000 -ac 2 -i pipe:0 -c:a libopus \"{$path}\"");
+                    $ffmpegProcess->start($this->discord->getLoop());
+                    $this->recordingProcesses[$ss->ssrc] = $ffmpegProcess;
+                    $this->receiveStreams[$ss->ssrc]->on('pcm', function (string $pcm) use ($ffmpegProcess): void {
+                        $ffmpegProcess->stdin->write($pcm);
+                    });
+                }
             }
 
             $this->createDecoder($ss);
@@ -1531,10 +1586,36 @@ class VoiceClient extends EventEmitter
         ->start();
     }
 
-    public function record(): void
+    /**
+     * Starts recording incoming voice audio.
+     *
+     * When called with no arguments, raw PCM and Opus frames are emitted via the
+     * `channel-pcm` and `channel-opus` events for the caller to handle.
+     *
+     * When called with a format and output path callback, the voice client
+     * automatically writes per-user audio files. The callback receives the user ID
+     * string and must return an absolute or relative file path string.
+     *
+     * Supported formats:
+     *  - `RecordingFormat::PCM` — raw s16le PCM events (default, no file writing)
+     *  - `RecordingFormat::WAV` — per-user WAV files via pure-PHP WavWriter
+     *  - `RecordingFormat::OGG` — per-user OGG Opus files via ffmpeg (requires ffmpeg)
+     *
+     * @param RecordingFormat|null              $format     Output format. Null = PCM events only.
+     * @param (callable(string): string)|null   $outputPath Callback returning the file path for a given user ID.
+     *                                                       Required when $format is not null and not PCM.
+     *
+     * @throws \RuntimeException         if already recording.
+     * @throws \InvalidArgumentException if $format is non-null/non-PCM but $outputPath is null.
+     */
+    public function record(?RecordingFormat $format = null, ?callable $outputPath = null): void
     {
         if ($this->shouldRecord) {
             throw new \RuntimeException('Already recording audio.');
+        }
+
+        if ($format !== null && $format !== RecordingFormat::PCM && $outputPath === null) {
+            throw new \InvalidArgumentException('An $outputPath callback is required when recording to a file format.');
         }
 
         // Auto-initialize the FFI Opus decoder if not already set.
@@ -1543,6 +1624,9 @@ class VoiceClient extends EventEmitter
         if ($this->opusdecoder === null && OpusFfi::isAvailable()) {
             $this->opusdecoder = new OpusFfi();
         }
+
+        $this->recordingFormat = $format;
+        $this->recordingOutputPath = $outputPath !== null ? \Closure::fromCallable($outputPath) : null;
 
         $this->shouldRecord = true;
         $this->discord->getLogger()->info('Started recording audio.');
@@ -1556,6 +1640,25 @@ class VoiceClient extends EventEmitter
 
         $this->shouldRecord = false;
         $this->discord->getLogger()->info('Stopped recording audio.');
+
+        foreach ($this->recordingWriters as $writer) {
+            try {
+                $writer->finalize();
+            } catch (\Throwable $e) {
+                $this->discord->getLogger()->warning('Failed to finalize recording.', ['path' => $writer->getPath(), 'error' => $e->getMessage()]);
+            }
+        }
+        $this->recordingWriters = [];
+
+        foreach ($this->recordingProcesses as $process) {
+            if ($process->isRunning()) {
+                $process->stdin->close();
+            }
+        }
+        $this->recordingProcesses = [];
+
+        $this->recordingFormat = null;
+        $this->recordingOutputPath = null;
 
         $this->reset();
 
