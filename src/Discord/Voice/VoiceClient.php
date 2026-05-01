@@ -471,6 +471,10 @@ class VoiceClient
     /**
      * Plays a file/url on the voice stream.
      *
+     * FFmpeg is used to decode the file, so any format ffmpeg supports is accepted
+     * (e.g. WAV, OGG Opus, MP3, FLAC). Raw PCM files (.pcm) are NOT supported here
+     * because ffmpeg cannot auto-detect the format — use {@see playPcmFile()} instead.
+     *
      * @param string $file     The file/url to play.
      * @param int    $channels Deprecated, Discord only supports 2 channels.
      *
@@ -595,7 +599,42 @@ class VoiceClient
     }
 
     /**
-     * Plays an Ogg Opus stream.
+     * Plays a raw PCM file on the voice stream.
+     *
+     * This is a convenience wrapper around {@see playRawStream()} for files saved
+     * as raw signed 16-bit little-endian PCM (e.g. recordings produced by
+     * {@see record()} with {@see RecordingFormat::PCM}).
+     *
+     * @param string $path      Absolute or relative path to the raw PCM file.
+     * @param int    $channels  Number of audio channels (default: 2 = stereo).
+     * @param int    $audioRate Sample rate in Hz (default: 48000).
+     *
+     * @throws FileNotFoundException     if the file does not exist.
+     * @throws \RuntimeException         if the file cannot be opened or audio is already playing.
+     *
+     * @return PromiseInterface
+     */
+    public function playPcmFile(string $path, int $channels = 2, int $audioRate = 48000): PromiseInterface
+    {
+        $deferred = new Deferred();
+
+        if (! file_exists($path)) {
+            $deferred->reject(new FileNotFoundException("Could not find the file \"{$path}\"."));
+
+            return $deferred->promise();
+        }
+
+        $handle = fopen($path, 'rb');
+        if ($handle === false) {
+            $deferred->reject(new \RuntimeException("Could not open file for reading: \"{$path}\"."));
+
+            return $deferred->promise();
+        }
+
+        return $this->playRawStream($handle, $channels, $audioRate);
+    }
+
+    /**
      *
      * @param resource|Process|Stream $stream The Ogg Opus stream to be sent.
      *
@@ -644,6 +683,7 @@ class VoiceClient
 
         $this->buffer = new RealBuffer();
         $stream->on('data', fn ($d) => $this->buffer->write($d));
+        $stream->on('end', fn () => $this->buffer->end());
 
         /** @var OggStream */
         $ogg = null;

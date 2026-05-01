@@ -122,7 +122,7 @@ class OggStream
     private function parsePackets(): PromiseInterface
     {
         return new Promise(function ($resolve, $reject) {
-            OggPage::fromBuffer($this->buffer, timeout: 0)->then(function ($page) use ($resolve) {
+            OggPage::fromBuffer($this->buffer, timeout: -1)->then(function ($page) use ($resolve) {
                 $packets = [];
                 $partial = $this->leftover;
                 foreach ($page->iterPackets() as [$data, $complete]) {
@@ -136,7 +136,8 @@ class OggStream
 
                 $resolve($packets);
             }, function (\Exception $e) use ($resolve, $reject) {
-                if ($e instanceof BufferTimedOutException) {
+                if ($e instanceof BufferTimedOutException || str_contains($e->getMessage(), 'Buffer closed')) {
+                    // Buffer is exhausted — signal EOF to the caller.
                     $resolve(null);
                 } else {
                     $reject($e);

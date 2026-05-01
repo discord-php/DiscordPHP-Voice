@@ -72,11 +72,6 @@ final class MediaCryptoService
             return '';
         }
 
-        $this->logger->debug('Encrypted outgoing DAVE frame.', [
-            'protocol_version' => $protocolVersion,
-            'frame_length' => strlen($encrypted),
-        ]);
-
         return $encrypted;
     }
 

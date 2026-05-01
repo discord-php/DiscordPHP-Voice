@@ -217,6 +217,13 @@ class Buffer implements WritableStreamInterface
         }
 
         $this->closed = true;
+
+        // Reject any reads still waiting — the stream is gone and no more data will arrive.
+        foreach ($this->reads as [$deferred]) {
+            $deferred->reject(new \RuntimeException('Buffer closed'));
+        }
+        $this->reads = [];
+
         $this->emit('close');
     }
 }

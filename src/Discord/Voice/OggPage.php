@@ -137,10 +137,42 @@ class OggPage
     }
 
     /**
-     * Compute the Ogg-specific CRC-32 checksum.
+     * Precomputed 256-entry CRC lookup table (Ogg polynomial 0x04C11DB7).
+     * Populated once on first use via {@see buildCrcTable()}.
+     *
+     * @var int[]|null
+     */
+    private static ?array $crcTable = null;
+
+    /**
+     * Build the 256-entry CRC lookup table for polynomial 0x04C11DB7.
+     *
+     * @return int[]
+     */
+    private static function buildCrcTable(): array
+    {
+        $table = [];
+        for ($i = 0; $i < 256; $i++) {
+            $crc = $i << 24;
+            for ($j = 0; $j < 8; $j++) {
+                $crc = ($crc & 0x80000000)
+                    ? (($crc << 1) ^ 0x04C11DB7) & 0xFFFFFFFF
+                    : ($crc << 1) & 0xFFFFFFFF;
+            }
+            $table[$i] = $crc;
+        }
+
+        return $table;
+    }
+
+    /**
+     * Compute the Ogg-specific CRC-32 checksum using a precomputed lookup table.
      *
      * Uses polynomial 0x04C11DB7 with an initial value of 0 and no final XOR,
      * which differs from the standard CRC-32 used by PHP's crc32().
+     *
+     * The lookup table reduces the inner 8-iteration bit loop to a single
+     * array access per byte, significantly reducing CPU time on the event loop.
      *
      * @param string $data Raw page bytes with the 4-byte checksum field zeroed out.
      *
@@ -148,16 +180,16 @@ class OggPage
      */
     private static function oggCrc32(string $data): int
     {
+        if (self::$crcTable === null) {
+            self::$crcTable = self::buildCrcTable();
+        }
+
         $crc = 0;
-        for ($i = 0; $i < strlen($data); $i++) {
-            $crc ^= (ord($data[$i]) << 24);
-            for ($j = 0; $j < 8; $j++) {
-                if ($crc & 0x80000000) {
-                    $crc = (($crc << 1) ^ 0x04C11DB7) & 0xFFFFFFFF;
-                } else {
-                    $crc = ($crc << 1) & 0xFFFFFFFF;
-                }
-            }
+        $len = strlen($data);
+        $table = self::$crcTable;
+
+        for ($i = 0; $i < $len; $i++) {
+            $crc = ($table[(($crc >> 24) ^ ord($data[$i])) & 0xFF] ^ ($crc << 8)) & 0xFFFFFFFF;
         }
 
         return $crc;
