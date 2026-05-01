@@ -44,6 +44,10 @@ class WavWriter
      */
     public function open(): void
     {
+        if (! file_exists(dirname($this->path))) {
+            mkdir(dirname($this->path), 0755, true);
+        }
+
         $handle = fopen($this->path, 'wb');
         if ($handle === false) {
             throw new RuntimeException("WavWriter: cannot open file for writing: {$this->path}");

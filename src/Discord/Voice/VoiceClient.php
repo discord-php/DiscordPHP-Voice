@@ -351,6 +351,14 @@ class VoiceClient
     protected array $recordingProcesses = [];
 
     /**
+     * Open file handles for raw PCM output keyed by SSRC (populated when record()
+     * is called with RecordingFormat::PCM and an output path callback).
+     *
+     * @var array<int, resource>
+     */
+    protected array $recordingPcmHandles = [];
+
+    /**
      * The active recording format, set when record() is called with a format.
      */
     protected ?RecordingFormat $recordingFormat = null;
@@ -1382,6 +1390,23 @@ class VoiceClient
                         $ffmpegProcess->stdin->write($pcm);
                     });
                 }
+
+                // Wire per-user raw PCM file when PCM format recording is active with an output path.
+                if ($this->recordingFormat === RecordingFormat::PCM && $this->recordingOutputPath !== null) {
+                    $userId = $this->ssrcToUserId[$ss->ssrc] ?? (string) $ss->ssrc;
+                    $path = ($this->recordingOutputPath)($userId);
+                    $dir = dirname($path);
+                    if (! is_dir($dir)) {
+                        mkdir($dir, 0755, true);
+                    }
+                    $handle = fopen($path, 'wb');
+                    if ($handle !== false) {
+                        $this->recordingPcmHandles[$ss->ssrc] = $handle;
+                        $this->receiveStreams[$ss->ssrc]->on('pcm', function (string $pcm) use ($handle): void {
+                            fwrite($handle, $pcm);
+                        });
+                    }
+                }
             }
 
             $this->createDecoder($ss);
@@ -1600,13 +1625,15 @@ class VoiceClient
      * string and must return an absolute or relative file path string.
      *
      * Supported formats:
-     *  - `RecordingFormat::PCM` — raw s16le PCM events (default, no file writing)
+     *  - `RecordingFormat::PCM` — raw s16le PCM; emits `channel-pcm` events AND writes raw bytes to
+     *                             per-user files when `$outputPath` is provided
      *  - `RecordingFormat::WAV` — per-user WAV files via pure-PHP WavWriter
      *  - `RecordingFormat::OGG` — per-user OGG Opus files via ffmpeg (requires ffmpeg)
      *
-     * @param RecordingFormat|null              $format     Output format. Null = PCM events only.
+     * @param RecordingFormat|null              $format     Output format. Null = PCM events only (no file writing).
      * @param (callable(string): string)|null   $outputPath Callback returning the file path for a given user ID.
-     *                                                       Required when $format is not null and not PCM.
+     *                                                       Required for WAV and OGG formats. Optional for PCM
+     *                                                       (when provided, raw PCM bytes are written to the file).
      *
      * @throws \RuntimeException         if already recording.
      * @throws \InvalidArgumentException if $format is non-null/non-PCM but $outputPath is null.
@@ -1659,6 +1686,11 @@ class VoiceClient
             }
         }
         $this->recordingProcesses = [];
+
+        foreach ($this->recordingPcmHandles as $handle) {
+            fclose($handle);
+        }
+        $this->recordingPcmHandles = [];
 
         $this->recordingFormat = null;
         $this->recordingOutputPath = null;
