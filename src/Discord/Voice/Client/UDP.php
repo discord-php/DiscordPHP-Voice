@@ -29,7 +29,7 @@ use React\EventLoop\LoopInterface;
  *
  * @since 10.19.0
  */
-final class UDP extends Socket
+class UDP extends Socket
 {
     /**
      * The Parent Voice WebSocket Client.
