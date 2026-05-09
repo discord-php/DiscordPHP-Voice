@@ -35,3 +35,8 @@ phpunit.log
 # infection
 infection.log
 infection-summary.log
+
+# claude code artifacts
+.agents
+skills-lock.json
+todos.db
