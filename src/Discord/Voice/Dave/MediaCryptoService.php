@@ -116,7 +116,15 @@ final class MediaCryptoService
         }
 
         if ($decrypted === false) {
-            return false;
+            // Frame failed DAVE decryption — most likely not DAVE-encrypted yet
+            // (user's client hasn't completed MLS handshake). Pass the frame through
+            // as plain Opus so audio isn't silently dropped during key transitions.
+            $this->logger->debug('DAVE decrypt returned auth failure; passing frame through as plain Opus.', [
+                'protocol_version' => $protocolVersion,
+                'frame_length' => strlen($frame),
+                'ssrc' => $ssrc,
+            ]);
+            return $frame;
         }
 
         if ($decrypted === null) {

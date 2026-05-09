@@ -74,6 +74,7 @@ final class Ffmpeg extends ProcessAbstract
     ): Process {
         $flags = [
             '-protocol_whitelist', 'file,http,https,tcp,tls,crypto,pipe',
+            '-fflags', '+nobuffer',
             '-i', escapeshellarg($filename ?? 'pipe:0'),
             '-map_metadata', '-1',
             '-f', 'opus',

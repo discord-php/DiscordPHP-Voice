@@ -712,17 +712,21 @@ class VoiceClient
     {
         $this->readOpusTimer = null;
 
-        $loops += 1;
+        // Record the target send time for THIS packet BEFORE the async fetch so
+        // that the 20 ms window runs concurrently with getPacket(), not after it.
+        $targetTime = $this->startTime + (20.0 / 1000.0) * $loops;
+        $loops++;
 
-        // If the client is paused, delay by frame size and check again.
+        // If the client is paused, insert silence and wait until the next slot.
         if ($this->paused) {
             $this->udp->insertSilence();
-            $this->readOpusTimer = $this->discord->getLoop()->addTimer($this->frameSize / 1000, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+            $delay = max(0.0, $targetTime + (20.0 / 1000.0) - microtime(true));
+            $this->readOpusTimer = $this->discord->getLoop()->addTimer($delay, fn () => $this->readOggOpus($deferred, $ogg, $loops));
 
             return;
         }
 
-        $ogg->getPacket()->then(function ($packet) use (&$loops, &$ogg, $deferred) {
+        $ogg->getPacket()->then(function ($packet) use (&$loops, &$ogg, $deferred, $targetTime) {
             // EOF for Ogg stream.
             if (null === $packet) {
                 $this->reset();
@@ -731,12 +735,14 @@ class VoiceClient
                 return;
             }
 
-            $this->udp->sendBuffer($packet);
+            $delay = max(0.0, $targetTime - microtime(true));
 
-            $nextTime = $this->startTime + (20.0 / 1000.0) * $loops;
-            $delay = max(0.0, $nextTime - microtime(true));
-
-            $this->readOpusTimer = $this->discord->getLoop()->addTimer($delay, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+            // Use addTimer(0) even when the deadline has already passed to avoid
+            // unbounded recursion if several consecutive packets arrive late.
+            $this->readOpusTimer = $this->discord->getLoop()->addTimer($delay, function () use ($packet, $deferred, &$ogg, &$loops) {
+                $this->udp->sendBuffer($packet);
+                $this->readOggOpus($deferred, $ogg, $loops);
+            });
         }, function () use ($deferred) {
             $this->reset();
             $deferred->resolve(null);

@@ -229,7 +229,9 @@ final class Packet
                 $resultMessage = substr($stripped, $baseHeaderSize);
             }
 
-            if ($resultMessage !== false && is_callable($this->inboundFrameDecryptor)) {
+            // Skip DAVE decryption for the standard Opus silence frame — it is never DAVE-encrypted
+            // and passing it to libdave generates noisy "Decrypt skipping silence" C++ log spam.
+            if ($resultMessage !== false && $resultMessage !== "\xF8\xFF\xFE" && is_callable($this->inboundFrameDecryptor)) {
                 $resultMessage = ($this->inboundFrameDecryptor)($resultMessage, $this);
             }
 
