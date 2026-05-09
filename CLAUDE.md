@@ -45,7 +45,7 @@ Daily commands:
 | Mutation testing (slow, local) | `composer infection` |
 | PHPLint | `phplint` (CI installs as standalone tool, uses `.phplint.yml`) |
 
-Live integration tests in `tests/Integration/VoiceConnectionTest.php` need `DISCORD_BOT_TOKEN` and `CHANNEL_ID` env vars; everything else mocks sockets.
+Live integration tests in `tests/Integration/VoiceConnectionTest.php` need `DISCORD_BOT_TOKEN` and `CHANNEL_ID` env vars; everything else mocks sockets. The default integration run only executes the consolidated **"full session"** test (join → playFile → record → stopRecording → disconnect in a single bot connection) — the other four standalone tests require `INTEGRATION_FULL=1` to opt in, because Discord rate-limits rapid voice rejoin and they conflict with each other in batch.
 
 ## Architecture (Big Picture)
 
@@ -64,7 +64,7 @@ The full breakdown lives in `.github/copilot-instructions.md` — the points bel
 ## Conventions That Bite
 
 - **Backwards-compatibility shims are load-bearing.** `Discord\Voice\Client` is an alias subclass for `VoiceClient`; `ReceiveStream` subclasses the legacy misspelled `RecieveStream`. Don't remove or rename these.
-- **`VoiceClient::$ssrcToUserId` and `$speakingStatus` are `public` on purpose.** `WS::handleSpeaking` writes to `ssrcToUserId` from outside `VoiceClient`'s class scope — narrowing visibility is a fatal runtime error.
+- **`VoiceClient::$ssrcToUserId` and `$speakingStatus` were narrowed to `protected` in the audit-remediation pass.** `WS::handleSpeaking` writes to `ssrcToUserId` via reflection now; tests that need to seed the map should use `\ReflectionProperty` rather than direct assignment. Don't widen the visibility back to `public` without coordinating with the BC notes in `TODO.md`.
 - **`ByteBuffer` lives in two places.** `Discord\Voice\ByteBuffer` is the active implementation. `Discord\Voice\Helpers\ByteBuffer` is a legacy duplicate kept for BC — use the non-`Helpers` namespace for new code. PHPStan excludes `src/Discord/Voice/Helpers` and `OpEnum.php` for this reason.
 - **Playback state machine is strict.** Most public playback methods reject when not ready or already speaking. `pause()` keeps cadence by refreshing silence frames; `stop()` drains the buffer and inserts silence; `setVolume()` / `setAudioApplication()` are intentionally blocked while audio is playing.
 - **DCA is legacy.** Prefer the Ogg/Opus path (`playOggStream()` / `playRawStream()` / `Ffmpeg::encode()`); `playDCAStream()` stays for compatibility only.

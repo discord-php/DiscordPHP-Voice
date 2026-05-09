@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Discord\Voice\Recording\WavWriter` — pure-PHP per-user WAV file writer for Discord audio (48 kHz stereo s16le); used internally by `record()` when `RecordingFormat::WAV` is requested
 - `VoiceClient::record()` now accepts an optional `?RecordingFormat $format` and `?callable $outputPath` — when both are provided, the client automatically creates per-user audio files (WAV via `WavWriter`; OGG via ffmpeg); bare `record()` call is 100% backward-compatible
 - `tests/Unit/Voice/Recording/` — 19 new tests covering `RecordingFormat`, `WavWriter`, and `VoiceClient` format recording integration
+- `CLAUDE.md` — Claude Code entry-point and architecture guide for AI-assisted development sessions
+- Statement coverage raised to **83.26%** (with legacy BC files excluded; 78% raw). 667 unit tests + 1 live integration "full session" test that drives join → playFile → record → stopRecording → disconnect against a real voice channel
+- New unit test files: `ByteBufferRoundtripTest`, `SocketFactoryTest`, `VoiceClientChannelOpsTest`, `VoiceClientPcmRecordingTest`, `VoiceClientPlayPathsTest`, `VoiceClientStateTest`, `VoiceClientReadOggOpusTest`, `WSGettersAndStubsTest` (Feature), `Dave/CoordinatorHandlersTest`, `Dave/RuntimeExtraCallbacksTest`
+- Live integration: standalone integration tests gated behind `INTEGRATION_FULL=1` env var so the default integration run (with `DISCORD_BOT_TOKEN` + `CHANNEL_ID`) only executes the consolidated "full session" test, avoiding Discord's rapid-rejoin rate limits
+- `phpunit.xml` — coverage source now excludes `src/Discord/Voice/Helpers/` (legacy duplicate) and `src/Discord/WebSockets/OpEnum.php` (legacy enum), mirroring the existing PHPStan exclusions
 
 ### Fixed
 
@@ -41,9 +46,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Processes\OpusFfi` — PCM buffer size corrected from `$frameSize * $channels * 2` to `$frameSize * $channels`; removed spurious `* 2` that had confused "samples" with "bytes"
 - `VoiceClient` — per-speaker Opus codec state is now isolated; each SSRC gets its own `OpusFfi` decoder instance (`$ffiDecoders[]`) so speakers no longer corrupt each other's codec state when multiple users are talking simultaneously
 - `VoiceClient::$readOpusTimer` — property now initialized to `null`; previously accessing it in `reset()` before any playback had started threw "Typed property must not be accessed before initialization"
+- `Dave\MediaCryptoService::decrypt` — DAVE auth-failure now drops the frame (returns `false`) instead of leaking the ciphertext bytes upstream as if they were plaintext Opus. The previous "passthrough on auth failure" behaviour produced audible garbage during MLS key rotation and weakened the E2EE guarantee
+- `Helpers\Buffer::read` — reject pending reads immediately when the buffer is already closed, instead of parking a Deferred that never resolves. Fixes silent hangs in code paths that trigger an Ogg buffer close mid-read (e.g. ffmpeg subprocess exiting before producing a complete header)
+- `VoiceClient::playOggStream` — attach a rejection handler to `OggStream::fromBuffer` so a buffer-close mid-handshake reaches the playback Deferred instead of leaking as an unhandled-promise-rejection notice
+- `Processes\Ffmpeg::encode` — `file` retained in `-protocol_whitelist`. Removing it (an earlier security tightening) made local-file playback impossible because ffmpeg uses the `file:` protocol internally for absolute paths. SSRF defence-in-depth is enforced one layer up in `VoiceClient::playFile()` (URL scheme allowlist + private/reserved/loopback IP block)
 
 ### Changed
 
+- `Discord\Voice\Client\UDP` — `final` modifier removed so the class can be subclass-mocked by PHPUnit for `readOggOpus` / `sendBuffer` unit tests. There is still only one concrete implementation; no public extension point is intended.
 - CI now triggers on push and pull_request (previously workflow_dispatch only)
 - PHP 8.0 removed from CI matrix (requires `^8.1.2`)
 - `actions/checkout` bumped to v4
