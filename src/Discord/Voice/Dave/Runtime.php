@@ -1042,7 +1042,7 @@ CDEF;
             FFI::memcpy($buffer, $string, strlen($string));
             $buffer[strlen($string)] = "\0";
             $buffers[] = $buffer;
-            $pointers[$index] = FFI::addr($buffer[0]);
+            $pointers[$index] = $ffi->cast('char*', $buffer);
         }
 
         return [$pointers, $buffers];
