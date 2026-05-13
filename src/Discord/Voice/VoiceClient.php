@@ -376,6 +376,22 @@ class VoiceClient
     private ?MediaCryptoService $mediaCrypto = null;
 
     /**
+     * Allows read-only access to selected protected properties from outside the class.
+     *
+     * @return mixed
+     */
+    public function __get(string $name): mixed
+    {
+        static $allowed = ['speakingStatus', 'ssrcToUserId'];
+
+        if (in_array($name, $allowed, true)) {
+            return $this->{$name};
+        }
+
+        return null;
+    }
+
+    /**
      * Constructs the Voice client instance.
      *
      * @param Discord       $discord         The Discord instance.
