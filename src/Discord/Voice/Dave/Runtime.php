@@ -1069,7 +1069,7 @@ CDEF;
         }
 
         try {
-            return FFI::string(FFI::cast('char*', $buffer[0]), (int) $length[0]);
+            return FFI::string($ffi->cast('char*', $buffer[0]), (int) $length[0]);
         } finally {
             self::call($ffi, 'daveFree', $buffer[0]);
         }
