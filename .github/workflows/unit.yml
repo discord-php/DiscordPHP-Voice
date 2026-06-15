@@ -75,7 +75,7 @@ jobs:
           DISCORDPHP_DAVE_LIBRARY: ${{ github.workspace }}/.cache/libdave/lib/libdave.so
         run: ./vendor/bin/pest --coverage-clover coverage.xml
       - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           files: coverage.xml
           fail_ci_if_error: false
