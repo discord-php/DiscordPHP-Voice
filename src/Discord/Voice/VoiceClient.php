@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -19,6 +20,7 @@ use Discord\Exceptions\FileNotFoundException;
 use Discord\Voice\Exceptions\Channels\AudioAlreadyPlayingException;
 use Discord\Voice\Exceptions\ClientNotReadyException;
 use Discord\Voice\Exceptions\Libraries\OutdatedDCAException;
+use Discord\Voice\Dave\MediaCryptoService;
 use Discord\Voice\Helpers\Buffer as RealBuffer;
 use Discord\Helpers\Collection;
 use Discord\Helpers\ExCollectionInterface;
@@ -28,14 +30,16 @@ use Discord\Voice\Client\Packet;
 use Discord\Voice\Client\UDP;
 use Discord\Voice\Client\User;
 use Discord\Voice\Client\WS;
-use Discord\Voice\Processes\Dca;
+use Discord\Voice\Processes\DCA;
 use Discord\Voice\Processes\Ffmpeg;
 use Discord\Voice\Processes\OpusDecoderInterface;
 use Discord\Voice\Processes\OpusFfi;
+use Discord\Voice\Recording\RecordingFormat;
+use Discord\Voice\Recording\WavWriter;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
-use Evenement\EventEmitter;
+use Evenement\EventEmitterTrait;
 use Ratchet\Client\WebSocket;
 use React\ChildProcess\Process;
 use React\Datagram\Socket;
@@ -51,8 +55,10 @@ use React\Stream\ReadableStreamInterface;
  *
  * @since 10.19.0
  */
-class VoiceClient extends EventEmitter
+class VoiceClient
 {
+    use EventEmitterTrait;
+
     /** Not speaking. */
     public const NOT_SPEAKING = 0;
     /** Normal transmission of voice audio. */
@@ -61,6 +67,16 @@ class VoiceClient extends EventEmitter
     public const SOUNDSHARE = 1 << 1;
     /** Priority speaker, lowering audio of other speakers. */
     public const PRIORITY_SPEAKER = 1 << 2;
+
+    /**
+     * Allowed URL schemes for playFile().
+     */
+    private const ALLOWED_URL_SCHEMES = ['https'];
+
+    /**
+     * Maximum number of concurrent voice decoders to prevent resource exhaustion.
+     */
+    private const MAX_DECODERS = 25;
 
     /**
      * Is the voice client ready?
@@ -89,6 +105,14 @@ class VoiceClient extends EventEmitter
      * @var OpusDecoderInterface|null The Opus Decoder instance used for decoding audio.
      */
     public ?OpusDecoderInterface $opusdecoder = null;
+
+    /**
+     * Per-SSRC OpusFfi decoder instances. Each speaker gets their own persistent
+     * decoder so inter-frame codec state is never shared or reset between users.
+     *
+     * @var array<int, OpusFfi>
+     */
+    protected array $ffiDecoders = [];
 
     /**
      * The Voice WebSocket endpoint.
@@ -124,6 +148,15 @@ class VoiceClient extends EventEmitter
      * @var int The sequence of audio packets.
      */
     public ?int $seq = 0;
+
+    /**
+     * Independent 32-bit nonce counter used for AES-256-GCM encryption.
+     * Increments separately from the 16-bit $seq so nonces never repeat after
+     * a sequence rollover (~21 min at 50 pkt/s).
+     *
+     * @var int
+     */
+    public int $nonce = 0;
 
     /**
      * The timestamp of the last packet.
@@ -170,14 +203,21 @@ class VoiceClient extends EventEmitter
      *
      * @var ExCollectionInterface<Speaking> Status of people speaking.
      */
-    public $speakingStatus;
+    protected $speakingStatus;
+
+    /**
+     * O(1) map from SSRC to user ID, kept in sync with speakingStatus.
+     *
+     * @var array<int, string>
+     */
+    protected array $ssrcToUserId = [];
 
     /**
      * Collection of voice decoders.
      *
-     * @var ExCollectionInterface<Process> Voice decoders.
+     * @var array<int, Process> Voice decoders.
      */
-    public $voiceDecoders;
+    public array $voiceDecoders = [];
 
     /**
      * Voice audio recieve streams.
@@ -244,7 +284,7 @@ class VoiceClient extends EventEmitter
      *
      * @var TimerInterface|null Timer
      */
-    public ?TimerInterface $readOpusTimer;
+    public ?TimerInterface $readOpusTimer = null;
 
     /**
      * Audio Buffer.
@@ -294,6 +334,64 @@ class VoiceClient extends EventEmitter
     protected bool $shouldRecord = false;
 
     /**
+     * Active WavWriter instances keyed by SSRC (populated when record() is called
+     * with RecordingFormat::WAV and an output path callback).
+     *
+     * @var array<int, WavWriter>
+     */
+    protected array $recordingWriters = [];
+
+    /**
+     * Active ffmpeg OGG encoder processes keyed by SSRC (populated when record()
+     * is called with RecordingFormat::OGG and an output path callback).
+     *
+     * @var array<int, Process>
+     */
+    protected array $recordingProcesses = [];
+
+    /**
+     * Open file handles for raw PCM output keyed by SSRC (populated when record()
+     * is called with RecordingFormat::PCM and an output path callback).
+     *
+     * @var array<int, resource>
+     */
+    protected array $recordingPcmHandles = [];
+
+    /**
+     * The active recording format, set when record() is called with a format.
+     */
+    protected ?RecordingFormat $recordingFormat = null;
+
+    /**
+     * Callback that returns the output file path for a given user ID string,
+     * set when record() is called with a non-null $outputPath.
+     *
+     * @var \Closure(string): string|null
+     */
+    protected ?\Closure $recordingOutputPath = null;
+
+    /**
+     * DAVE media-layer crypto service (lazy-initialized on first use).
+     */
+    private ?MediaCryptoService $mediaCrypto = null;
+
+    /**
+     * Allows read-only access to selected protected properties from outside the class.
+     *
+     * @return mixed
+     */
+    public function __get(string $name): mixed
+    {
+        static $allowed = ['speakingStatus', 'ssrcToUserId'];
+
+        if (in_array($name, $allowed, true)) {
+            return $this->{$name};
+        }
+
+        return null;
+    }
+
+    /**
      * Constructs the Voice client instance.
      *
      * @param Discord       $discord         The Discord instance.
@@ -327,7 +425,11 @@ class VoiceClient extends EventEmitter
         $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
 
         if (extension_loaded('ffi')) {
-            $this->setDecoder(OpusFfi::new());
+            try {
+                $this->setDecoder(OpusFfi::new());
+            } catch (\Throwable $e) {
+                // libopus not available; Opus FFI decoder will not be used
+            }
         }
 
         if ($this->shouldBoot) {
@@ -356,6 +458,8 @@ class VoiceClient extends EventEmitter
      *
      * @param  string      $executable
      * @return string|null
+     *
+     * @deprecated 10.6.0 Use ProcessAbstract::checkForExecutable() instead.
      */
     public static function checkForExecutable(string $executable): ?string
     {
@@ -365,7 +469,7 @@ class VoiceClient extends EventEmitter
             $which = 'where';
         }
 
-        $shellExecutable = shell_exec("$which $executable");
+        $shellExecutable = shell_exec("$which ".escapeshellarg($executable));
         if ($shellExecutable === false) {
             // Unable to establish pipe
             return null;
@@ -381,6 +485,10 @@ class VoiceClient extends EventEmitter
 
     /**
      * Plays a file/url on the voice stream.
+     *
+     * FFmpeg is used to decode the file, so any format ffmpeg supports is accepted
+     * (e.g. WAV, OGG Opus, MP3, FLAC). Raw PCM files (.pcm) are NOT supported here
+     * because ffmpeg cannot auto-detect the format — use {@see playPcmFile()} instead.
      *
      * @param string $file     The file/url to play.
      * @param int    $channels Deprecated, Discord only supports 2 channels.
@@ -411,6 +519,43 @@ class VoiceClient extends EventEmitter
             }
 
             return $deferred->promise();
+        }
+
+        // Validate URL scheme to prevent SSRF via dangerous protocols
+        if (filter_var($file, FILTER_VALIDATE_URL) !== false) {
+            $scheme = parse_url($file, PHP_URL_SCHEME);
+            if ($scheme === null || ! in_array(strtolower($scheme), self::ALLOWED_URL_SCHEMES, true)) {
+                $deferred->reject(new \InvalidArgumentException(
+                    "URL scheme '{$scheme}' is not allowed. Only ".implode(', ', self::ALLOWED_URL_SCHEMES).' URLs are supported.'
+                ));
+
+                return $deferred->promise();
+            }
+
+            // Block literal private/reserved/loopback IP addresses and known loopback
+            // hostnames to prevent SSRF. Full DNS resolution is explicitly out of scope.
+            $host = parse_url($file, PHP_URL_HOST);
+            if ($host !== null) {
+                if (in_array(strtolower($host), ['localhost'], true)) {
+                    $deferred->reject(new \InvalidArgumentException(
+                        'Remote playback does not allow private or reserved hostnames.'
+                    ));
+
+                    return $deferred->promise();
+                }
+
+                $bare = ltrim(rtrim($host, ']'), '['); // strip IPv6 brackets
+                if (filter_var($bare, FILTER_VALIDATE_IP) !== false) {
+                    $isPublic = filter_var($bare, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
+                    if (! $isPublic) {
+                        $deferred->reject(new \InvalidArgumentException(
+                            'Remote playback does not allow private or reserved IP addresses.'
+                        ));
+
+                        return $deferred->promise();
+                    }
+                }
+            }
         }
 
         $process = Ffmpeg::encode($file, volume: $this->getDbVolume());
@@ -469,8 +614,42 @@ class VoiceClient extends EventEmitter
     }
 
     /**
-     * Plays an Ogg Opus stream.
+     * Plays a raw PCM file on the voice stream.
      *
+     * This is a convenience wrapper around {@see playRawStream()} for files saved
+     * as raw signed 16-bit little-endian PCM (e.g. recordings produced by
+     * {@see record()} with {@see RecordingFormat::PCM}).
+     *
+     * @param string $path      Absolute or relative path to the raw PCM file.
+     * @param int    $channels  Number of audio channels (default: 2 = stereo).
+     * @param int    $audioRate Sample rate in Hz (default: 48000).
+     *
+     * @throws FileNotFoundException if the file does not exist.
+     * @throws \RuntimeException     if the file cannot be opened or audio is already playing.
+     *
+     * @return PromiseInterface
+     */
+    public function playPcmFile(string $path, int $channels = 2, int $audioRate = 48000): PromiseInterface
+    {
+        $deferred = new Deferred();
+
+        if (! file_exists($path)) {
+            $deferred->reject(new FileNotFoundException("Could not find the file \"{$path}\"."));
+
+            return $deferred->promise();
+        }
+
+        $handle = fopen($path, 'rb');
+        if ($handle === false) {
+            $deferred->reject(new \RuntimeException("Could not open file for reading: \"{$path}\"."));
+
+            return $deferred->promise();
+        }
+
+        return $this->playRawStream($handle, $channels, $audioRate);
+    }
+
+    /**
      * @param resource|Process|Stream $stream The Ogg Opus stream to be sent.
      *
      * @throws \RuntimeException
@@ -518,6 +697,7 @@ class VoiceClient extends EventEmitter
 
         $this->buffer = new RealBuffer();
         $stream->on('data', fn ($d) => $this->buffer->write($d));
+        $stream->on('end', fn () => $this->buffer->end());
 
         /** @var OggStream */
         $ogg = null;
@@ -530,6 +710,13 @@ class VoiceClient extends EventEmitter
             $ogg = $os;
             $this->startTime = microtime(true) + 0.5;
             $this->readOpusTimer = $this->discord->getLoop()->addTimer(0.5, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+        }, function (\Throwable $e) use ($deferred) {
+            // Surface the failure on the playback deferred instead of letting the
+            // promise rejection bubble out as an unhandled-rejection notice. This
+            // covers ffmpeg exiting before producing a valid Ogg header (e.g. bad
+            // input file, missing codec, or premature stream close).
+            $this->reset();
+            $deferred->reject($e);
         });
 
         return $deferred->promise();
@@ -546,17 +733,21 @@ class VoiceClient extends EventEmitter
     {
         $this->readOpusTimer = null;
 
-        $loops += 1;
+        // Record the target send time for THIS packet BEFORE the async fetch so
+        // that the 20 ms window runs concurrently with getPacket(), not after it.
+        $targetTime = $this->startTime + (20.0 / 1000.0) * $loops;
+        $loops++;
 
-        // If the client is paused, delay by frame size and check again.
+        // If the client is paused, insert silence and wait until the next slot.
         if ($this->paused) {
             $this->udp->insertSilence();
-            $this->readOpusTimer = $this->discord->getLoop()->addTimer($this->frameSize / 1000, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+            $delay = max(0.0, $targetTime + (20.0 / 1000.0) - microtime(true));
+            $this->readOpusTimer = $this->discord->getLoop()->addTimer($delay, fn () => $this->readOggOpus($deferred, $ogg, $loops));
 
             return;
         }
 
-        $ogg->getPacket()->then(function ($packet) use (&$loops, &$ogg, $deferred) {
+        $ogg->getPacket()->then(function ($packet) use (&$loops, &$ogg, $deferred, $targetTime) {
             // EOF for Ogg stream.
             if (null === $packet) {
                 $this->reset();
@@ -565,24 +756,14 @@ class VoiceClient extends EventEmitter
                 return;
             }
 
-            // increment sequence
-            // uint16 overflow protection
-            if (++$this->seq >= 2 ** 16) {
-                $this->seq = 0;
-            }
+            $delay = max(0.0, $targetTime - microtime(true));
 
-            $this->udp->sendBuffer($packet);
-
-            // increment timestamp
-            // uint32 overflow protection
-            if (($this->timestamp += ($this->frameSize * 48)) >= 2 ** 32) {
-                $this->timestamp = 0;
-            }
-
-            $nextTime = $this->startTime + (20.0 / 1000.0) * $loops;
-            $delay = $nextTime - microtime(true);
-
-            $this->readOpusTimer = $this->discord->getLoop()->addTimer($delay, fn () => $this->readOggOpus($deferred, $ogg, $loops));
+            // Use addTimer(0) even when the deadline has already passed to avoid
+            // unbounded recursion if several consecutive packets arrive late.
+            $this->readOpusTimer = $this->discord->getLoop()->addTimer($delay, function () use ($packet, $deferred, &$ogg, &$loops) {
+                $this->udp->sendBuffer($packet);
+                $this->readOggOpus($deferred, $ogg, $loops);
+            });
         }, function () use ($deferred) {
             $this->reset();
             $deferred->resolve(null);
@@ -645,20 +826,28 @@ class VoiceClient extends EventEmitter
 
         // Read magic byte header
         $this->buffer->read(4)->then(function ($mb) {
-            if ($mb !== Dca::DCA_VERSION) {
+            if ($mb !== DCA::DCA_VERSION) {
                 throw new OutdatedDCAException('The DCA magic byte header was not correct.');
             }
 
             // Read JSON length
             return $this->buffer->readInt32();
         })->then(function ($jsonLength) {
+            if ($jsonLength <= 0 || $jsonLength > 1_000_000) {
+                throw new \UnexpectedValueException("Invalid DCA JSON metadata length: {$jsonLength}");
+            }
+
             // Read JSON content
             return $this->buffer->read($jsonLength);
         })->then(function ($metadata) use ($deferred) {
             $metadata = json_decode($metadata, true);
 
-            if (null !== $metadata) {
-                $this->frameSize = $metadata['opus']['frame_size'] / 48;
+            if (null !== $metadata && isset($metadata['opus']['frame_size'])) {
+                $frameSize = (int) ($metadata['opus']['frame_size'] / 48);
+                if ($frameSize < 1 || $frameSize > 120) {
+                    $frameSize = 20; // safe default: 20ms
+                }
+                $this->frameSize = $frameSize;
             }
 
             $this->startTime = microtime(true) + 0.5;
@@ -691,18 +880,6 @@ class VoiceClient extends EventEmitter
             return $this->buffer->read($opusLength, null, 1000);
         })->then(function ($opus) use ($deferred) {
             $this->udp->sendBuffer($opus);
-
-            // increment sequence
-            // uint16 overflow protection
-            if (++$this->seq >= 2 ** 16) {
-                $this->seq = 0;
-            }
-
-            // increment timestamp
-            // uint32 overflow protection
-            if (($this->timestamp += ($this->frameSize * 48)) >= 2 ** 32) {
-                $this->timestamp = 0;
-            }
 
             $this->readOpusTimer = $this->discord->getLoop()->addTimer(($this->frameSize - 1) / 1000, fn () => $this->readDCAOpus($deferred));
         }, function () use ($deferred) {
@@ -745,14 +922,14 @@ class VoiceClient extends EventEmitter
             throw new \RuntimeException('Voice Client is not ready.');
         }
 
-        $this->ws->send(json_encode(VoicePayload::new(
+        $this->udp->ws->send(VoicePayload::new(
             Op::VOICE_SPEAKING,
             [
                 'speaking' => $speaking,
                 'delay' => 0,
                 'ssrc' => $this->ssrc,
             ],
-        )));
+        ));
 
         $this->speaking = $speaking;
     }
@@ -946,7 +1123,7 @@ class VoiceClient extends EventEmitter
         }
 
         $this->paused = false;
-        $this->timestamp = microtime(true) * 1000;
+        $this->timestamp = (int) round(microtime(true) * 1000);
     }
 
     /**
@@ -986,7 +1163,7 @@ class VoiceClient extends EventEmitter
         $this->ready = false;
 
         // Close processes for audio encoding
-        if (count($this?->voiceDecoders ?? []) > 0) {
+        if (count($this->voiceDecoders) > 0) {
             foreach ($this->voiceDecoders as $decoder) {
                 $decoder->close();
             }
@@ -1026,6 +1203,7 @@ class VoiceClient extends EventEmitter
         $this->startTime = null;
         $this->streamTime = 0;
         $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
+        $this->ssrcToUserId = [];
 
         $this->emit('close');
     }
@@ -1082,10 +1260,6 @@ class VoiceClient extends EventEmitter
         $this->pause();
 
         $this->close();
-        $this->ws->close();
-
-        $this->discord->getLoop()->cancelTimer($this->heartbeat);
-        $this->discord->getLoop()->cancelTimer($this->udp->heartbeat);
 
         $this->on('resumed', function () {
             $this->discord->getLogger()->debug('voice client resumed');
@@ -1115,11 +1289,15 @@ class VoiceClient extends EventEmitter
             return; // no voice decoder to remove
         }
 
+        if ($decoder->isRunning()) {
+            $decoder->terminate(SIGTERM);
+        }
         $decoder->close();
         unset(
             $this->voiceDecoders[$ss->ssrc],
             $this->speakingStatus[$ss->ssrc],
-            $this->receiveStreams[$ss->ssrc]
+            $this->receiveStreams[$ss->ssrc],
+            $this->ssrcToUserId[$ss->ssrc]
         );
     }
 
@@ -1160,18 +1338,64 @@ class VoiceClient extends EventEmitter
     }
 
     /**
-     * Handles raw opus data from the UDP server.
-     *
-     * @param Packet|string $voicePacket The data from the UDP server.
+     * Encrypts an outgoing Opus frame using DAVE when enabled.
      */
-    public function handleAudioData(Packet|string $voicePacket): void
+    public function encryptDaveFrame(string $frame): string
     {
-        if (is_string($voicePacket)) {
-            $voicePacket = new Packet($voicePacket, key: $this->udp->ws->secretKey);
-
-            return;
+        if (! isset($this->udp?->ws)) {
+            return $frame;
         }
 
+        $this->mediaCrypto ??= new MediaCryptoService($this->udp->ws->getDaveState(), $this->discord->getLogger());
+
+        return $this->mediaCrypto->encrypt($frame, $this->ssrc);
+    }
+
+    /**
+     * Decrypts an incoming Opus frame using DAVE when enabled.
+     */
+    public function decryptDaveFrame(string $frame, ?Packet $packet = null): string|false
+    {
+        if (! isset($this->udp?->ws)) {
+            return $frame;
+        }
+
+        $this->mediaCrypto ??= new MediaCryptoService($this->udp->ws->getDaveState(), $this->discord->getLogger());
+
+        $userId = $packet !== null ? $this->resolveDaveRemoteUserId($packet) : null;
+
+        return $this->mediaCrypto->decrypt($frame, $userId, $packet?->getSSRC());
+    }
+
+    private function resolveDaveRemoteUserId(Packet $packet): ?string
+    {
+        return $this->ssrcToUserId[$packet->getSSRC()] ?? null;
+    }
+
+    /**
+     * Updates speaking status and SSRC→user-ID mapping for a user.
+     *
+     * Called by the voice gateway when a speaking event is received.
+     * Internal use only — public so the WS client can call it without
+     * tight coupling via reflection.
+     *
+     * @internal
+     */
+    public function updateSpeakingStatus(Speaking $speaking): void
+    {
+        $this->speakingStatus[$speaking->user_id] = $speaking;
+        if ($speaking->ssrc !== null) {
+            $this->ssrcToUserId[$speaking->ssrc] = (string) $speaking->user_id;
+        }
+    }
+
+    /**
+     * Handles raw opus data from the UDP server.
+     *
+     * @param Packet $voicePacket The data from the UDP server.
+     */
+    public function handleAudioData(Packet $voicePacket): void
+    {
         if (! $this->shouldRecord) {
             // If we are not recording, we don't need to handle audio data.
             return;
@@ -1209,6 +1433,47 @@ class VoiceClient extends EventEmitter
                 $this->receiveStreams[$ss->ssrc]->on('pcm', fn ($d) => $this->emit('channel-pcm', [$d, $this]));
 
                 $this->receiveStreams[$ss->ssrc]->on('opus', fn ($d) => $this->emit('channel-opus', [$d, $this]));
+
+                // Wire per-user WAV writer when WAV format recording is active.
+                if ($this->recordingFormat === RecordingFormat::WAV && $this->recordingOutputPath !== null) {
+                    $userId = $this->ssrcToUserId[$ss->ssrc] ?? (string) $ss->ssrc;
+                    $path = ($this->recordingOutputPath)($userId);
+                    $writer = new WavWriter($path);
+                    $writer->open();
+                    $this->recordingWriters[$ss->ssrc] = $writer;
+                    $this->receiveStreams[$ss->ssrc]->on('pcm', function (string $pcm) use ($writer): void {
+                        $writer->write($pcm);
+                    });
+                }
+
+                // Wire per-user OGG ffmpeg encoder when OGG format recording is active.
+                if ($this->recordingFormat === RecordingFormat::OGG && $this->recordingOutputPath !== null) {
+                    $userId = $this->ssrcToUserId[$ss->ssrc] ?? (string) $ss->ssrc;
+                    $path = ($this->recordingOutputPath)($userId);
+                    $ffmpegProcess = new Process("ffmpeg -y -f s16le -ar 48000 -ac 2 -i pipe:0 -c:a libopus \"{$path}\"");
+                    $ffmpegProcess->start($this->discord->getLoop());
+                    $this->recordingProcesses[$ss->ssrc] = $ffmpegProcess;
+                    $this->receiveStreams[$ss->ssrc]->on('pcm', function (string $pcm) use ($ffmpegProcess): void {
+                        $ffmpegProcess->stdin->write($pcm);
+                    });
+                }
+
+                // Wire per-user raw PCM file when PCM format recording is active with an output path.
+                if ($this->recordingFormat === RecordingFormat::PCM && $this->recordingOutputPath !== null) {
+                    $userId = $this->ssrcToUserId[$ss->ssrc] ?? (string) $ss->ssrc;
+                    $path = ($this->recordingOutputPath)($userId);
+                    $dir = dirname($path);
+                    if (! is_dir($dir)) {
+                        mkdir($dir, 0755, true);
+                    }
+                    $handle = fopen($path, 'wb');
+                    if ($handle !== false) {
+                        $this->recordingPcmHandles[$ss->ssrc] = $handle;
+                        $this->receiveStreams[$ss->ssrc]->on('pcm', function (string $pcm) use ($handle): void {
+                            fwrite($handle, $pcm);
+                        });
+                    }
+                }
             }
 
             $this->createDecoder($ss);
@@ -1231,8 +1496,17 @@ class VoiceClient extends EventEmitter
             return; // no audio data to write
         }
 
-        if (isset($this->opusdecoder)) {
-            $data = $this->opusdecoder->decode($voicePacket->decryptedAudio);
+        if ($this->opusdecoder !== null) {
+            if ($this->opusdecoder instanceof OpusFfi) {
+                // Use a dedicated persistent decoder per SSRC so each speaker's
+                // Opus codec state remains independent.
+                if (! isset($this->ffiDecoders[$ss->ssrc])) {
+                    $this->ffiDecoders[$ss->ssrc] = new OpusFfi();
+                }
+                $data = $this->ffiDecoders[$ss->ssrc]->decode($voicePacket->decryptedAudio);
+            } else {
+                $data = $this->opusdecoder->decode($voicePacket->decryptedAudio);
+            }
 
             if (empty(trim($data))) {
                 $this->discord->getLogger()->debug('Received empty audio data.', ['ssrc' => $ss->ssrc]);
@@ -1240,7 +1514,14 @@ class VoiceClient extends EventEmitter
                 return; // no audio data to write
             }
 
+            // Emit PCM for channel-pcm event (the main recording output path).
+            $this->receiveStreams[$ss->ssrc]->writePCM($data);
+
+            // Also feed PCM to the OGG encoder process for channel-opus.
             $decoder->stdin->write($data);
+        } else {
+            // No FFI Opus decoder — pass raw Opus frames for channel-opus only.
+            $this->receiveStreams[$ss->ssrc]->writeOpus($voicePacket->decryptedAudio);
         }
     }
 
@@ -1251,6 +1532,12 @@ class VoiceClient extends EventEmitter
      */
     protected function createDecoder($ss): void
     {
+        if (count($this->voiceDecoders) >= self::MAX_DECODERS) {
+            $this->discord->getLogger()->warning('Maximum decoder limit reached, refusing new decoder.', ['ssrc' => $ss->ssrc, 'limit' => self::MAX_DECODERS]);
+
+            return;
+        }
+
         $decoder = Ffmpeg::decode((string) $ss->ssrc);
         $decoder->start();
 
@@ -1292,6 +1579,10 @@ class VoiceClient extends EventEmitter
         // $pid = $process->getPid();
 
         // Check every second if the process is still running
+        if ($this->monitorProcessTimer !== null) {
+            $this->discord->getLoop()->cancelTimer($this->monitorProcessTimer);
+        }
+
         $this->monitorProcessTimer = $this->discord->getLoop()->addPeriodicTimer(1.0, function () use ($process, $ss) {
             // Check if the process is still running
             if (! $process->isRunning()) {
@@ -1358,11 +1649,15 @@ class VoiceClient extends EventEmitter
     {
         return $this->once('ready', function () {
             $this->discord->getLogger()->info('voice client is ready');
-            if (isset($this->manager->clients[$this->channel->guild_id])) {
-                $this->disconnect();
+            if ($this->manager !== null &&
+                isset($this->manager->clients[$this->channel->guild_id]) &&
+                $this->manager->clients[$this->channel->guild_id] !== $this) {
+                $this->manager->clients[$this->channel->guild_id]->disconnect();
             }
 
-            $this->manager->clients[$this->channel->guild_id] = $this;
+            if ($this->manager !== null) {
+                $this->manager->clients[$this->channel->guild_id] = $this;
+            }
 
             $this->setBitrate($this->channel->bitrate);
 
@@ -1370,28 +1665,68 @@ class VoiceClient extends EventEmitter
             $this->deferred->resolve($this);
         })
         ->once('error', function ($e) {
-            $this->disconnect();
             $this->discord->getLogger()->error('error initializing voice client', ['e' => $e->getMessage()]);
+            if ($this->manager !== null) {
+                unset($this->manager->clients[$this->channel->guild_id]);
+            }
             $this->deferred->reject($e);
         })
         ->once('close', function () {
-            $this->disconnect();
             $this->discord->getLogger()->warning('voice client closed');
-            unset($this->manager->clients[$this->channel->guild_id]);
+            if ($this->manager !== null) {
+                unset($this->manager->clients[$this->channel->guild_id]);
+            }
+            $this->deferred->reject(new \RuntimeException('Voice client closed.'));
         })
         ->start();
     }
 
-    public function record(): void
+    /**
+     * Starts recording incoming voice audio.
+     *
+     * When called with no arguments, raw PCM and Opus frames are emitted via the
+     * `channel-pcm` and `channel-opus` events for the caller to handle.
+     *
+     * When called with a format and output path callback, the voice client
+     * automatically writes per-user audio files. The callback receives the user ID
+     * string and must return an absolute or relative file path string.
+     *
+     * Supported formats:
+     *  - `RecordingFormat::PCM` — raw s16le PCM; emits `channel-pcm` events AND writes raw bytes to
+     *                             per-user files when `$outputPath` is provided
+     *  - `RecordingFormat::WAV` — per-user WAV files via pure-PHP WavWriter
+     *  - `RecordingFormat::OGG` — per-user OGG Opus files via ffmpeg (requires ffmpeg)
+     *
+     * @param RecordingFormat|null            $format     Output format. Null = PCM events only (no file writing).
+     * @param (callable(string): string)|null $outputPath Callback returning the file path for a given user ID.
+     *                                                    Required for WAV and OGG formats. Optional for PCM
+     *                                                    (when provided, raw PCM bytes are written to the file).
+     *
+     * @throws \RuntimeException         if already recording.
+     * @throws \InvalidArgumentException if $format is non-null/non-PCM but $outputPath is null.
+     */
+    public function record(?RecordingFormat $format = null, ?callable $outputPath = null): void
     {
         if ($this->shouldRecord) {
             throw new \RuntimeException('Already recording audio.');
         }
 
+        if ($format !== null && $format !== RecordingFormat::PCM && $outputPath === null) {
+            throw new \InvalidArgumentException('An $outputPath callback is required when recording to a file format.');
+        }
+
+        // Auto-initialize the FFI Opus decoder if not already set.
+        // This enables the channel-pcm event output path without requiring
+        // callers to manually invoke setDecoder().
+        if ($this->opusdecoder === null && OpusFfi::isAvailable()) {
+            $this->opusdecoder = new OpusFfi();
+        }
+
+        $this->recordingFormat = $format;
+        $this->recordingOutputPath = $outputPath !== null ? \Closure::fromCallable($outputPath) : null;
+
         $this->shouldRecord = true;
         $this->discord->getLogger()->info('Started recording audio.');
-
-        $this->udp->on('message', [$this, 'handleAudioData']);
     }
 
     public function stopRecording(): void
@@ -1403,7 +1738,30 @@ class VoiceClient extends EventEmitter
         $this->shouldRecord = false;
         $this->discord->getLogger()->info('Stopped recording audio.');
 
-        $this->udp->removeListener('message', [$this, 'handleAudioData']);
+        foreach ($this->recordingWriters as $writer) {
+            try {
+                $writer->finalize();
+            } catch (\Throwable $e) {
+                $this->discord->getLogger()->warning('Failed to finalize recording.', ['path' => $writer->getPath(), 'error' => $e->getMessage()]);
+            }
+        }
+        $this->recordingWriters = [];
+
+        foreach ($this->recordingProcesses as $process) {
+            if ($process->isRunning()) {
+                $process->stdin->close();
+            }
+        }
+        $this->recordingProcesses = [];
+
+        foreach ($this->recordingPcmHandles as $handle) {
+            fclose($handle);
+        }
+        $this->recordingPcmHandles = [];
+
+        $this->recordingFormat = null;
+        $this->recordingOutputPath = null;
+
         $this->reset();
 
         foreach ($this->voiceDecoders as $decoder) {
@@ -1411,13 +1769,15 @@ class VoiceClient extends EventEmitter
         }
 
         $this->voiceDecoders = [];
+        $this->ffiDecoders = [];
         $this->receiveStreams = [];
         $this->speakingStatus = Collection::for(Speaking::class, 'ssrc');
+        $this->ssrcToUserId = [];
     }
 
     public function setData(array $data): self
     {
-        $this->data = $data;
+        $this->data = array_merge($this->data, $data);
 
         if (isset($this->data['token'], $this->data['endpoint'], $this->data['session'], $this->data['dnsConfig'])) {
             $this->endpoint = str_replace([':80', ':443'], '', $this->data['endpoint']);

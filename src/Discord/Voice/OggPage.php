@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -76,6 +77,8 @@ class OggPage
     {
         $header = null;
         $pageSegments = [];
+        $rawHeaderData = '';
+        $rawSegmentTable = '';
 
         return $buffer->read(4, timeout: $timeout)->then(function ($magic) use ($buffer, $timeout) {
             if ($magic !== 'OggS') {
@@ -85,20 +88,41 @@ class OggPage
             return $buffer->read(23, timeout: $timeout);
         })
             // Reading header
-            ->then(function ($data) use ($buffer, &$header, $timeout) {
+            ->then(function ($data) use ($buffer, &$header, &$rawHeaderData, $timeout) {
+                $rawHeaderData = $data;
                 $header = unpack(self::FORMAT, $data);
+
+                if ($header['page_segments'] === 0) {
+                    // RFC 3533 §6: a valid Ogg page must contain at least one lace value.
+                    throw new \UnexpectedValueException('Invalid Ogg page: page_segments must not be zero (RFC 3533 §6).');
+                }
 
                 return $buffer->read($header['page_segments'], timeout: $timeout);
             })
             // Reading page segment lengths
-            ->then(function ($data) use ($buffer, &$pageSegments, $timeout) {
+            ->then(function ($data) use ($buffer, &$pageSegments, &$rawSegmentTable, $timeout) {
+                $rawSegmentTable = $data;
                 $pageSegments = unpack('C*', $data);
                 $data = array_sum($pageSegments);
+
+                if ($data > 65025) {
+                    // Ogg spec maximum: 255 segments × 255 bytes each = 65025 bytes.
+                    throw new \UnexpectedValueException("Invalid Ogg page: body size {$data} exceeds maximum 65025 bytes (255 segments × 255 bytes).");
+                }
 
                 return $buffer->read($data, timeout: $timeout);
             })
             // Reading segment data
-            ->then(function ($data) use (&$header, &$pageSegments) {
+            ->then(function ($data) use (&$header, &$pageSegments, &$rawHeaderData, &$rawSegmentTable) {
+                // Validate Ogg CRC-32 (poly 0x04C11DB7, init 0, no final XOR).
+                // The checksum is computed over the full page with its own 4-byte field zeroed.
+                // The checksum field occupies bytes 22–25 of the page (after 'OggS' + 23-byte header).
+                $fullPage = 'OggS'.$rawHeaderData.$rawSegmentTable.$data;
+                $zeroed = substr($fullPage, 0, 22)."\x00\x00\x00\x00".substr($fullPage, 26);
+                if (self::oggCrc32($zeroed) !== $header['csum']) {
+                    throw new \UnexpectedValueException('Invalid Ogg page checksum: CRC mismatch.');
+                }
+
                 return new OggPage(
                     $header['version'],
                     $header['header_type'],
@@ -110,6 +134,65 @@ class OggPage
                     $data
                 );
             });
+    }
+
+    /**
+     * Precomputed 256-entry CRC lookup table (Ogg polynomial 0x04C11DB7).
+     * Populated once on first use via {@see buildCrcTable()}.
+     *
+     * @var int[]|null
+     */
+    private static ?array $crcTable = null;
+
+    /**
+     * Build the 256-entry CRC lookup table for polynomial 0x04C11DB7.
+     *
+     * @return int[]
+     */
+    private static function buildCrcTable(): array
+    {
+        $table = [];
+        for ($i = 0; $i < 256; $i++) {
+            $crc = $i << 24;
+            for ($j = 0; $j < 8; $j++) {
+                $crc = ($crc & 0x80000000)
+                    ? (($crc << 1) ^ 0x04C11DB7) & 0xFFFFFFFF
+                    : ($crc << 1) & 0xFFFFFFFF;
+            }
+            $table[$i] = $crc;
+        }
+
+        return $table;
+    }
+
+    /**
+     * Compute the Ogg-specific CRC-32 checksum using a precomputed lookup table.
+     *
+     * Uses polynomial 0x04C11DB7 with an initial value of 0 and no final XOR,
+     * which differs from the standard CRC-32 used by PHP's crc32().
+     *
+     * The lookup table reduces the inner 8-iteration bit loop to a single
+     * array access per byte, significantly reducing CPU time on the event loop.
+     *
+     * @param string $data Raw page bytes with the 4-byte checksum field zeroed out.
+     *
+     * @return int The computed CRC-32 value.
+     */
+    private static function oggCrc32(string $data): int
+    {
+        if (self::$crcTable === null) {
+            self::$crcTable = self::buildCrcTable();
+        }
+
+        $crc = 0;
+        $len = strlen($data);
+        $table = self::$crcTable;
+
+        for ($i = 0; $i < $len; $i++) {
+            $crc = ($table[(($crc >> 24) ^ ord($data[$i])) & 0xFF] ^ ($crc << 8)) & 0xFFFFFFFF;
+        }
+
+        return $crc;
     }
 
     /**

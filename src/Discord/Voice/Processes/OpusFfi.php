@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -32,6 +33,17 @@ class OpusFfi implements OpusDecoderInterface
 {
     protected FFI $ffi;
 
+    /** @var array<string, mixed> Persistent decoder handles keyed by "channels:rate". */
+    private array $decoderHandles = [];
+
+    public function __destruct()
+    {
+        foreach ($this->decoderHandles as $decoder) {
+            $this->opus_decoder_destroy($decoder);
+        }
+        $this->decoderHandles = [];
+    }
+
     public function __construct()
     {
         // Load libopus and define needed functions/types
@@ -54,6 +66,17 @@ class OpusFfi implements OpusDecoderInterface
         return new self();
     }
 
+    public static function isAvailable(): bool
+    {
+        try {
+            new self();
+
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /**
      * Creates a FFI instance (code in C) to decode Opus audio data.
      * By using the libopus library, this function decodes Opus-encoded audio data
@@ -66,7 +89,7 @@ class OpusFfi implements OpusDecoderInterface
     public function decode($data, int $channels = 2, int $audioRate = 48000): string
     {
         $dataLength = strlen($data);
-        if ($dataLength < 0) {
+        if ($dataLength <= 0) {
             return '';
         }
 
@@ -77,25 +100,32 @@ class OpusFfi implements OpusDecoderInterface
         $samplesPerFrame = $this->opus_packet_get_samples_per_frame($dataBuffer, $audioRate);
         $frameSize = $frames * $samplesPerFrame;
 
-        // Create decoder
-        $error = $this->ffi->new('int');
-        $decoder = $this->opus_decoder_create($audioRate, $channels, FFI::addr($error));
+        // Lazily create and persist the decoder for this (channels, rate) pair so that
+        // inter-frame codec state (pitch predictors, loss concealment context) is preserved
+        // across packets. Destroying and recreating the decoder per frame causes buzzing.
+        $key = "{$channels}:{$audioRate}";
+        if (! isset($this->decoderHandles[$key])) {
+            $error = $this->ffi->new('int');
+            $decoder = $this->opus_decoder_create($audioRate, $channels, FFI::addr($error));
+            if ($error->cdata !== 0 || $decoder === null) {
+                return '';
+            }
+            $this->decoderHandles[$key] = $decoder;
+        }
 
-        // Prepare output buffer for PCM samples
-        $pcm = $this->ffi->new('opus_int16['.$frameSize * $channels * 2 .']', false);
+        $decoder = $this->decoderHandles[$key];
 
-        // Decode
+        // Buffer sized for exactly frameSize * channels int16 samples.
+        $bufferSize = $frameSize * $channels;
+        $pcm = $this->ffi->new("opus_int16[{$bufferSize}]", false);
+
         $ret = $this->opus_decode($decoder, $dataBuffer, $dataLength, $pcm, $frameSize, 0);
 
-        // Clean up
-        $this->opus_decoder_destroy($decoder);
-
         if ($ret < 0) {
-            /** @todo Handle decoding error */
             return '';
         }
 
-        // 2 bytes per sample
+        // 2 bytes per int16 sample
         return FFI::string($pcm, $ret * $channels * 2);
     }
 

@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -19,7 +20,13 @@ use Discord\Voice\ByteBuffer\FormatPackEnum;
 use Discord\Voice\Exceptions\Libraries\LibSodiumNotFoundException;
 
 /**
- * A voice packet received from Discord.
+ * An RTP voice packet: builds outbound frames and decodes inbound frames.
+ *
+ * Decrypt flow order for inbound packets:
+ *  1. AES-256-GCM transport decrypt (libsodium) — `sodium_crypto_aead_aes256gcm_decrypt()`
+ *  2. Strip RTP header extension payload — `RtpHeader::stripExtensionPayload()`
+ *  3. Optional DAVE inbound callback — `inboundFrameDecryptor` (injected by VoiceClient);
+ *     calls `DaveRuntime::decryptWithDecryptor()` when `passthroughMode = false`.
  *
  * Huge thanks to Austin and Michael from JDA for the constants and audio
  * packets. Check out their repo:
@@ -42,14 +49,14 @@ final class Packet
     protected Buffer $buffer;
 
     /**
-     * The version and flags.
+     * The version and flags (first byte of RTP header: V+P+X+CC bits).
      */
-    public ?string $versionPlusFlags;
+    public ?int $versionPlusFlags = null;
 
     /**
-     * The payload type.
+     * The payload type (second byte of RTP header: M+PT bits).
      */
-    public ?string $payloadType;
+    public ?int $payloadType = null;
 
     /**
      * The encrypted audio.
@@ -79,12 +86,15 @@ final class Packet
     /**
      * Constructs the voice packet.
      *
-     * @param string      $data       The Opus data to encode.
-     * @param int         $ssrc       The client SSRC value.
-     * @param int         $seq        The packet sequence.
-     * @param int         $timestamp  The packet timestamp.
-     * @param bool        $encryption Whether the packet should be encrypted.
-     * @param string|null $key        The encryption key.
+     * @param string                                    $data                   The Opus data to encode.
+     * @param int                                       $ssrc                   The client SSRC value.
+     * @param int                                       $seq                    The packet sequence.
+     * @param int                                       $timestamp              The packet timestamp.
+     * @param bool                                      $encryption             Whether the packet should be encrypted.
+     * @param string|null                               $key                    The encryption key.
+     * @param null|callable(string): string             $outboundFrameEncryptor Optional callback to transform outgoing decrypted frame data.
+     * @param null|callable(string, self): false|string $inboundFrameDecryptor  Optional callback to transform incoming decrypted frame data.
+     * @param int|null                                  $nonce                  32-bit nonce counter for AES-256-GCM. Required for encryption; null is only valid on the decrypt path.
      */
     public function __construct(
         ?string $data = null,
@@ -92,7 +102,10 @@ final class Packet
         public ?int $seq = null,
         public ?int $timestamp = null,
         bool $decrypt = true,
-        protected ?string $key = null
+        protected ?string $key = null,
+        protected mixed $outboundFrameEncryptor = null,
+        protected mixed $inboundFrameDecryptor = null,
+        protected ?int $nonce = null
     ) {
         if (! function_exists('sodium_crypto_secretbox')) {
             throw new LibSodiumNotFoundException('libsodium-php could not be found.');
@@ -137,7 +150,7 @@ final class Packet
             strlen($message) - HeaderValuesEnum::AUTH_TAG_LENGTH->value - HeaderValuesEnum::RTP_HEADER_OR_NONCE_LENGTH->value
         );
 
-        $unpackedMessage = unpack('Cfirst/Csecond/nseq/Ntimestamp/Nssrc', $byteHeader);
+        $unpackedMessage = unpack('Cversion_and_flags/Cpayload_type/nseq/Ntimestamp/Nssrc', $byteHeader);
 
         if (! $unpackedMessage) {
             //$this->log->warning('Failed to unpack voice packet.', ['message' => $message]);
@@ -166,7 +179,7 @@ final class Packet
             $message = $this->rawData ?? null;
         }
 
-        if (empty($message)) {
+        if ($message === '' || $message === null) {
             // throw error here
             return null;
         }
@@ -189,6 +202,9 @@ final class Packet
         //    The message: [header][ciphertext][auth tag][nonce]
         //    The size of the ciphertext is: total - headerSize - 16 (auth tag) - 4 (nonce)
         $encryptedLength = $len - $this->headerSize - HeaderValuesEnum::AUTH_TAG_LENGTH->value - HeaderValuesEnum::TIMESTAMP_OR_NONCE_INDEX->value;
+        if ($encryptedLength < 0) {
+            return false;
+        }
         $cipherText = substr($message, $this->headerSize, $encryptedLength);
         $authTag = substr($message, $this->headerSize + $encryptedLength, HeaderValuesEnum::AUTH_TAG_LENGTH->value);
 
@@ -206,36 +222,52 @@ final class Packet
                 $this->key
             );
 
+            if ($resultMessage !== false && RtpHeader::hasExtension($message)) {
+                $baseHeaderSize = RtpHeader::headerSize($message);
+                $syntheticPacket = substr($message, 0, $baseHeaderSize + 4).$resultMessage;
+                $stripped = RtpHeader::stripExtensionPayload($syntheticPacket, $baseHeaderSize);
+                $resultMessage = substr($stripped, $baseHeaderSize);
+            }
+
+            // Skip DAVE decryption for the standard Opus silence frame — it is never DAVE-encrypted
+            // and passing it to libdave generates noisy "Decrypt skipping silence" C++ log spam.
+            if ($resultMessage !== false && $resultMessage !== "\xF8\xFF\xFE" && is_callable($this->inboundFrameDecryptor)) {
+                $resultMessage = ($this->inboundFrameDecryptor)($resultMessage, $this);
+            }
+
             // If decryption fails, log the error and return
             // Most of the time, the length is 20 bytes either for a ping, or an empty voice/udp packet
-            if ($resultMessage === false && strlen($cipherText) !== 20) {
-                //$this->log->warning('Failed to decode voice packet.', ['ssrc' => $this->ssrc]);
+            if ($resultMessage === false) {
                 return false;
-            }
-            // Check if the message contains an extension and remove it
-            elseif (substr($message, 12, 2) === "\xBE\xDE") {
-                // Reads the 2 bytes after the extension identifier to get the extension length
-                $extLengthData = substr($message, 14, 2);
-                $headerExtensionLength = unpack('n', $extLengthData)[1];
-
-                // Remove 4 * headerExtensionLength bytes from the beginning of the decrypted result
-                $resultMessage = substr($resultMessage, 4 * $headerExtensionLength);
             }
         } catch (\Throwable $e) {
             //$this->log->error('Exception occurred when decoding voice packet: ' . $e->getMessage());
             //$this->log->error('Trace: ' . $e->getTraceAsString());
-            return false;
+            $resultMessage = false;
         } finally {
-            return $this->decryptedAudio = $resultMessage;
+            $this->decryptedAudio = $resultMessage;
         }
+
+        return $resultMessage;
     }
 
     public function encrypt()
     {
         $header = $this->getHeader();
 
+        if (is_callable($this->outboundFrameEncryptor)) {
+            $transformed = ($this->outboundFrameEncryptor)($this->decryptedAudio);
+            if (is_string($transformed)) {
+                $this->decryptedAudio = $transformed;
+            }
+        }
+
+        if ($this->nonce === null) {
+            throw new \LogicException('Nonce must be set before encrypting a packet.');
+        }
+
         // pad nonce to 12 bytes for AES 256 GCM
-        $nonce = pack('V', $this->seq - 1);
+        $nonce = pack('V', $this->nonce);
         $paddedNonce = str_pad($nonce, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES, "\0", STR_PAD_RIGHT);
 
         // encrypt the audio
@@ -243,38 +275,6 @@ final class Packet
 
         // set the raw encrypted data with header prepended and nonce appended
         $this->rawData = $header.$this->encryptedAudio.$nonce;
-    }
-
-    /**
-     * Initilizes the buffer with no encryption.
-     *
-     * @deprecated
-     */
-    protected function initBufferNoEncryption(string $data): void
-    {
-        $data = (string) $data;
-        $header = $this->buildHeader();
-
-        $this->buffer = Buffer::make(strlen((string) $header) + strlen($data))
-            ->write((string) $header, 0)
-            ->write($data, 12);
-    }
-
-    /**
-     * Initilizes the buffer with encryption.
-     */
-    protected function initBufferEncryption(string $data, string $key): void
-    {
-        $data = (string) $data;
-        $header = $this->buildHeader();
-        $nonce = new Buffer(24);
-        $nonce->write((string) $header, 0);
-
-        $data = \sodium_crypto_secretbox($data, (string) $nonce, $key);
-
-        $this->buffer = new Buffer(strlen((string) $header) + strlen($data));
-        $this->buffer->write((string) $header, 0);
-        $this->buffer->write($data, 12);
     }
 
     /**
@@ -306,9 +306,8 @@ final class Packet
             return null;
         }
 
-        $this->headerSize = HeaderValuesEnum::RTP_HEADER_OR_NONCE_LENGTH->value;
-        $firstByte = ord($message[0]);
-        if (($firstByte >> 4) & 0x01) {
+        $this->headerSize = RtpHeader::headerSize($message);
+        if (RtpHeader::hasExtension($message)) {
             $this->headerSize += 4;
         }
 

@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -26,14 +27,15 @@ final class SocketFactory extends Factory
     public function __construct($loop = null, $resolver = null, ?WS $ws = null)
     {
         if (null === $resolver) {
+            if ($ws === null) {
+                throw new \InvalidArgumentException('A DNS resolver or WS instance must be provided to SocketFactory.');
+            }
             $resolver = (new DnsFactory())->createCached($ws->data['dnsConfig'], $loop);
         }
 
         parent::__construct($loop, $resolver);
 
-        if ($ws !== null) {
-            $this->ws = $ws;
-        }
+        $this->ws = $ws;
     }
 
     public function createClient($address)

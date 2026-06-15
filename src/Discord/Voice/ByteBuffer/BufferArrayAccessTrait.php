@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -53,14 +54,15 @@ trait BufferArrayAccessTrait
     }
 
     /**
-     * Writes a unsigned integer.
+     * Writes an unsigned 32-bit integer in big-endian byte order so that
+     * {@see self::readUInt()} round-trips the same value.
      *
      * @param int $value  The value that will be written.
      * @param int $offset The offset that the value will be written.
      */
     public function writeUInt(int $value, int $offset): self
     {
-        return $this->insert(FormatPackEnum::I, $value, $offset, 4);
+        return $this->insert(FormatPackEnum::N, $value, $offset, 4);
     }
 
     /**
@@ -84,7 +86,7 @@ trait BufferArrayAccessTrait
      */
     public function readUInt(int $offset): int
     {
-        return $this->extract(FormatPackEnum::I, $offset, 4);
+        return $this->extract(FormatPackEnum::N, $offset, 4);
     }
 
     /**
@@ -107,7 +109,7 @@ trait BufferArrayAccessTrait
      */
     public function readShort(int $offset): int
     {
-        return $this->extract(FormatPackEnum::n, $offset, 4);
+        return $this->extract(FormatPackEnum::n, $offset, 2);
     }
 
     /**
@@ -119,7 +121,7 @@ trait BufferArrayAccessTrait
      */
     public function readUIntLE(int $offset): int
     {
-        return $this->extract(FormatPackEnum::I, $offset, 3);
+        return $this->extract(FormatPackEnum::I, $offset, 4);
     }
 
     public function readChar(int $offset): string

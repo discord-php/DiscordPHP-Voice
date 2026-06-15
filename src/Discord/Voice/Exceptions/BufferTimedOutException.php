@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -21,7 +22,7 @@ use RuntimeException;
  *
  * @since 10.0.0
  */
-class BufferTimedOutException extends RuntimeException
+class BufferTimedOutException extends RuntimeException implements VoiceException
 {
     /**
      * Create a new buffer timeout exception.

@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -14,7 +15,7 @@ declare(strict_types=1);
 
 namespace Discord\Voice;
 
-use Evenement\EventEmitter;
+use Evenement\EventEmitterTrait;
 use React\Stream\DuplexStreamInterface;
 use React\Stream\WritableStreamInterface;
 
@@ -24,8 +25,10 @@ use React\Stream\WritableStreamInterface;
  * @deprecated The class was renamed, kept for backwards compatibility.
  * @since 3.2.0
  */
-class RecieveStream extends EventEmitter implements DuplexStreamInterface
+class RecieveStream implements DuplexStreamInterface
 {
+    use EventEmitterTrait;
+
     /**
      * Contains PCM data.
      *
@@ -53,6 +56,11 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
      * @var bool Whether the stream is closed.
      */
     protected $isClosed = false;
+
+    /**
+     * Maximum number of frames to buffer while paused.
+     */
+    private const MAX_PAUSE_BUFFER = 512;
 
     /**
      * The PCM pause buffer.
@@ -88,7 +96,9 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
         }
 
         if ($this->isPaused) {
-            $this->pcmPauseBuffer[] = $pcm;
+            if (count($this->pcmPauseBuffer) < self::MAX_PAUSE_BUFFER) {
+                $this->pcmPauseBuffer[] = $pcm;
+            }
 
             return;
         }
@@ -110,7 +120,9 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
         }
 
         if ($this->isPaused) {
-            $this->opusPauseBuffer[] = $opus;
+            if (count($this->opusPauseBuffer) < self::MAX_PAUSE_BUFFER) {
+                $this->opusPauseBuffer[] = $opus;
+            }
 
             return;
         }
@@ -121,7 +133,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function isReadable()
     {
@@ -129,7 +141,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function isWritable()
     {
@@ -137,16 +149,18 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function write($data)
     {
         $this->writePCM($data);
         $this->writeOpus($data);
+
+        return true;
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function end($data = null)
     {
@@ -154,12 +168,15 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
             return;
         }
 
-        $this->write($data);
+        if (null !== $data) {
+            $this->write($data);
+        }
+
         $this->close();
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function close()
     {
@@ -174,7 +191,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function pause()
     {
@@ -190,7 +207,7 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function resume()
     {
@@ -204,22 +221,39 @@ class RecieveStream extends EventEmitter implements DuplexStreamInterface
 
         $this->isPaused = false;
 
-        foreach ($this->pcmPauseBuffer as $data) {
+        $pcmPauseBuffer = $this->pcmPauseBuffer;
+        $opusPauseBuffer = $this->opusPauseBuffer;
+        $this->pcmPauseBuffer = [];
+        $this->opusPauseBuffer = [];
+
+        foreach ($pcmPauseBuffer as $data) {
             $this->writePCM($data);
         }
 
-        foreach ($this->opusPauseBuffer as $data) {
+        foreach ($opusPauseBuffer as $data) {
             $this->writeOpus($data);
         }
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function pipe(WritableStreamInterface $dest, array $options = [])
     {
-        $this->pipePCM($dest, $options);
-        $this->pipeOpus($dest, $options);
+        $pipeOptions = $options;
+        $pipeOptions['end'] = false;
+
+        $this->pipePCM($dest, $pipeOptions);
+        $this->pipeOpus($dest, $pipeOptions);
+
+        $end = isset($options['end']) ? $options['end'] : true;
+        if ($end && $this !== $dest) {
+            $this->on('end', function () use ($dest) {
+                $dest->end();
+            });
+        }
+
+        return $dest;
     }
 
     /**

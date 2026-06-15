@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -15,10 +16,12 @@ declare(strict_types=1);
 namespace Discord\Voice;
 
 use Discord\Discord;
+use Discord\Voice\Dave\Runtime as DaveRuntime;
 use Discord\Voice\Exceptions\Channels\CantJoinMoreThanOneChannelException;
 use Discord\Voice\Exceptions\Channels\CantSpeakInChannelException;
 use Discord\Voice\Exceptions\Channels\ChannelMustAllowVoiceException;
 use Discord\Voice\Exceptions\Channels\EnterChannelDeniedException;
+use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\WebSockets\VoiceServerUpdate;
 use Discord\Parts\WebSockets\VoiceStateUpdate;
@@ -34,6 +37,7 @@ use React\Promise\PromiseInterface;
  *
  * @requires libopus - Linux | NOT TESTED - WINDOWS
  * @requires FFMPEG - Linux | NOT TESTED - WINDOWS
+ * @requires libdave
  *
  * @since 10.19.0
  */
@@ -42,13 +46,30 @@ final class Manager
     use EventEmitterTrait;
 
     /**
+     * Listener references keyed by guild ID for cleanup.
+     *
+     * @var array<string, \Closure>
+     */
+    private array $stateListeners = [];
+
+    /**
+     * @var array<string, \Closure>
+     */
+    private array $serverListeners = [];
+
+    /**
      * @param Discord               $discord
      * @param array<string, Client> $clients
+     *
+     * @throws LibDaveNotFoundException if libdave is not available
      */
     public function __construct(
         protected Discord $discord,
         public array $clients = [],
     ) {
+        if (! DaveRuntime::isAvailable()) {
+            throw LibDaveNotFoundException::fromRuntimeError();
+        }
     }
 
     /**
@@ -108,9 +129,14 @@ final class Manager
             false
         );
 
-        $discord->on(Event::VOICE_STATE_UPDATE, fn ($state) => $this->stateUpdate($state, $channel));
-        // Creates Voice Client and waits for the voice server update.
-        $discord->on(Event::VOICE_SERVER_UPDATE, fn ($state, Discord $discord) => $this->serverUpdate($state, $channel, $discord, $deferred));
+        $stateListener = fn ($state) => $this->stateUpdate($state, $channel);
+        $serverListener = fn ($state, Discord $discord) => $this->serverUpdate($state, $channel, $discord, $deferred);
+
+        $this->stateListeners[$channel->guild_id] = $stateListener;
+        $this->serverListeners[$channel->guild_id] = $serverListener;
+
+        $discord->on(Event::VOICE_STATE_UPDATE, $stateListener);
+        $discord->on(Event::VOICE_SERVER_UPDATE, $serverListener);
 
         $discord->send(VoicePayload::new(
             Op::OP_UPDATE_VOICE_STATE,
@@ -146,6 +172,30 @@ final class Manager
     }
 
     /**
+     * Removes the server update listener for a guild, if registered.
+     */
+    private function removeServerListener(string|int $guildId): void
+    {
+        if (isset($this->serverListeners[$guildId])) {
+            $this->discord->removeListener(Event::VOICE_SERVER_UPDATE, $this->serverListeners[$guildId]);
+            unset($this->serverListeners[$guildId]);
+        }
+    }
+
+    /**
+     * Removes all gateway listeners for a guild.
+     */
+    private function removeAllListeners(string|int $guildId): void
+    {
+        $this->removeServerListener($guildId);
+
+        if (isset($this->stateListeners[$guildId])) {
+            $this->discord->removeListener(Event::VOICE_STATE_UPDATE, $this->stateListeners[$guildId]);
+            unset($this->stateListeners[$guildId]);
+        }
+    }
+
+    /**
      * Handles the voice state update event to update session information for the voice client.
      *
      * @param \Discord\Parts\WebSockets\VoiceStateUpdate $state
@@ -153,8 +203,12 @@ final class Manager
      */
     public function stateUpdate(VoiceStateUpdate $state, Channel $channel): void
     {
-        if ($state->guild_id != $channel->guild_id) {
+        if ($state->guild_id !== $channel->guild_id) {
             return; // This voice state update isn't for our guild.
+        }
+
+        if ((string) $state->user_id !== (string) $this->discord->id) {
+            return; // Voice state updates are per-user; ignore other users in the guild.
         }
 
         $client = $this->getClient($channel);
@@ -168,7 +222,7 @@ final class Manager
             'mute' => $state->mute,
         ]);
 
-        $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id, 'session_id' => $state->session_id]);
+        $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id]);
         $this->discord->voice_sessions[$channel->guild_id] = $state->session_id;
     }
 
@@ -200,16 +254,20 @@ final class Manager
         $client->once('ready', function () use (&$client, $deferred, $channel) {
             $this->discord->logger->info('voice manager is ready');
             $this->discord->voice->clients[$channel->guild_id] = $client;
+            $this->removeServerListener($channel->guild_id);
             $deferred->resolve($client);
         });
-        $client->once('error', function ($e) use ($deferred) {
+        $client->once('error', function ($e) use ($deferred, $channel) {
             $this->discord->logger->error('error initializing voice manager', ['e' => $e->getMessage()]);
+            $this->removeAllListeners($channel->guild_id);
             $deferred->reject($e);
         });
-        $client->once('close', function () use ($channel) {
+        $client->once('close', function () use ($channel, $deferred) {
             $this->discord->logger->warning('voice manager closed');
             unset($this->discord->voice->clients[$channel->guild_id]);
             unset($this->discord->voice_sessions[$channel->guild_id]);
+            $this->removeAllListeners($channel->guild_id);
+            $deferred->reject(new \RuntimeException('Voice connection closed before becoming ready.'));
         });
 
         $client->setData(

@@ -1,42 +1,81 @@
-name: Unit Tests
+name: Pest Tests
 on:
+  push:
+  pull_request:
   workflow_dispatch:
-
-env:
-  DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-  TEST_CHANNEL: ${{ secrets.TEST_CHANNEL }}
-  TEST_CHANNEL_NAME: ${{ secrets.TEST_CHANNEL_NAME }}
 
 jobs:
   unit-lint:
-    name: PHPUnit and Lint
+    name: Pest and Lint
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'no test')"
-    concurrency: phpunit
+    if: "github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message || '', 'no test')"
+    concurrency: pest
     strategy:
       matrix:
         php:
           - '8.4'
           - '8.3'
-          - '8.2'
-          - '8.1'
-          - '8.0'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: uv, zlib, mbstring
-          tools: phpunit, phplint
+          extensions: uv, zlib, mbstring, ffi
+          tools: ~
       - name: Install dependencies
-        run: composer install
+        run: COMPOSER_ROOT_VERSION=dev-main composer install --no-interaction --prefer-dist
+      - name: Install libopus
+        run: sudo apt-get install -y libopus0
+      - name: Install libdave
+        run: ./scripts/setup-libdave.sh
       - name: Redis Server in GitHub Actions
         uses: supercharge/redis-github-action@1.4.0
       # - name: Memcached Service
       #   uses: niden/actions-memcached@v7
-      - name: Run PHPUnit
-        run: phpunit
+      - name: Run Pest
+        env:
+          DISCORDPHP_DAVE_LIBRARY: ${{ github.workspace }}/.cache/libdave/lib/libdave.so
+        run: composer unit
       - name: Run PHPLint
-        run: phplint
+        run: composer lint
+      - name: Run PHPStan
+        run: COMPOSER_ROOT_VERSION=dev-main ./vendor/bin/phpstan analyse --no-progress
+      - name: Check code style
+        run: ./vendor/bin/php-cs-fixer fix --dry-run --diff
+
+  editorconfig:
+    name: EditorConfig
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: editorconfig-checker/action-editorconfig-checker@v2
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: uv, zlib, mbstring, ffi, xdebug
+      - name: Install dependencies
+        run: COMPOSER_ROOT_VERSION=dev-main composer install --no-interaction --prefer-dist
+      - name: Install libopus
+        run: sudo apt-get install -y libopus0
+      - name: Install libdave
+        run: ./scripts/setup-libdave.sh
+      - name: Run coverage
+        env:
+          XDEBUG_MODE: coverage
+          DISCORDPHP_DAVE_LIBRARY: ${{ github.workspace }}/.cache/libdave/lib/libdave.so
+        run: ./vendor/bin/pest --coverage-clover coverage.xml
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false

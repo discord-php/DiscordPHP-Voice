@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -121,7 +122,7 @@ class OggStream
     private function parsePackets(): PromiseInterface
     {
         return new Promise(function ($resolve, $reject) {
-            OggPage::fromBuffer($this->buffer, timeout: 0)->then(function ($page) use ($resolve) {
+            OggPage::fromBuffer($this->buffer, timeout: -1)->then(function ($page) use ($resolve) {
                 $packets = [];
                 $partial = $this->leftover;
                 foreach ($page->iterPackets() as [$data, $complete]) {
@@ -135,7 +136,8 @@ class OggStream
 
                 $resolve($packets);
             }, function (\Exception $e) use ($resolve, $reject) {
-                if ($e instanceof BufferTimedOutException) {
+                if ($e instanceof BufferTimedOutException || str_contains($e->getMessage(), 'Buffer closed')) {
+                    // Buffer is exhausted — signal EOF to the caller.
                     $resolve(null);
                 } else {
                     $reject($e);

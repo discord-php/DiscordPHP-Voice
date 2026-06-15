@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -29,6 +30,10 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
 
     public function __construct($argument)
     {
+        if (is_int($argument) && $argument < 0) {
+            throw new \OutOfRangeException("Buffer size cannot be negative: {$argument}");
+        }
+
         is_string($argument)
             ? $this->initializeStructs(strlen($argument), $argument)
             : (is_int($argument)
@@ -88,6 +93,15 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      */
     protected function extract(FormatPackEnum|string $format, int $offset, int $length)
     {
+        if ($offset < 0 || $length < 0 || ($offset + $length) > $this->buffer->getSize()) {
+            throw new \OutOfRangeException(sprintf(
+                'ByteBuffer read out of bounds: offset=%d, length=%d, buffer size=%d',
+                $offset,
+                $length,
+                $this->buffer->getSize()
+            ));
+        }
+
         $encoded = '';
         for ($i = 0; $i < $length; $i++) {
             $encoded .= $this->buffer->offsetGet($offset + $i);
@@ -116,6 +130,10 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      */
     protected function checkForOverSize($expectedMax, string|int $actual): self
     {
+        if (is_int($actual) && $actual < 0) {
+            throw new \OutOfRangeException("Buffer size cannot be negative: {$actual}");
+        }
+
         if ($actual > $expectedMax) {
             throw new \InvalidArgumentException('actual exceeded expectedMax limit');
         }

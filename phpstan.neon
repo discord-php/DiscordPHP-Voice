@@ -1,0 +1,203 @@
+parameters:
+    level: 5
+    paths:
+        - src
+    excludePaths:
+        - src/Discord/Voice/Helpers
+        # OpEnum deliberately reuses integer values across gateway/voice/close-code namespaces;
+        # PHPStan rejects duplicate enum values via a non-suppressible diagnostic
+        - src/Discord/WebSockets/OpEnum.php
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # DiscordPHP core accesses protected $logger, $options, $loop — intentional internal coupling
+        - message: '#Access to protected property Discord\\Discord::\$(logger|options|loop)#'
+          reportUnmatched: false
+
+        # VoiceClient accesses protected $ssrcToUserId from WS (sibling class in same subsystem)
+        - message: '#Access to protected property Discord\\Voice\\Client::\$ssrcToUserId#'
+          reportUnmatched: false
+
+        # VoiceStateUpdate and VoiceServerUpdate are DiscordPHP magic Parts with dynamic @property annotations
+        - message: '#Access to an undefined property Discord\\Parts\\WebSockets\\VoiceStateUpdate::#'
+          reportUnmatched: false
+
+        # OpEnum PHPDoc on line 329 — file is excluded due to intentional duplicate enum values
+        - path: src/Discord/WebSockets/VoicePayload.php
+          message: '#PHPDoc tag @property has invalid value#'
+          reportUnmatched: false
+
+        # WS::make() is typed for Client (the subclass alias) but VoiceClient is the real class
+        - message: '#Parameter \#1 \$vc of static method Discord\\Voice\\Client\\WS::make\(\) expects Discord\\Voice\\Client, .* given#'
+          reportUnmatched: false
+
+        # WS::make() return type is declared as Client but new static() returns VoiceClient
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#Method Discord\\Voice\\VoiceClient::make\(\) should return Discord\\Voice\\Client but returns static#'
+          reportUnmatched: false
+
+        # new static() in make() is intentional for subclass support
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#Unsafe usage of new static\(\)#'
+          reportUnmatched: false
+
+        # PHPDoc @return on setters uses VoiceClient for chaining; static subtype is intentional
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#PHPDoc tag @return with type Discord\\Voice\\VoiceClient is not subtype of native type static#'
+          reportUnmatched: false
+
+        # voiceDecoders is reset to [] on stopRecording(); ExCollectionInterface typing is overly strict
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#Property Discord\\Voice\\VoiceClient::\$voiceDecoders .* does not accept array#'
+          reportUnmatched: false
+
+        # match-arm assignment pattern: $user/$ssrc from Collection->get() — PHPStan can't narrow after truthy-check
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#Cannot access property \$speaking on true#'
+          reportUnmatched: false
+
+        # UDP::handleAudioData() returns void; result is intentionally discarded in the datagram callback
+        - path: src/Discord/Voice/Client/UDP.php
+          message: '#Result of method Discord\\Voice\\VoiceClient::handleAudioData\(\) \(void\) is used#'
+          reportUnmatched: false
+
+        # React\Datagram\Socket accepts React\Datagram\Buffer|null; our Buffer is a compatible value object
+        - path: src/Discord/Voice/Client/UDP.php
+          message: '#Parameter \#3 \$buffer of method React\\Datagram\\Socket::__construct\(\) expects React\\Datagram\\Buffer\|null#'
+          reportUnmatched: false
+
+        # React EventLoop null-check pattern — loop is always set at this point
+        - path: src/Discord/Voice/Client/UDP.php
+          message: '#Strict comparison using === between null and React\\EventLoop\\LoopInterface will always evaluate to false#'
+          reportUnmatched: false
+
+        # WS message dispatcher calls handlers with BinaryFrame|Payload union; handlers declare Payload for docs
+        - path: src/Discord/Voice/Client/WS.php
+          message: '#Parameter \#1 \$data of method Discord\\Voice\\Client\\WS::handle.*\(\) expects Discord\\WebSockets\\Payload, Discord\\Voice\\Dave\\BinaryFrame given#'
+          reportUnmatched: false
+
+        # WS::resolveDaveGroupId() may return string-only at runtime depending on DAVE state
+        - path: src/Discord/Voice/Client/WS.php
+          message: '#Method Discord\\Voice\\Client\\WS::resolveDaveGroupId\(\) never returns int#'
+          reportUnmatched: false
+
+        # Nullsafe ?-> in WS::__construct() used defensively; PHPStan knows $this is non-null
+        - path: src/Discord/Voice/Client/WS.php
+          message: '#Using nullsafe property access on non-nullable type \$this\(Discord\\Voice\\Client\\WS\)#'
+          reportUnmatched: false
+
+        # PHPDoc @var without variable name — benign documentation style
+        - path: src/Discord/Voice/Client/WS.php
+          message: '#PHPDoc tag @var does not specify variable name#'
+          reportUnmatched: false
+
+        # LoggerInterface::error() returns void; result is used inside a ternary/arrow — PHPStan false positive
+        - path: src/Discord/Voice/Client/WS.php
+          message: '#Result of method Psr\\Log\\LoggerInterface::error\(\) \(void\) is used#'
+          reportUnmatched: false
+
+        # SocketFactory uses nullsafe on $this defensively (chained call pattern)
+        - path: src/Discord/Factory/SocketFactory.php
+          message: '#Using nullsafe property access on non-nullable type \$this\(Discord\\Factory\\SocketFactory\)#'
+          reportUnmatched: false
+
+        # Manager PHPDoc @param refers to inline closure parameters by old names
+        - path: src/Discord/Voice/Manager.php
+          message: '#PHPDoc tag @param references unknown parameter: \$guildId#'
+          reportUnmatched: false
+
+        # OggStream @var PhpDoc narrows null init — intentional lazy initialisation
+        - path: src/Discord/Voice/OggStream.php
+          message: '#PHPDoc tag @var with type Discord\\Voice\\OpusHead is not subtype of native type null#'
+          reportUnmatched: false
+
+        # OggStream Promise then() callback — React's callable signature is loosely typed
+        - path: src/Discord/Voice/OggStream.php
+          message: '#Parameter \#2 \$onRejected of method React\\Promise\\PromiseInterface.*::then\(\) expects.*callable.*#'
+          reportUnmatched: false
+
+        # VoiceClient OggStream @var narrowing — intentional lazy-init pattern
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#PHPDoc tag @var with type Discord\\Voice\\OggStream is not subtype of native type null#'
+          reportUnmatched: false
+
+        # VoiceClient then() callback return type — React's generics don't fully constrain closures
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#Parameter \#1 \$onFulfilled of method React\\Promise\\PromiseInterface.*::then\(\) expects.*callable.*#'
+          reportUnmatched: false
+
+        # OggPage parses fields into properties for potential future use / debugging
+        - path: src/Discord/Voice/OggPage.php
+          message: '#Property Discord\\Voice\\OggPage::\$(version|headerType|granulePosition|bitstreamSn|pageSeq|checksum) is never read, only written#'
+          reportUnmatched: false
+
+        # Runtime.php uses FFI in a dynamic way; ext-ffi stubs don't cover all call patterns
+        - path: src/Discord/Voice/Dave/Runtime.php
+          message: '#Static call to instance method FFI::cast\(\)|PHPDoc tag @var with type mixed is not subtype of native type FFI#'
+          reportUnmatched: false
+
+        # Ffmpeg PHPDoc param type annotation is intentionally broad
+        - path: src/Discord/Voice/Processes/Ffmpeg.php
+          message: '#PHPDoc tag @param for parameter \$filename with type mixed is not subtype of native type#'
+          reportUnmatched: false
+
+        # OpusFfi comparison is always false due to PHP extension's int<0,max> narrowing
+        - path: src/Discord/Voice/Processes/OpusFfi.php
+          message: '#Comparison operation "<" between int<0, max> and 0 is always false#'
+          reportUnmatched: false
+
+        # OpusFfi FFI scalar error check — ->cdata is the documented PHP FFI way to read a scalar CData value;
+        # PHPStan has no stubs for this magic property on FFI\CData
+        - path: src/Discord/Voice/Processes/OpusFfi.php
+          message: '#Access to an undefined property FFI\\CData::\$cdata#'
+          reportUnmatched: false
+
+        # Runtime.php PHPDoc tag on $frameDecryptor — union with string is a legacy annotation
+        - path: src/Discord/Voice/Dave/Runtime.php
+          message: '#PHPDoc tag @param for parameter \$frameDecryptor with type .* is not subtype of native type#'
+          reportUnmatched: false
+
+        # Buffer PHPDoc @param excpectedMax is a typo in the legacy param name
+        - path: src/Discord/Voice/ByteBuffer/Buffer.php
+          message: '#PHPDoc tag @param references unknown parameter: \$excpectedMax#'
+          reportUnmatched: false
+
+        # Buffer @param mixed is broader than the native type — legacy annotation
+        - path: src/Discord/Voice/ByteBuffer/Buffer.php
+          message: '#PHPDoc tag @param for parameter \$actual with type mixed is not subtype of native type#'
+          reportUnmatched: false
+
+        # SplFixedArray does not support string offsets; unset on string key is a no-op safety guard
+        - path: src/Discord/Voice/ByteBuffer/BufferArrayAccessTrait.php
+          message: '#Cannot unset offset string on SplFixedArray#'
+          reportUnmatched: false
+
+        # Nullsafe ?-> on non-nullable in ByteBuffer — defensive chaining pattern
+        - path: src/Discord/Voice/ByteBuffer/Buffer.php
+          message: '#Using nullsafe property access ".*" on left side of \?\? is unnecessary#'
+          reportUnmatched: false
+
+        # Packet.php unknown @param name in legacy PHPDoc
+        - path: src/Discord/Voice/Client/Packet.php
+          message: '#PHPDoc tag @param references unknown parameter: \$encryption#'
+          reportUnmatched: false
+
+        # Nullsafe patterns in VoiceClient for isset() guards and ?? chains — defensive coding style
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#Using nullsafe property access.*in isset\(\) is unnecessary|Using nullsafe property access ".*" on left side of \?\? is unnecessary|Using nullsafe property access on non-nullable type Discord\\Voice\\Speaking#'
+          reportUnmatched: false
+
+        # VoiceClient @var udp type annotation includes legacy Socket alias
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#PHPDoc tag @var for property Discord\\Voice\\VoiceClient::\$udp with type.*is not subtype of native type#'
+          reportUnmatched: false
+
+        # VoiceClient strict null check on mixed result from speakingStatus
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#Strict comparison using === between null and mixed will always evaluate to false#'
+          reportUnmatched: false
+
+        # VoiceClient @param references removed from make() docblock
+        - path: src/Discord/Voice/VoiceClient.php
+          message: '#PHPDoc tag @param references unknown parameter: \$(channel|data|deaf|deferred|discord|manager|mute|shouldBoot|createDecoder)#'
+          reportUnmatched: false
+

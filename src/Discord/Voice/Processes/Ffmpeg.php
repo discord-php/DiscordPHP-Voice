@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -72,12 +73,14 @@ final class Ffmpeg extends ProcessAbstract
         ?array $preArgs = null
     ): Process {
         $flags = [
-            '-i', $filename ?? 'pipe:0',
+            '-protocol_whitelist', 'file,http,https,tcp,tls,crypto,pipe',
+            '-fflags', '+nobuffer',
+            '-i', escapeshellarg($filename ?? 'pipe:0'),
             '-map_metadata', '-1',
             '-f', 'opus',
             '-c:a', 'libopus',
             '-ar', parent::DEFAULT_KHZ,
-            '-af', "volume={$volume}dB",
+            '-af', escapeshellarg("volume={$volume}dB"),
             '-ac', '2',
             '-b:a', $bitrate,
             '-loglevel', 'warning',
@@ -85,7 +88,7 @@ final class Ffmpeg extends ProcessAbstract
         ];
 
         if (null !== $preArgs) {
-            $flags = array_merge($preArgs, $flags);
+            $flags = array_merge(array_map('escapeshellarg', $preArgs), $flags);
         }
 
         $flags = implode(' ', $flags);
@@ -130,7 +133,7 @@ final class Ffmpeg extends ProcessAbstract
         }
 
         if ($filename) {
-            $filename = date('Y-m-d_H-i').'-'.$filename;
+            $filename = sys_get_temp_dir().DIRECTORY_SEPARATOR.date('Y-m-d_H-i').'-'.$filename;
             if (! str_ends_with($filename, '.ogg')) {
                 $filename .= '.ogg';
             }
@@ -150,11 +153,11 @@ final class Ffmpeg extends ProcessAbstract
             '-ar', parent::DEFAULT_KHZ,
             '-ac', $channels,
             '-b:a', $bitrate,
-            $filename,
+            escapeshellarg($filename),
         ];
 
         if (null !== $preArgs) {
-            $flags = array_merge($preArgs, $flags);
+            $flags = array_merge(array_map('escapeshellarg', $preArgs), $flags);
         }
 
         $flags = implode(' ', $flags);

@@ -7,6 +7,7 @@ declare(strict_types=1);
  *
  * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
  * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
  *
  * This file is subject to the MIT license that is bundled
  * with this source code in the LICENSE.md file.
@@ -28,7 +29,7 @@ use React\EventLoop\LoopInterface;
  *
  * @since 10.19.0
  */
-final class UDP extends Socket
+class UDP extends Socket
 {
     /**
      * The Parent Voice WebSocket Client.
@@ -43,7 +44,7 @@ final class UDP extends Socket
     /**
      * The Opus Silence Frame.
      */
-    public const string SILENCE_FRAME = "\0xF8\0xFF\0xFE";
+    public const string SILENCE_FRAME = "\xF8\xFF\xFE";
 
     /**
      * The stream time of the last packet.
@@ -110,7 +111,18 @@ final class UDP extends Socket
     public function handleMessages(string $secret): self
     {
         return $this->on('message', function (string $message) use ($secret) {
-            if (strlen($message) <= 8) {
+            // Minimum valid RTP+encryption overhead: 12 (header) + 4 (nonce) + 16 (auth tag) = 32 bytes
+            if (strlen($message) < 32) {
+                return null;
+            }
+
+            // Per RFC 5761: reject non-RTP-v2 packets and RTCP packets (PT 72-95, which maps to
+            // RTCP payload types 200-223 after stripping the marker bit). Discord voice RTP uses
+            // PT=0x78 (120), so this will not affect legitimate audio packets.
+            $byte0 = ord($message[0]);
+            $byte1 = ord($message[1]);
+            $pt = $byte1 & 0x7F;
+            if (($byte0 & 0xC0) !== 0x80 || ($pt >= 72 && $pt <= 95)) {
                 return null;
             }
 
@@ -118,7 +130,11 @@ final class UDP extends Socket
                 return null;
             }
 
-            return $this->ws->vc->handleAudioData(new Packet($message, key: $secret));
+            return $this->ws->vc->handleAudioData(new Packet(
+                $message,
+                key: $secret,
+                inboundFrameDecryptor: [$this->ws->vc, 'decryptDaveFrame']
+            ));
         });
     }
 
@@ -195,9 +211,29 @@ final class UDP extends Socket
              */
             $unpackedMessageArray = \unpack('C2Type/nLength/NSSRC/A64Address/nPort', $message);
 
-            $this->ws->vc->ssrc = $unpackedMessageArray['SSRC'];
-            $ip = $unpackedMessageArray['Address'];
+            $discoveredSsrc = $unpackedMessageArray['SSRC'];
+            if ($this->ws->vc->ssrc !== null && $discoveredSsrc !== $this->ws->vc->ssrc) {
+                $this->getLogger()->warning('IP discovery SSRC mismatch — keeping expected SSRC', [
+                    'expected' => $this->ws->vc->ssrc,
+                    'discovered' => $discoveredSsrc,
+                ]);
+            } else {
+                $this->ws->vc->ssrc = $discoveredSsrc;
+            }
+            $ip = rtrim($unpackedMessageArray['Address'], "\0");
             $port = $unpackedMessageArray['Port'];
+
+            if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
+                $this->getLogger()->warning('IP discovery returned an invalid IP address', ['ip' => $ip]);
+
+                return;
+            }
+
+            if ($port < 1 || $port > 65535) {
+                $this->getLogger()->warning('IP discovery returned an out-of-range port', ['port' => $port]);
+
+                return;
+            }
 
             $this->getLogger()->debug('received our IP and port', ['ip' => $ip, 'port' => $port]);
 
@@ -233,7 +269,7 @@ final class UDP extends Socket
      */
     public function insertSilence(): void
     {
-        while (--$this->silenceRemaining > 0) {
+        while ($this->silenceRemaining-- > 0) {
             $this->sendBuffer(self::SILENCE_FRAME);
         }
     }
@@ -253,13 +289,33 @@ final class UDP extends Socket
             $this->ws->vc->seq,
             $this->ws->vc->timestamp,
             false,
-            $this->ws->secretKey,
+            $this->ws->getSecretKey(),
+            [$this->ws->vc, 'encryptDaveFrame'],
+            null,
+            $this->ws->vc->nonce,
         );
         $this->send($packet->getEncryptedMessage());
 
         $this->streamTime = (int) microtime(true);
-
         $this->ws->vc->emit('packet-sent', [$packet]);
+
+        // Advance counters — shared path for both audio and silence frames.
+        if (++$this->ws->vc->seq >= 2 ** 16) {
+            $this->ws->vc->seq = 0;
+        }
+
+        if (++$this->ws->vc->nonce >= 2 ** 32) {
+            $this->ws->vc->nonce = 0;
+            $this->ws->vc->discord->getLogger()->critical(
+                'Voice nonce counter wrapped at 2^32. Triggering reconnect.',
+                ['guild' => $this->ws->vc->channel->guild_id ?? null]
+            );
+            $this->ws->vc->handleVoiceServerChange($this->ws->vc->data ?? []);
+        }
+
+        if (($this->ws->vc->timestamp += ($this->ws->vc->frameSize * 48)) >= 2 ** 32) {
+            $this->ws->vc->timestamp = 0;
+        }
     }
 
     /**
