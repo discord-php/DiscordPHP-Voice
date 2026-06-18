@@ -10,7 +10,7 @@ jobs:
     if: github.event_name == 'release' || contains(github.event.head_commit.message, 'build docs')
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
