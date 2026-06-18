@@ -23,6 +23,13 @@ use Discord\Voice\Processes\ProcessAbstract;
 use React\ChildProcess\Process;
 use ReflectionProperty;
 
+// Skip this entire test file on Windows where shell quoting and binary
+// discovery behave differently from Unix. See CI for Unix expectations.
+if (defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'Windows') {
+    it('ProcessWrapperTest skipped on Windows', function (): void {})->skip('Unix-only tests — skipping on Windows.');
+    return;
+}
+
 const FIXTURE_BINARIES = __DIR__.'/../../../Fixtures/Binaries';
 
 function getProcessCommand(Process $process): string

@@ -497,7 +497,11 @@ it('handleAudioData() without FFI decoder emits channel-opus from the raw Opus f
 // 7c. Per-SSRC OpusFfi decoder isolation
 // ---------------------------------------------------------------------------
 
-it('handleAudioData() with OpusFfi decoder creates a distinct per-SSRC ffiDecoder instance', function (): void {
+if (! OpusFfi::isAvailable()) {
+    it('handleAudioData() with OpusFfi decoder creates a distinct per-SSRC ffiDecoder instance', function (): void {
+    })->skip('libopus / OpusFfi not available on this system.');
+} else {
+    it('handleAudioData() with OpusFfi decoder creates a distinct per-SSRC ffiDecoder instance', function (): void {
     $vc = (new \ReflectionMethod(\PHPUnit\Framework\TestCase::class, 'getMockBuilder'))
         ->invoke($this, VoiceClient::class)
         ->disableOriginalConstructor()
@@ -537,9 +541,14 @@ it('handleAudioData() with OpusFfi decoder creates a distinct per-SSRC ffiDecode
     expect($decoders)->toHaveKey(7001)
         ->toHaveKey(7002);
     expect($decoders[7001])->not->toBe($decoders[7002], 'each SSRC must have its own independent OpusFfi instance');
-});
+    });
+}
 
-it('handleAudioData() with OpusFfi reuses the same ffiDecoder instance for repeated packets from one SSRC', function (): void {
+if (! OpusFfi::isAvailable()) {
+    it('handleAudioData() with OpusFfi reuses the same ffiDecoder instance for repeated packets from one SSRC', function (): void {
+    })->skip('libopus / OpusFfi not available on this system.');
+} else {
+    it('handleAudioData() with OpusFfi reuses the same ffiDecoder instance for repeated packets from one SSRC', function (): void {
     $vc = (new \ReflectionMethod(\PHPUnit\Framework\TestCase::class, 'getMockBuilder'))
         ->invoke($this, VoiceClient::class)
         ->disableOriginalConstructor()
@@ -579,7 +588,8 @@ it('handleAudioData() with OpusFfi reuses the same ffiDecoder instance for repea
 
     expect($decoders)->toHaveCount(1);
     expect($decoders)->toHaveKey($ssrc);
-});
+    });
+}
 
 // ---------------------------------------------------------------------------
 // 8. record() auto-initialisation of OpusFfi
