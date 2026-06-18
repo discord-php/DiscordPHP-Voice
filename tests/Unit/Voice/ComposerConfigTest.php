@@ -32,11 +32,10 @@ it('composer.json has required metadata fields', function (): void {
 // 2. composer.json — runtime require declarations
 // ---------------------------------------------------------------------------
 
-/** 
+/**
  * EXPECTED TO FAIL: ext-ffi is required at runtime for the DAVE native library, but it is not declared in the `require` section of composer.json.
  * The fix is to add "ext-ffi": "*" to the require block.
  */
-
 
 // Check that ext-ffi has been loaded successfully, otherwise attempt to load it.
 if (! extension_loaded('ffi')) {
@@ -44,14 +43,15 @@ if (! extension_loaded('ffi')) {
 
     if (function_exists('dl') && (bool) ini_get('enable_dl')) {
         $candidates = [
-            'ffi.' . PHP_SHLIB_SUFFIX,
+            'ffi.'.PHP_SHLIB_SUFFIX,
             'ffi.so',
             'ffi.dll',
             'php_ffi.dll',
         ];
 
         foreach ($candidates as $candidate) {
-            set_error_handler(static function(): void { });
+            set_error_handler(static function (): void {
+            });
             $ok = @dl($candidate);
             restore_error_handler();
 

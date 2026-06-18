@@ -27,7 +27,9 @@ use ReflectionProperty;
 
 // Skip this test file on Windows where command quoting differs from Unix.
 if (defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'Windows') {
-    it('EncoderTest skipped on Windows', function (): void {})->skip('Unix-only tests — skipping on Windows.');
+    it('EncoderTest skipped on Windows', function (): void {
+    })->skip('Unix-only tests — skipping on Windows.');
+
     return;
 }
 

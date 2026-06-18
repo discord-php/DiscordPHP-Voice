@@ -502,45 +502,45 @@ if (! OpusFfi::isAvailable()) {
     })->skip('libopus / OpusFfi not available on this system.');
 } else {
     it('handleAudioData() with OpusFfi decoder creates a distinct per-SSRC ffiDecoder instance', function (): void {
-    $vc = (new \ReflectionMethod(\PHPUnit\Framework\TestCase::class, 'getMockBuilder'))
-        ->invoke($this, VoiceClient::class)
-        ->disableOriginalConstructor()
-        ->onlyMethods(['createDecoder'])
-        ->getMock();
+        $vc = (new \ReflectionMethod(\PHPUnit\Framework\TestCase::class, 'getMockBuilder'))
+            ->invoke($this, VoiceClient::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['createDecoder'])
+            ->getMock();
 
-    initVcForReceiveExt($vc);
-    $vc->record();
-    $vc->voiceDecoders = [];
-    $vc->receiveStreams = [];
+        initVcForReceiveExt($vc);
+        $vc->record();
+        $vc->voiceDecoders = [];
+        $vc->receiveStreams = [];
 
-    $opusFfi = new class extends OpusFfi {
-        public function decode($data, int $channels = 2, int $audioRate = 48000): string
-        {
-            return str_repeat("\x00", 960 * 2 * 2);
+        $opusFfi = new class extends OpusFfi {
+            public function decode($data, int $channels = 2, int $audioRate = 48000): string
+            {
+                return str_repeat("\x00", 960 * 2 * 2);
+            }
+        };
+        $vc->opusdecoder = $opusFfi;
+
+        foreach ([7001, 7002] as $ssrc) {
+            $col = Collection::for(Speaking::class, 'ssrc');
+            $col->pushItem(makeSpeakingExt($ssrc, "user-{$ssrc}"));
+            setVcSpeakingStatusExt($vc, $col);
+
+            $fakeDecoder = makeFakeDecoderExt(writable: true);
+            $vc->method('createDecoder')
+                ->willReturnCallback(function ($ss) use ($vc, $fakeDecoder): void {
+                    $vc->voiceDecoders[$ss->ssrc] = $fakeDecoder;
+                });
+            $vc->handleAudioData(makeReceivePacketExt($ssrc, str_repeat("\xAB", 32)));
         }
-    };
-    $vc->opusdecoder = $opusFfi;
 
-    foreach ([7001, 7002] as $ssrc) {
-        $col = Collection::for(Speaking::class, 'ssrc');
-        $col->pushItem(makeSpeakingExt($ssrc, "user-{$ssrc}"));
-        setVcSpeakingStatusExt($vc, $col);
+        $ffiDecodersProp = new \ReflectionProperty(VoiceClient::class, 'ffiDecoders');
+        $ffiDecodersProp->setAccessible(true);
+        $decoders = $ffiDecodersProp->getValue($vc);
 
-        $fakeDecoder = makeFakeDecoderExt(writable: true);
-        $vc->method('createDecoder')
-            ->willReturnCallback(function ($ss) use ($vc, $fakeDecoder): void {
-                $vc->voiceDecoders[$ss->ssrc] = $fakeDecoder;
-            });
-        $vc->handleAudioData(makeReceivePacketExt($ssrc, str_repeat("\xAB", 32)));
-    }
-
-    $ffiDecodersProp = new \ReflectionProperty(VoiceClient::class, 'ffiDecoders');
-    $ffiDecodersProp->setAccessible(true);
-    $decoders = $ffiDecodersProp->getValue($vc);
-
-    expect($decoders)->toHaveKey(7001)
-        ->toHaveKey(7002);
-    expect($decoders[7001])->not->toBe($decoders[7002], 'each SSRC must have its own independent OpusFfi instance');
+        expect($decoders)->toHaveKey(7001)
+            ->toHaveKey(7002);
+        expect($decoders[7001])->not->toBe($decoders[7002], 'each SSRC must have its own independent OpusFfi instance');
     });
 }
 
@@ -549,45 +549,45 @@ if (! OpusFfi::isAvailable()) {
     })->skip('libopus / OpusFfi not available on this system.');
 } else {
     it('handleAudioData() with OpusFfi reuses the same ffiDecoder instance for repeated packets from one SSRC', function (): void {
-    $vc = (new \ReflectionMethod(\PHPUnit\Framework\TestCase::class, 'getMockBuilder'))
-        ->invoke($this, VoiceClient::class)
-        ->disableOriginalConstructor()
-        ->onlyMethods(['createDecoder'])
-        ->getMock();
+        $vc = (new \ReflectionMethod(\PHPUnit\Framework\TestCase::class, 'getMockBuilder'))
+            ->invoke($this, VoiceClient::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['createDecoder'])
+            ->getMock();
 
-    initVcForReceiveExt($vc);
-    $vc->record();
-    $vc->voiceDecoders = [];
-    $vc->receiveStreams = [];
+        initVcForReceiveExt($vc);
+        $vc->record();
+        $vc->voiceDecoders = [];
+        $vc->receiveStreams = [];
 
-    $opusFfi = new class extends OpusFfi {
-        public function decode($data, int $channels = 2, int $audioRate = 48000): string
-        {
-            return str_repeat("\x00", 960 * 2 * 2);
-        }
-    };
-    $vc->opusdecoder = $opusFfi;
+        $opusFfi = new class extends OpusFfi {
+            public function decode($data, int $channels = 2, int $audioRate = 48000): string
+            {
+                return str_repeat("\x00", 960 * 2 * 2);
+            }
+        };
+        $vc->opusdecoder = $opusFfi;
 
-    $ssrc = 8001;
-    $col = Collection::for(Speaking::class, 'ssrc');
-    $col->pushItem(makeSpeakingExt($ssrc, 'user-8001'));
-    setVcSpeakingStatusExt($vc, $col);
+        $ssrc = 8001;
+        $col = Collection::for(Speaking::class, 'ssrc');
+        $col->pushItem(makeSpeakingExt($ssrc, 'user-8001'));
+        setVcSpeakingStatusExt($vc, $col);
 
-    $fakeDecoder = makeFakeDecoderExt(writable: true);
-    $vc->method('createDecoder')
-        ->willReturnCallback(function ($ss) use ($vc, $fakeDecoder): void {
-            $vc->voiceDecoders[$ss->ssrc] = $fakeDecoder;
-        });
+        $fakeDecoder = makeFakeDecoderExt(writable: true);
+        $vc->method('createDecoder')
+            ->willReturnCallback(function ($ss) use ($vc, $fakeDecoder): void {
+                $vc->voiceDecoders[$ss->ssrc] = $fakeDecoder;
+            });
 
-    $vc->handleAudioData(makeReceivePacketExt($ssrc, str_repeat("\xAB", 32)));
-    $vc->handleAudioData(makeReceivePacketExt($ssrc, str_repeat("\xCD", 32)));
+        $vc->handleAudioData(makeReceivePacketExt($ssrc, str_repeat("\xAB", 32)));
+        $vc->handleAudioData(makeReceivePacketExt($ssrc, str_repeat("\xCD", 32)));
 
-    $ffiDecodersProp = new \ReflectionProperty(VoiceClient::class, 'ffiDecoders');
-    $ffiDecodersProp->setAccessible(true);
-    $decoders = $ffiDecodersProp->getValue($vc);
+        $ffiDecodersProp = new \ReflectionProperty(VoiceClient::class, 'ffiDecoders');
+        $ffiDecodersProp->setAccessible(true);
+        $decoders = $ffiDecodersProp->getValue($vc);
 
-    expect($decoders)->toHaveCount(1);
-    expect($decoders)->toHaveKey($ssrc);
+        expect($decoders)->toHaveCount(1);
+        expect($decoders)->toHaveKey($ssrc);
     });
 }
 
