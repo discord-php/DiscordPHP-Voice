@@ -128,11 +128,11 @@ if (defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'Windows') {
     it('open() throws RuntimeException when path is not writable', function (): void {
     })->skip('Path semantics differ on Windows; skipping this Unix-specific assertion.');
 } else {
-    it('open() throws RuntimeException when path is not writable', function (): void {
+    withoutErrorHandler(it('open() throws RuntimeException when path is not writable', function (): void {
         $writer = new WavWriter('/nonexistent/path/file.wav');
 
         expect(fn () => @$writer->open())->toThrow(\RuntimeException::class);
-    });
+    }));
 }
 
 // ---------------------------------------------------------------------------

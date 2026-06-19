@@ -116,11 +116,11 @@ HEADER);
     $this->assertStringContainsString('void daveFree(void* ptr);', $result);
 });
 
-it('returns null for nonexistent header file', function (): void {
+withoutErrorHandler(it('returns null for nonexistent header file', function (): void {
     $result = Runtime::loadHeaderDefinitions('/nonexistent/path/dave.h');
 
     $this->assertNull($result);
-});
+}));
 
 it('returns null for empty header file', function (): void {
     $header = createTempHeader('');
