@@ -13,7 +13,7 @@ declare(strict_types=1);
  * with this source code in the LICENSE.md file.
  */
 
-namespace Discord\Voice;
+namespace Discord\Voice\Ogg;
 
 /**
  * Represents Vorbis tags attached to an Opus Ogg file.

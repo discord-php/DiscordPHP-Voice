@@ -1,0 +1,231 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is a part of the DiscordPHP project.
+ *
+ * Copyright (c) 2015-2022 David Cole <david.cole1340@gmail.com>
+ * Copyright (c) 2020-present Valithor Obsidion <valithor@discordphp.org>
+ * Copyright (c) 2025-present Alexandre Candeias (Sky) <sky@discordphp.org>
+ *
+ * This file is subject to the MIT license that is bundled
+ * with this source code in the LICENSE.md file.
+ */
+
+namespace Discord\Voice\Ogg;
+
+use Discord\Voice\Exceptions\BufferTimedOutException;
+use Evenement\EventEmitterTrait;
+use React\EventLoop\Loop;
+use React\EventLoop\LoopInterface;
+use React\Promise\Deferred;
+use React\Promise\PromiseInterface;
+use React\Stream\WritableStreamInterface;
+
+/**
+ * @since 6.0.0
+ */
+class Buffer implements WritableStreamInterface
+{
+    use EventEmitterTrait;
+
+    /**
+     * Internal buffer.
+     *
+     * @var string
+     */
+    protected $buffer = '';
+
+    /**
+     * Array of deferred reads waiting to be resolved.
+     *
+     * @var Deferred[]|int[]
+     */
+    protected $reads = [];
+
+    /**
+     * Whether the buffer has been closed.
+     *
+     * @var bool
+     */
+    protected $closed = false;
+
+    /**
+     * ReactPHP event loop.
+     * Required for timeouts.
+     *
+     * @var LoopInterface
+     */
+    protected $loop;
+
+    /** @param LoopInterface|null $loop ReactPHP event loop used for read timeouts; defaults to the global loop. */
+    public function __construct(?LoopInterface $loop = null)
+    {
+        $this->loop = $loop ?? Loop::get();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function write($data): bool
+    {
+        if ($this->closed) {
+            return false;
+        }
+
+        $this->buffer .= (string) $data;
+
+        foreach ($this->reads as $key => [$deferred, $length]) {
+            if (($output = $this->readRaw($length)) !== false) {
+                $deferred->resolve($output);
+                unset($this->reads[$key]);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Reads from the buffer and returns in a string.
+     * Returns false if there were not enough bytes in the buffer.
+     *
+     * @param int $length Number of bytes to read.
+     *
+     * @return string|bool The bytes read, or false if not enough bytes are present.
+     */
+    protected function readRaw(int $length)
+    {
+        if (strlen($this->buffer) >= $length) {
+            $output = substr($this->buffer, 0, $length);
+            $this->buffer = substr($this->buffer, $length);
+
+            return $output;
+        }
+
+        return false;
+    }
+
+    /**
+     * Reads from the buffer and returns a promise.
+     * The promise will resolve when there are enough bytes in the buffer to
+     * read.
+     *
+     * @param int         $length  Number of bytes to read.
+     * @param string|null $format  Format to read the bytes in. See `pack()`.
+     * @param int         $timeout Time in milliseconds before the read times out.
+     *
+     * @return PromiseInterface<mixed, \RuntimeException>
+     *
+     * @throws \RuntimeException When there is an error unpacking the read bytes.
+     */
+    public function read(int $length, ?string $format = null, ?int $timeout = -1): PromiseInterface
+    {
+        $deferred = new Deferred();
+
+        if (($output = $this->readRaw($length)) !== false) {
+            $deferred->resolve($output);
+        } elseif ($this->closed) {
+            $deferred->reject(new \RuntimeException('Buffer closed'));
+        } else {
+            $this->reads[] = [$deferred, $length];
+            $key = array_key_last($this->reads);
+            $rejectTimedOutRead = function () use ($deferred, $key): void {
+                unset($this->reads[$key]);
+                $deferred->reject(new BufferTimedOutException());
+            };
+
+            if ($timeout > 0 && $this->loop !== null) {
+                $timer = $this->loop->addTimer($timeout / 1000, $rejectTimedOutRead);
+
+                $deferred->promise()->then(function () use ($timer) {
+                    $this->loop->cancelTimer($timer);
+                });
+            } elseif ($timeout === 0) {
+                $rejectTimedOutRead();
+            }
+        }
+
+        $promise = $deferred->promise();
+        $promise->then(null, static fn () => null);
+
+        return $promise->then(function ($d) use ($format) {
+            if ($format !== null) {
+                $unpacked = unpack($format, $d);
+
+                if ($unpacked === false) {
+                    throw new \RuntimeException('Error unpacking buffer.');
+                }
+
+                return reset($unpacked);
+            }
+
+            return $d;
+        });
+    }
+
+    /**
+     * Reads a signed 32-bit integer from the buffer.
+     *
+     * @param int $timeout Time in milliseconds before the read times out.
+     *
+     * @return PromiseInterface<int, \RuntimeException>
+     *
+     * @throws \RuntimeException When there is an error unpacking the read bytes.
+     */
+    public function readInt32(int $timeout = -1): PromiseInterface
+    {
+        return $this->read(4, 'l', $timeout);
+    }
+
+    /**
+     * Reads a signed 16-bit integer from the buffer.
+     *
+     * @param int $timeout Time in milliseconds before the read times out.
+     *
+     * @return PromiseInterface<int, \RuntimeException>
+     *
+     * @throws \RuntimeException When there is an error unpacking the read bytes.
+     */
+    public function readInt16(int $timeout = -1): PromiseInterface
+    {
+        return $this->read(2, 'v', $timeout);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isWritable()
+    {
+        return ! $this->closed;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function end($data = null): void
+    {
+        $this->write($data);
+        $this->close();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function close(): void
+    {
+        if ($this->closed) {
+            return;
+        }
+
+        $this->closed = true;
+
+        // Reject any reads still waiting — the stream is gone and no more data will arrive.
+        foreach ($this->reads as [$deferred]) {
+            $deferred->reject(new \RuntimeException('Buffer closed'));
+        }
+        $this->reads = [];
+
+        $this->emit('close');
+    }
+}

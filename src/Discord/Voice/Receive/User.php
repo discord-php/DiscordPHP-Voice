@@ -13,7 +13,7 @@ declare(strict_types=1);
  * with this source code in the LICENSE.md file.
  */
 
-namespace Discord\Voice\Client;
+namespace Discord\Voice\Receive;
 
 use Discord\Discord;
 use Discord\Voice\ReceiveStream;

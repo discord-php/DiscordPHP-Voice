@@ -21,15 +21,16 @@ use Discord\Voice\Exceptions\Channels\AudioAlreadyPlayingException;
 use Discord\Voice\Exceptions\ClientNotReadyException;
 use Discord\Voice\Exceptions\Libraries\OutdatedDCAException;
 use Discord\Voice\Dave\MediaCryptoService;
-use Discord\Voice\Helpers\Buffer as RealBuffer;
+use Discord\Voice\Ogg\Buffer as RealBuffer;
+use Discord\Voice\Ogg\OggStream;
 use Discord\Helpers\Collection;
 use Discord\Helpers\ExCollectionInterface;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\WebSockets\VoiceStateUpdate;
-use Discord\Voice\Client\Packet;
-use Discord\Voice\Client\UDP;
-use Discord\Voice\Client\User;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Receive\User;
+use Discord\Voice\Rtp\Packet;
+use Discord\Voice\Rtp\UDP;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Processes\DCA;
 use Discord\Voice\Processes\Ffmpeg;
 use Discord\Voice\Processes\OpusDecoderInterface;
@@ -95,7 +96,7 @@ class VoiceClient
     /**
      * The UDP client instance.
      *
-     * @var null|Socket|\Discord\Voice\Client\UDP
+     * @var null|Socket|\Discord\Voice\Rtp\UDP
      */
     public ?UDP $udp;
 

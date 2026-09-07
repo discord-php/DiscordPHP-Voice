@@ -17,7 +17,7 @@ namespace Discord\Tests\Unit\Voice;
 
 use Discord\Discord;
 use Discord\Helpers\Collection;
-use Discord\Voice\Client\Packet;
+use Discord\Voice\Rtp\Packet;
 use Discord\Voice\ReceiveStream;
 use Discord\Voice\Speaking;
 use Discord\Voice\VoiceClient;

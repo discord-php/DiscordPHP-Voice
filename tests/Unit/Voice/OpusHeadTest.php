@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Discord\Tests\Unit\Voice;
 
-use Discord\Voice\OpusHead;
+use Discord\Voice\Ogg\OpusHead;
 use UnexpectedValueException;
 
 it('parses opus heads without channel mapping', function (): void {

@@ -22,7 +22,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Narrow interface exposing WS capabilities required by GatewayCoordinator.
  *
- * Implemented by {@see \Discord\Voice\Client\WS}.
+ * Implemented by {@see \Discord\Voice\Gateway\WS}.
  */
 interface GatewayCoordinatorHost
 {

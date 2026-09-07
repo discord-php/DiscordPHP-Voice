@@ -18,7 +18,7 @@ namespace Discord\Tests\Unit\Voice;
 use Discord\Discord;
 use Discord\Parts\Channel\Channel;
 use Discord\Voice\Client;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Dave\BinaryFrame;
 use Discord\Voice\Dave\State;
 use PHPUnit\Framework\TestCase;

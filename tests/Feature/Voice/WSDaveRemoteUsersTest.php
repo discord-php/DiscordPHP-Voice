@@ -19,7 +19,7 @@ use Discord\Discord;
 use Discord\Factory\Factory;
 use Discord\Parts\Voice\UserConnected;
 use Discord\Voice\Client;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Dave\DecryptorHandle;
 use Discord\Voice\Dave\GatewayCoordinator;
 use Discord\Voice\Dave\KeyRatchetHandle;

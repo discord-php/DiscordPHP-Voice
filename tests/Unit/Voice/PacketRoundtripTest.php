@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Discord\Tests\Unit\Voice;
 
-use Discord\Voice\Client\HeaderValuesEnum;
-use Discord\Voice\Client\Packet;
+use Discord\Voice\Rtp\HeaderValuesEnum;
+use Discord\Voice\Rtp\Packet;
 
 it('aead_aes256_gcm_rtpsize: roundtrips a payload with a known key, sequence, timestamp and SSRC', function (): void {
     if (! sodium_crypto_aead_aes256gcm_is_available()) {

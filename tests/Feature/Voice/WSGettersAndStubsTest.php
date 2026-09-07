@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace Discord\Tests\Feature\Voice;
 
 use Discord\Discord;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Dave\State;
 use Discord\Voice\Client as VoiceClientAlias;
 use Discord\WebSockets\Op;

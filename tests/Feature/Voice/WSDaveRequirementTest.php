@@ -18,7 +18,7 @@ namespace Discord\Tests\Feature\Voice;
 use Discord\Discord;
 use Discord\Parts\Channel\Channel;
 use Discord\Voice\Client;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Dave\Runtime;
 use Discord\Voice\Dave\Runtime as DaveRuntime;
 use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;

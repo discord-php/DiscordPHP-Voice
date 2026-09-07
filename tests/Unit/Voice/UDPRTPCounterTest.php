@@ -17,8 +17,8 @@ namespace Discord\Tests\Unit\Voice;
 
 use Discord\Discord;
 use Discord\Voice\Client as VoiceClient;
-use Discord\Voice\Client\UDP;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Rtp\UDP;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Dave\State as DaveState;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;

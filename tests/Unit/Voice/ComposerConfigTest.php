@@ -73,7 +73,7 @@ if (! extension_loaded('ffi')) {
 
 /**
  * EXPECTED TO FAIL: libsodium (ext-sodium) is used at runtime for RTP
- * encryption/decryption in Discord\Voice\Client\Packet via sodium_*() calls,
+ * encryption/decryption in Discord\Voice\Rtp\Packet via sodium_*() calls,
  * but it is not declared in the `require` section of composer.json.
  * The fix is to add "ext-sodium": "*" to the require block.
  */

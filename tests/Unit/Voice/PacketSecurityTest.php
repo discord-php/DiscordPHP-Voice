@@ -13,7 +13,7 @@ declare(strict_types=1);
  * with this source code in the LICENSE.md file.
  */
 
-use Discord\Voice\Client\Packet;
+use Discord\Voice\Rtp\Packet;
 
 it('throws LogicException when encrypting without explicit nonce (CRIT-3)', function () {
     $key = random_bytes(SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES);

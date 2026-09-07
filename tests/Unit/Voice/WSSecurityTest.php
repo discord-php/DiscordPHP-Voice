@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Discord\Tests\Unit\Voice;
 
-use Discord\Voice\Client\WS;
+use Discord\Voice\Gateway\WS;
 
 it('redacts secretKey from debug output (HIGH-4)', function () {
     $ws = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();

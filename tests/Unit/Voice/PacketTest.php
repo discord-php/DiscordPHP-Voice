@@ -16,8 +16,8 @@ declare(strict_types=1);
 namespace Discord\Tests\Unit\Voice;
 
 use Discord\Voice\ByteBuffer\Buffer;
-use Discord\Voice\Client\HeaderValuesEnum;
-use Discord\Voice\Client\Packet;
+use Discord\Voice\Rtp\HeaderValuesEnum;
+use Discord\Voice\Rtp\Packet;
 
 it('encrypts outbound frames and decrypts inbound frames with callbacks', function (): void {
     $key = random_bytes(SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES);

@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace Discord\Tests\Unit\Voice;
 
 use Discord\Voice\Exceptions\BufferTimedOutException;
-use Discord\Voice\Helpers\Buffer;
+use Discord\Voice\Ogg\Buffer;
 use React\EventLoop\LoopInterface;
 use React\EventLoop\TimerInterface;
 use React\Promise\PromiseInterface;

@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace Discord\Tests\Unit\Voice;
 
 use Discord\Discord;
-use Discord\Voice\Client\Packet;
+use Discord\Voice\Rtp\Packet;
 use Discord\Voice\VoiceClient;
 use Psr\Log\NullLogger;
 

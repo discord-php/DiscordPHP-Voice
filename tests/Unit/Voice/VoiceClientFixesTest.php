@@ -16,9 +16,9 @@ declare(strict_types=1);
 namespace Discord\Tests\Unit\Voice;
 
 use Discord\Discord;
-use Discord\Voice\Client\Packet;
-use Discord\Voice\Client\UDP;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Rtp\Packet;
+use Discord\Voice\Rtp\UDP;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Dave\Runtime;
 use Discord\Voice\VoiceClient;
 use Discord\WebSockets\Op;

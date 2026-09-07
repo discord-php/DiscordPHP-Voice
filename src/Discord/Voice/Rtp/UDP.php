@@ -13,9 +13,10 @@ declare(strict_types=1);
  * with this source code in the LICENSE.md file.
  */
 
-namespace Discord\Voice\Client;
+namespace Discord\Voice\Rtp;
 
 use Discord\Voice\ByteBuffer\Buffer;
+use Discord\Voice\Gateway\WS;
 use Discord\WebSockets\Op;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\TimerInterface;

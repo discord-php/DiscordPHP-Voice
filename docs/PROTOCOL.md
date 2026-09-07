@@ -40,7 +40,7 @@ These opcodes are used on the **voice** WebSocket connection (separate from the 
 
 ## DAVE E2EE Opcodes (21–31)
 
-These opcodes extend the voice gateway to support Discord's **DAVE** (Discord Audio/Video E2EE) protocol via MLS (Messaging Layer Security). Transition-control opcodes are normal JSON voice payloads; MLS payload opcodes use binary WebSocket frames handled by [`Discord\Voice\Dave\BinaryFrame`](../src/Discord/Voice/Dave/BinaryFrame.php). Opcodes marked **handled** have a dedicated handler in [`src/Discord/Voice/Client/WS.php`](../src/Discord/Voice/Client/WS.php).
+These opcodes extend the voice gateway to support Discord's **DAVE** (Discord Audio/Video E2EE) protocol via MLS (Messaging Layer Security). Transition-control opcodes are normal JSON voice payloads; MLS payload opcodes use binary WebSocket frames handled by [`Discord\Voice\Dave\BinaryFrame`](../src/Discord/Voice/Dave/BinaryFrame.php). Opcodes marked **handled** have a dedicated handler in [`src/Discord/Voice/Gateway/WS.php`](../src/Discord/Voice/Gateway/WS.php).
 
 | Opcode | Constant | Direction | Description | Handled in `WS.php` |
 |--------|----------|-----------|-------------|---------------------|

@@ -18,7 +18,7 @@ namespace Discord\Tests\Feature\Voice;
 use Discord\Discord;
 use Discord\Factory\SocketFactory;
 use Discord\Voice\Client;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Dave\BinaryFrame;
 use Discord\Voice\Dave\EncryptorHandle;
 use Discord\Voice\Dave\Runtime;

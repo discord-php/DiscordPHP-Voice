@@ -13,7 +13,7 @@ declare(strict_types=1);
  * with this source code in the LICENSE.md file.
  */
 
-namespace Discord\Voice\Client;
+namespace Discord\Voice\Gateway;
 
 use Discord\Discord;
 use Discord\Factory\SocketFactory;
@@ -31,6 +31,7 @@ use Discord\Voice\Hello;
 use Discord\Voice\Platform;
 use Discord\Voice\Ready;
 use Discord\Voice\Resumed;
+use Discord\Voice\Rtp\UDP;
 use Discord\Voice\SessionDescription;
 use Discord\Voice\Speaking;
 use Discord\Voice\VoiceClient;

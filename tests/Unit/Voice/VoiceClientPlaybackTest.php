@@ -17,8 +17,8 @@ namespace Discord\Tests\Unit\Voice;
 
 use Discord\Exceptions\FileNotFoundException;
 use Discord\Voice\Client as VoiceClientAlias;
-use Discord\Voice\Client\UDP;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Rtp\UDP;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Exceptions\Channels\AudioAlreadyPlayingException;
 use Discord\Voice\Exceptions\ClientNotReadyException;
 use Discord\Voice\VoiceClient;

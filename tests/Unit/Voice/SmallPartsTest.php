@@ -17,8 +17,8 @@ namespace Discord\Tests\Unit\Voice;
 
 use Discord\Discord;
 use Discord\Parts\Voice\UserConnected;
-use Discord\Voice\Client\HeaderValuesEnum;
-use Discord\Voice\Client\User;
+use Discord\Voice\Rtp\HeaderValuesEnum;
+use Discord\Voice\Receive\User;
 use Discord\Voice\Dave\DecryptorHandle;
 use Discord\Voice\Dave\EncryptorHandle;
 use Discord\Voice\Dave\KeyRatchetHandle;

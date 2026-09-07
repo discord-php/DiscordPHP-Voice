@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace Discord\Tests\Feature\Voice;
 
 use Discord\Discord;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Dave\BinaryFrame;
 use Discord\Voice\Dave\GatewayCoordinator;
 use Discord\Voice\Dave\Runtime;

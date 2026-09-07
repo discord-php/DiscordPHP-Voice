@@ -40,3 +40,4 @@ infection-summary.log
 .agents
 skills-lock.json
 todos.db
+/.phplint.cache

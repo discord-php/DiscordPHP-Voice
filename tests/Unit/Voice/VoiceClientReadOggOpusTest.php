@@ -16,9 +16,9 @@ declare(strict_types=1);
 namespace Discord\Tests\Unit\Voice;
 
 use Discord\Discord;
-use Discord\Voice\Client\UDP;
-use Discord\Voice\Helpers\Buffer as HelperBuffer;
-use Discord\Voice\OggStream;
+use Discord\Voice\Rtp\UDP;
+use Discord\Voice\Ogg\Buffer as HelperBuffer;
+use Discord\Voice\Ogg\OggStream;
 use Discord\Voice\VoiceClient;
 use Psr\Log\NullLogger;
 use React\EventLoop\Loop;

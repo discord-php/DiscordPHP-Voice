@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Discord\Tests\Unit\Voice;
 
-use Discord\Voice\Helpers\Buffer;
-use Discord\Voice\OggStream;
+use Discord\Voice\Ogg\Buffer;
+use Discord\Voice\Ogg\OggStream;
 use UnexpectedValueException;
 
 use function React\Async\await;

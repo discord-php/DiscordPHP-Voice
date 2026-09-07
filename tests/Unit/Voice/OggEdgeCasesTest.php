@@ -15,11 +15,11 @@ declare(strict_types=1);
 
 namespace Discord\Tests\Unit\Voice;
 
-use Discord\Voice\Helpers\Buffer;
-use Discord\Voice\OggPage;
-use Discord\Voice\OggStream;
-use Discord\Voice\OpusHead;
-use Discord\Voice\OpusTags;
+use Discord\Voice\Ogg\Buffer;
+use Discord\Voice\Ogg\OggPage;
+use Discord\Voice\Ogg\OggStream;
+use Discord\Voice\Ogg\OpusHead;
+use Discord\Voice\Ogg\OpusTags;
 
 use function React\Async\await;
 

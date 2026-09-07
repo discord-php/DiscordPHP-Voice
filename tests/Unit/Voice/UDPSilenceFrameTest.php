@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Discord\Tests\Unit\Voice;
 
-use Discord\Voice\Client\UDP;
+use Discord\Voice\Rtp\UDP;
 
 it('silence frame constant is the correct 3-byte opus silence', function (): void {
     expect(strlen(UDP::SILENCE_FRAME))->toBe(3)

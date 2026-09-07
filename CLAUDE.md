@@ -9,7 +9,7 @@ Before doing anything else in a session on this repo, invoke the **`/caveman ult
 ## Project Snapshot
 
 - PHP voice library for [DiscordPHP](https://github.com/discord-php/DiscordPHP/), package `discord-php-helpers/voice`, namespace `Discord\` (PSR-4, `src/Discord`).
-- PHP `^8.3`. Hard requirements: `ext-ffi`, `ext-sodium`, `ext-json`, `libopus`, `ffmpeg`, and `libdave` (mandatory — Discord requires DAVE E2EE for all voice/video since 2026-03-01; `Manager` and `Client\WS` throw `LibDaveNotFoundException` if libdave is unavailable).
+- PHP `^8.3`. Hard requirements: `ext-ffi`, `ext-sodium`, `ext-json`, `libopus`, `ffmpeg`, and `libdave` (mandatory — Discord requires DAVE E2EE for all voice/video since 2026-03-01; `Manager` and `Gateway\WS` throw `LibDaveNotFoundException` if libdave is unavailable).
 - More authoritative project docs that should be consulted instead of duplicated here:
   - `.github/copilot-instructions.md` — the most detailed architecture + conventions reference. Read it before any non-trivial change.
   - `docs/AUDIO_PIPELINE.md`, `docs/DAVE.md`, `docs/PROTOCOL.md`, `docs/TROUBLESHOOTING.md` — Mermaid diagrams and protocol details.
@@ -51,15 +51,15 @@ Live integration tests in `tests/Integration/VoiceConnectionTest.php` need `DISC
 
 The full breakdown lives in `.github/copilot-instructions.md` — the points below are the ones you are likely to get wrong if you don't already know them.
 
-**Connection lifecycle:** `Manager` validates channel permissions, opens one `VoiceClient` per guild, listens for `VOICE_STATE_UPDATE` / `VOICE_SERVER_UPDATE` from the main gateway, and only resolves the join promise after `ready`. `VoiceClient::setData()` is the actual boot trigger — it runs once `token`, `endpoint`, `session`, and `dnsConfig` are all present. Any change to the join flow has to update `Manager`, `VoiceClient`, and `Client\WS` together so the handshake still reaches `ready`.
+**Connection lifecycle:** `Manager` validates channel permissions, opens one `VoiceClient` per guild, listens for `VOICE_STATE_UPDATE` / `VOICE_SERVER_UPDATE` from the main gateway, and only resolves the join promise after `ready`. `VoiceClient::setData()` is the actual boot trigger — it runs once `token`, `endpoint`, `session`, and `dnsConfig` are all present. Any change to the join flow has to update `Manager`, `VoiceClient`, and `Gateway\WS` together so the handshake still reaches `ready`.
 
-**Outbound audio:** `playFile()` / `playRawStream()` → `Processes\Ffmpeg::encode()` (always emits Opus on stdout) → `OggStream` page reads → `UDP::sendBuffer()` → `Client\Packet::encrypt()`. Send timing is established in `playOggStream()`: it sets speaking state, delays first send by 500 ms, then `readOggOpus()` schedules one packet per frame on the React loop and owns the 16-bit sequence / 32-bit timestamp rollover and EOF/reset behaviour.
+**Outbound audio:** `playFile()` / `playRawStream()` → `Processes\Ffmpeg::encode()` (always emits Opus on stdout) → `OggStream` page reads → `UDP::sendBuffer()` → `Rtp\Packet::encrypt()`. Send timing is established in `playOggStream()`: it sets speaking state, delays first send by 500 ms, then `readOggOpus()` schedules one packet per frame on the React loop and owns the 16-bit sequence / 32-bit timestamp rollover and EOF/reset behaviour.
 
 **Inbound audio:** `record()` attaches a UDP message listener; `handleAudioData()` maps SSRCs through `speakingStatus`, lazily creates per-user `ReceiveStream` instances, decodes Opus to PCM, and emits `channel-opus` / `channel-pcm`. The `record(RecordingFormat $format, callable $outputPath)` overload writes per-user WAV (pure PHP via `Recording\WavWriter`) or OGG (ffmpeg) files automatically; the bare `record()` call stays backwards compatible.
 
-**DAVE (E2EE):** split across `Client\WS`, `Dave\State`, and `Dave\Runtime`. `Runtime` is a singleton that wraps `ext-ffi` + the platform `libdave.{so,dylib,dll}` and auto-discovers it under `.cache/libdave/{lib,bin}/`. FFI C declarations are read from the installed `dave.h` header (no inline CDEF fallback — missing/unparseable header throws). DAVE frame transforms are injected into `Client\Packet` callbacks and routed through `VoiceClient::encryptDaveFrame()` / `decryptDaveFrame()`. Every change to packet handling must preserve both RTP encryption *and* the optional DAVE media layer.
+**DAVE (E2EE):** split across `Gateway\WS`, `Dave\State`, and `Dave\Runtime`. `Runtime` is a singleton that wraps `ext-ffi` + the platform `libdave.{so,dylib,dll}` and auto-discovers it under `.cache/libdave/{lib,bin}/`. FFI C declarations are read from the installed `dave.h` header (no inline CDEF fallback — missing/unparseable header throws). DAVE frame transforms are injected into `Rtp\Packet` callbacks and routed through `VoiceClient::encryptDaveFrame()` / `decryptDaveFrame()`. Every change to packet handling must preserve both RTP encryption *and* the optional DAVE media layer.
 
-**Gateway sequence bookkeeping:** `Client\WS` records the last gateway sequence in `Dave\State` and reuses it as `seq_ack` in both heartbeats and resume payloads. Don't break this when touching reconnect, resume, or binary-frame handling.
+**Gateway sequence bookkeeping:** `Gateway\WS` records the last gateway sequence in `Dave\State` and reuses it as `seq_ack` in both heartbeats and resume payloads. Don't break this when touching reconnect, resume, or binary-frame handling.
 
 ## Conventions That Bite
 

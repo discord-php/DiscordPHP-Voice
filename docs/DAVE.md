@@ -33,9 +33,9 @@ graph TD
     Manager["Manager<br/><small>Entry point — validates libdave<br/>on construction</small>"]
     VoiceClient["VoiceClient<br/><small>Playback/recording state machine.<br/>Owns encryptDaveFrame() /<br/>decryptDaveFrame()</small>"]
     Client["Client<br/><small>Backwards-compat subclass<br/>of VoiceClient</small>"]
-    WS["Client\WS<br/><small>Voice gateway connection.<br/>Handles all DAVE opcodes (21–31).<br/>Owns DaveState instance.</small>"]
-    UDP["Client\UDP<br/><small>IP discovery, UDP heartbeats,<br/>RTP send/receive</small>"]
-    Packet["Client\Packet<br/><small>RTP header + libsodium<br/>transport encryption.<br/>Injects DAVE frame callbacks.</small>"]
+    WS["Gateway\WS<br/><small>Voice gateway connection.<br/>Handles all DAVE opcodes (21–31).<br/>Owns DaveState instance.</small>"]
+    UDP["Rtp\UDP<br/><small>IP discovery, UDP heartbeats,<br/>RTP send/receive</small>"]
+    Packet["Rtp\Packet<br/><small>RTP header + libsodium<br/>transport encryption.<br/>Injects DAVE frame callbacks.</small>"]
     DaveState["Dave\State<br/><small>Per-connection MLS state:<br/>protocol version, epoch,<br/>transitions, recognized users,<br/>encryptor/decryptors</small>"]
     DaveRuntime["Dave\Runtime<br/><small>FFI singleton wrapping libdave.<br/>Session, encryptor, decryptor,<br/>key ratchet, MLS operations.</small>"]
     SessionH["Dave\SessionHandle"]
@@ -91,7 +91,7 @@ sequenceDiagram
     participant App as Application
     participant Mgr as Manager
     participant VC as VoiceClient
-    participant WS as Client\WS
+    participant WS as Gateway\WS
     participant GW as Voice Gateway
     participant RT as Dave\Runtime
     participant ST as Dave\State
@@ -140,7 +140,7 @@ When a new MLS group is being formed (e.g. the first two members join a call).
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as Client\WS
+    participant WS as Gateway\WS
     participant GW as Voice Gateway
     participant RT as Dave\Runtime
     participant ST as Dave\State
@@ -194,7 +194,7 @@ When a new member is being added to an existing MLS group.
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as Client\WS (new member)
+    participant WS as Gateway\WS (new member)
     participant GW as Voice Gateway
     participant RT as Dave\Runtime
     participant ST as Dave\State
@@ -222,7 +222,7 @@ When a member joins or leaves, existing group members receive a commit to advanc
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as Client\WS (existing member)
+    participant WS as Gateway\WS (existing member)
     participant GW as Voice Gateway
     participant RT as Dave\Runtime
     participant ST as Dave\State
@@ -249,7 +249,7 @@ sequenceDiagram
     Note over ST: New key ratchet in effect
 ```
 
-For non-zero transition IDs, `Client\WS` sends Opcode 23 and waits for Opcode 22 before applying the local media transition. Transition ID `0` is the Discord gateway's immediate-transition shortcut: the client executes it locally without sending Opcode 23 or waiting for Opcode 22.
+For non-zero transition IDs, `Gateway\WS` sends Opcode 23 and waits for Opcode 22 before applying the local media transition. Transition ID `0` is the Discord gateway's immediate-transition shortcut: the client executes it locally without sending Opcode 23 or waiting for Opcode 22.
 
 ### Downgrade to Protocol v0
 
@@ -258,7 +258,7 @@ When E2EE must be disabled (e.g. a client without DAVE support joins during the 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as Client\WS
+    participant WS as Gateway\WS
     participant GW as Voice Gateway
     participant ST as Dave\State
     participant RT as Dave\Runtime
@@ -282,7 +282,7 @@ When a commit or welcome message can't be processed.
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as Client\WS
+    participant WS as Gateway\WS
     participant GW as Voice Gateway
     participant RT as Dave\Runtime
     participant ST as Dave\State
@@ -428,7 +428,7 @@ stateDiagram-v2
 
 ## Internal Flow
 
-This section describes each DAVE opcode handler in `Client\WS` at the code level — where state is mutated, what is sent over the wire, and how the transition-readiness check gates E2EE activation.
+This section describes each DAVE opcode handler in `Gateway\WS` at the code level — where state is mutated, what is sent over the wire, and how the transition-readiness check gates E2EE activation.
 
 ### 1. Session description received (Op 4)
 
@@ -551,7 +551,7 @@ RTP header extensions are stripped **after** transport decryption and **before**
 
 ## Voice Gateway DAVE Opcodes
 
-All DAVE-related opcodes handled by `Client\WS`.
+All DAVE-related opcodes handled by `Gateway\WS`.
 
 | Opcode | Name | Direction | Format | Handler Method | Description |
 |--------|------|-----------|--------|----------------|-------------|
@@ -595,8 +595,8 @@ The sequence number is tracked in `Dave\State::$lastReceivedSequence` and includ
 |------|------|
 | `src/Discord/Voice/Manager.php` | Entry point — validates libdave availability |
 | `src/Discord/Voice/VoiceClient.php` | `encryptDaveFrame()` / `decryptDaveFrame()` |
-| `src/Discord/Voice/Client/WS.php` | All DAVE gateway opcode handlers |
-| `src/Discord/Voice/Client/Packet.php` | RTP transport encryption with DAVE callbacks |
+| `src/Discord/Voice/Gateway/WS.php` | All DAVE gateway opcode handlers |
+| `src/Discord/Voice/Rtp/Packet.php` | RTP transport encryption with DAVE callbacks |
 | `src/Discord/Voice/Dave/State.php` | Per-connection MLS state tracking |
 | `src/Discord/Voice/Dave/Runtime.php` | FFI singleton wrapping native libdave |
 | `src/Discord/Voice/Dave/BinaryFrame.php` | Binary DAVE frame parsing/serialisation |

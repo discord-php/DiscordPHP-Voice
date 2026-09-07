@@ -23,7 +23,7 @@ use Discord\WebSockets\VoicePayload;
  * Handles all DAVE E2EE gateway protocol logic on behalf of the voice WebSocket.
  *
  * This class owns every DAVE opcode handler and helper that was previously
- * embedded in {@see \Discord\Voice\Client\WS}.  WS keeps thin proxy methods so
+ * embedded in {@see \Discord\Voice\Gateway\WS}.  WS keeps thin proxy methods so
  * the opcode dispatch table remains unchanged; all real work happens here.
  *
  * @since 10.20.0

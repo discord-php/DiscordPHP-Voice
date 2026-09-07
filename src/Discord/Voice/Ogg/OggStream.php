@@ -13,10 +13,9 @@ declare(strict_types=1);
  * with this source code in the LICENSE.md file.
  */
 
-namespace Discord\Voice;
+namespace Discord\Voice\Ogg;
 
 use Discord\Voice\Exceptions\BufferTimedOutException;
-use Discord\Voice\Helpers\Buffer;
 use React\Promise\PromiseInterface;
 use React\Promise\Promise;
 

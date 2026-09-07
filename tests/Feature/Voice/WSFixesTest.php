@@ -21,7 +21,7 @@ use Discord\Parts\Channel\Channel;
 use Discord\Parts\Part;
 use Discord\Parts\Voice\UserConnected;
 use Discord\Voice\Client;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Gateway\WS;
 use Discord\Voice\Dave\Runtime;
 use Discord\Voice\Dave\State;
 use Discord\Voice\VoiceClient;

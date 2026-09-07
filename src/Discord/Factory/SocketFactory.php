@@ -15,8 +15,8 @@ declare(strict_types=1);
 
 namespace Discord\Factory;
 
-use Discord\Voice\Client\UDP;
-use Discord\Voice\Client\WS;
+use Discord\Voice\Gateway\WS;
+use Discord\Voice\Rtp\UDP;
 use React\Datagram\Factory;
 use React\Dns\Resolver\Factory as DnsFactory;
 

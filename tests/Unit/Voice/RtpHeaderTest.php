@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 namespace Discord\Tests\Unit\Voice;
 
-use Discord\Voice\Client\RtpHeader;
+use Discord\Voice\Rtp\RtpHeader;
 
 it('headerSize returns 12 for packet with 0 CSRC fields', function (): void {
     $packet = pack('CCnNN', 0x80, 0x78, 1, 2, 3).'payload';
