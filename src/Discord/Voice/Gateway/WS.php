@@ -25,6 +25,7 @@ use Discord\Voice\Dave\GatewayCoordinator;
 use Discord\Voice\Dave\GatewayCoordinatorHost;
 use Discord\Voice\Dave\Runtime as DaveRuntime;
 use Discord\Voice\Dave\State as DaveState;
+use Discord\Voice\Gateway\Concerns\HandlesDaveOpcodes;
 use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;
 use Discord\Voice\Flags;
 use Discord\Voice\Hello;
@@ -56,6 +57,8 @@ use React\Promise\PromiseInterface;
  */
 final class WS implements GatewayCoordinatorHost
 {
+    use HandlesDaveOpcodes;
+
     /**
      * The maximum DAVE protocol version supported.
      */
@@ -584,126 +587,6 @@ final class WS implements GatewayCoordinatorHost
      */
     protected function handleUndocumented(Payload $data): void
     {
-    }
-
-    /**
-     * Routes the VOICE_DAVE_PREPARE_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDavePrepareTransition()}.
-     *
-     * @param Payload $data
-     */
-    protected function handleDavePrepareTransition($data): void
-    {
-        $this->getCoordinator()->handleDavePrepareTransition($data);
-    }
-
-    /**
-     * Routes the VOICE_DAVE_EXECUTE_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveExecuteTransition()}.
-     *
-     * @param Payload $data
-     */
-    protected function handleDaveExecuteTransition($data): void
-    {
-        $this->getCoordinator()->handleDaveExecuteTransition($data);
-    }
-
-    /**
-     * Routes the VOICE_DAVE_TRANSITION_READY opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveTransitionReady()}.
-     *
-     * @param Payload $data
-     */
-    protected function handleDaveTransitionReady($data): void
-    {
-        $this->getCoordinator()->handleDaveTransitionReady($data);
-    }
-
-    /**
-     * Routes the VOICE_DAVE_PREPARE_EPOCH opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDavePrepareEpoch()}.
-     *
-     * @param Payload $data
-     */
-    protected function handleDavePrepareEpoch($data): void
-    {
-        $this->getCoordinator()->handleDavePrepareEpoch($data);
-    }
-
-    /**
-     * Routes the VOICE_DAVE_MLS_EXTERNAL_SENDER_PACKAGE opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsExternalSender()}.
-     *
-     * @param Payload $data
-     */
-    protected function handleDaveMlsExternalSender($data): void
-    {
-        $this->getCoordinator()->handleDaveMlsExternalSender($data);
-    }
-
-    /**
-     * Handle an inbound opcode 26 (VOICE_DAVE_MLS_KEY_PACKAGE) frame from the gateway.
-     *
-     * Opcode 26 is primarily client→server: we send our own key package to the gateway
-     * via {@see sendDaveKeyPackage()} during the DAVE epoch-1 setup.  The gateway may
-     * also forward a remote member's key package back to us as an informational notice —
-     * that is what this handler receives.
-     *
-     * The gateway (server) is responsible for aggregating all key packages and driving
-     * the subsequent proposal/commit flow.  We passively receive the forwarded package;
-     * no action is required on the client side.
-     *
-     * Per the Discord DAVE spec: "Key packages are only used one time" — each time we
-     * need to join or rejoin a session we generate and send a fresh key package.
-     */
-    protected function handleDaveMlsKeyPackage($data): void
-    {
-        $this->getCoordinator()->handleDaveMlsKeyPackage($data);
-    }
-
-    /**
-     * Routes the VOICE_DAVE_MLS_PROPOSALS opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsProposals()}.
-     *
-     * @param Payload $data
-     */
-    protected function handleDaveMlsProposals($data): void
-    {
-        $this->getCoordinator()->handleDaveMlsProposals($data);
-    }
-
-    /**
-     * Routes the VOICE_DAVE_MLS_COMMIT_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsCommitWelcome()}.
-     *
-     * @param Payload $data
-     */
-    protected function handleDaveMlsCommitWelcome($data): void
-    {
-        $this->getCoordinator()->handleDaveMlsCommitWelcome($data);
-    }
-
-    /**
-     * Routes the VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsAnnounceCommitTransition()}.
-     *
-     * @param Payload $data
-     */
-    protected function handleDaveMlsAnnounceCommitTransition($data): void
-    {
-        $this->getCoordinator()->handleDaveMlsAnnounceCommitTransition($data);
-    }
-
-    /**
-     * Routes the VOICE_DAVE_MLS_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsWelcome()}.
-     *
-     * @param Payload $data
-     */
-    protected function handleDaveMlsWelcome($data): void
-    {
-        $this->getCoordinator()->handleDaveMlsWelcome($data);
-    }
-
-    /**
-     * Routes the VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsInvalidCommitWelcome()}.
-     *
-     * @param Payload $data
-     */
-    protected function handleDaveMlsInvalidCommitWelcome($data): void
-    {
-        $this->getCoordinator()->handleDaveMlsInvalidCommitWelcome($data);
     }
 
     /**
