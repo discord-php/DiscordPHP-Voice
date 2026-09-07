@@ -50,7 +50,7 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
     /** @return string The buffer's bytes as a raw binary string. */
     public function __toString(): string
     {
-        return implode('', iterator_to_array($this->buffer, false));
+        return implode('', $this->buffer->toArray());
     }
 
     /**

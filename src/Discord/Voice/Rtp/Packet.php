@@ -16,7 +16,6 @@ declare(strict_types=1);
 namespace Discord\Voice\Rtp;
 
 use Discord\Voice\ByteBuffer\Buffer;
-use Discord\Voice\ByteBuffer\FormatPackEnum;
 use Discord\Voice\Exceptions\Libraries\LibSodiumNotFoundException;
 
 /**
@@ -116,7 +115,7 @@ final class Packet
             $this->decrypt();
         } else {
             $this->decryptedAudio = $data;
-            $this->header = $this->buildHeader()->__toString();
+            $this->header = $this->buildHeader();
             $this->encrypt();
         }
     }
@@ -286,17 +285,22 @@ final class Packet
     }
 
     /**
-     * Builds the header.
+     * Builds the 12-byte RTP header: `V/P/X/CC | M/PT | seq(BE16) | timestamp(BE32) | SSRC(BE32)`.
+     *
+     * Emitted once per outbound packet (~50/s per stream), so it packs the fixed
+     * layout in a single {@see pack()} call rather than routing bytes through a
+     * {@see Buffer}.
      */
-    protected function buildHeader(): Buffer
+    protected function buildHeader(): string
     {
-        $header = new Buffer(HeaderValuesEnum::RTP_HEADER_OR_NONCE_LENGTH->value);
-        $header[HeaderValuesEnum::RTP_VERSION_PAD_EXTEND_INDEX->value] = pack(FormatPackEnum::C->value, HeaderValuesEnum::RTP_VERSION_PAD_EXTEND->value);
-        $header[HeaderValuesEnum::RTP_PAYLOAD_INDEX->value] = pack(FormatPackEnum::C->value, HeaderValuesEnum::RTP_PAYLOAD_TYPE->value);
-
-        return $header->writeShort($this->seq, HeaderValuesEnum::SEQ_INDEX->value)
-            ->writeUInt32BE($this->timestamp, HeaderValuesEnum::TIMESTAMP_OR_NONCE_INDEX->value)
-            ->writeUInt32BE($this->ssrc, HeaderValuesEnum::SSRC_INDEX->value);
+        return pack(
+            'CCnNN',
+            HeaderValuesEnum::RTP_VERSION_PAD_EXTEND->value,
+            HeaderValuesEnum::RTP_PAYLOAD_TYPE->value,
+            $this->seq,
+            $this->timestamp,
+            $this->ssrc,
+        );
     }
 
     /**

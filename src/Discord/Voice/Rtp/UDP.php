@@ -280,42 +280,46 @@ class UDP extends Socket
      */
     public function sendBuffer(string $data): void
     {
-        if (! $this->ws->vc->ready) {
+        // Hot path (~50 calls/s per stream): resolve the voice client once
+        // instead of walking `$this->ws->vc` on every field access below.
+        $vc = $this->ws->vc;
+
+        if (! $vc->ready) {
             return;
         }
 
         $packet = new Packet(
             $data,
-            $this->ws->vc->ssrc,
-            $this->ws->vc->seq,
-            $this->ws->vc->timestamp,
+            $vc->ssrc,
+            $vc->seq,
+            $vc->timestamp,
             false,
             $this->ws->getSecretKey(),
-            [$this->ws->vc, 'encryptDaveFrame'],
+            [$vc, 'encryptDaveFrame'],
             null,
-            $this->ws->vc->nonce,
+            $vc->nonce,
         );
         $this->send($packet->getEncryptedMessage());
 
         $this->streamTime = (int) microtime(true);
-        $this->ws->vc->emit('packet-sent', [$packet]);
+        $vc->emit('packet-sent', [$packet]);
 
         // Advance counters — shared path for both audio and silence frames.
-        if (++$this->ws->vc->seq >= 2 ** 16) {
-            $this->ws->vc->seq = 0;
+        if (++$vc->seq >= 2 ** 16) {
+            $vc->seq = 0;
         }
 
-        if (++$this->ws->vc->nonce >= 2 ** 32) {
-            $this->ws->vc->nonce = 0;
-            $this->ws->vc->discord->getLogger()->critical(
+        if (++$vc->nonce >= 2 ** 32) {
+            $vc->nonce = 0;
+            $vc->discord->getLogger()->critical(
                 'Voice nonce counter wrapped at 2^32. Triggering reconnect.',
-                ['guild' => $this->ws->vc->channel->guild_id ?? null]
+                ['guild' => $vc->channel->guild_id ?? null]
             );
-            $this->ws->vc->handleVoiceServerChange($this->ws->vc->data ?? []);
+            $vc->handleVoiceServerChange($vc->data);
         }
 
-        if (($this->ws->vc->timestamp += ($this->ws->vc->frameSize * 48)) >= 2 ** 32) {
-            $this->ws->vc->timestamp = 0;
+        if (($vc->timestamp += ($vc->frameSize * 48)) >= 2 ** 32) {
+            $vc->timestamp = 0;
         }
     }
 
