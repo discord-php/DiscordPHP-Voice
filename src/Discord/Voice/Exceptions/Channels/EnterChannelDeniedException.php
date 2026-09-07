@@ -24,6 +24,9 @@ use Discord\Voice\Exceptions\VoiceException;
  */
 final class EnterChannelDeniedException extends \RuntimeException implements VoiceException
 {
+    /**
+     * @param string|null $message Custom message, or null to use this exception's default.
+     */
     public function __construct(?string $message = null)
     {
         parent::__construct($message ?? 'The current Channel doesn\'t have proper permissions for the Bot to connect to it.');

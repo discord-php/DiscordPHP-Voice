@@ -16,15 +16,7 @@ declare(strict_types=1);
 namespace Discord\Voice\Helpers\ByteBuffer;
 
 /**
- * @author alexandre433
+ * @deprecated Use {@see \Discord\Voice\ByteBuffer\AbstractBuffer}. This alias is kept only for
+ *             backward compatibility and will be removed in a future release.
  */
-abstract class AbstractBuffer implements ReadableBuffer, WriteableBuffer
-{
-    abstract public function __construct($argument);
-
-    abstract public function __toString(): string;
-
-    abstract public function length(): int;
-
-    abstract public function getLastEmptyPosition(): int;
-}
+\class_alias(\Discord\Voice\ByteBuffer\AbstractBuffer::class, AbstractBuffer::class);

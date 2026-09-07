@@ -108,6 +108,7 @@ CDEF;
 
     protected static ?bool $availabilityOverride = null;
 
+    /** Whether a working libdave FFI binding is loaded (honouring any `configureCallbacks()` availability override). */
     public static function isAvailable(): bool
     {
         if (self::$availabilityOverride !== null) {
@@ -119,6 +120,7 @@ CDEF;
         return self::$ffi instanceof FFI;
     }
 
+    /** The highest DAVE protocol version libdave reports support for, or 0 when unavailable. */
     public static function maxProtocolVersion(): int
     {
         self::load();
@@ -136,16 +138,19 @@ CDEF;
         }
     }
 
+    /** The message from the most recent load/FFI failure, or null. */
     public static function getLastLoadError(): ?string
     {
         return self::$lastLoadError;
     }
 
+    /** The message from the most recent native-handle destroy failure, or null. */
     public static function getLastDestroyError(): ?string
     {
         return self::$lastDestroyError;
     }
 
+    /** Unloads the FFI binding and clears every injected callback and cached error. Primarily for tests. */
     public static function reset(): void
     {
         self::$loaded = false;
@@ -211,6 +216,7 @@ CDEF;
         self::$decryptWithDecryptorCallback = $decryptWithDecryptorCallback;
     }
 
+    /** Encrypts one media frame. Returns the frame unchanged in passthrough (`protocolVersion <= 0`); otherwise uses the injected encryptor callback, or null. Production uses {@see encryptWithEncryptor()} per handle instead. */
     public static function encryptMediaFrame(string $frame, int $protocolVersion): ?string
     {
         if ($protocolVersion <= 0) {
@@ -230,6 +236,7 @@ CDEF;
         return null;
     }
 
+    /** Decrypts one media frame. Returns the frame unchanged in passthrough; otherwise uses the injected decryptor callback, or null. Production uses {@see decryptWithDecryptor()} per handle instead. */
     public static function decryptMediaFrame(string $frame, int $protocolVersion): string|false|null
     {
         if ($protocolVersion <= 0) {
@@ -249,6 +256,7 @@ CDEF;
         return null;
     }
 
+    /** Builds an MLS commit+welcome from a proposals payload via the injected builder callback, or null. Production uses {@see buildMlsCommitWelcomeWithSession()} instead. */
     public static function buildMlsCommitWelcome(string $proposalsPayload, int $protocolVersion): ?string
     {
         if ($protocolVersion <= 0) {
@@ -268,6 +276,7 @@ CDEF;
         return null;
     }
 
+    /** Creates a new libdave MLS session (optionally bound to `$authSessionId`), or null on failure. */
     public static function createSession(?string $authSessionId = null): ?SessionHandle
     {
         if (is_callable(self::$createSessionCallback)) {
@@ -290,6 +299,7 @@ CDEF;
         }
     }
 
+    /** Initialises `$session` for the given protocol version, group id and self user id. */
     public static function initializeSession(SessionHandle $session, int $version, int $groupId, string $selfUserId): bool
     {
         $ffi = self::ffi();
@@ -308,6 +318,7 @@ CDEF;
         }
     }
 
+    /** Resets `$session` to its post-creation state. */
     public static function resetSession(SessionHandle $session): bool
     {
         $ffi = self::ffi();
@@ -326,6 +337,7 @@ CDEF;
         }
     }
 
+    /** Sets `$session`'s active protocol version. */
     public static function setSessionProtocolVersion(SessionHandle $session, int $version): bool
     {
         $ffi = self::ffi();
@@ -344,6 +356,7 @@ CDEF;
         }
     }
 
+    /** `$session`'s active protocol version, or 0 on failure. */
     public static function getSessionProtocolVersion(SessionHandle $session): int
     {
         $ffi = self::ffi();
@@ -360,6 +373,7 @@ CDEF;
         }
     }
 
+    /** Installs the group's external-sender package on `$session`. */
     public static function setExternalSender(SessionHandle $session, string $externalSender): bool
     {
         $ffi = self::ffi();
@@ -421,6 +435,7 @@ CDEF;
         }
     }
 
+    /** Feeds an MLS commit to `$session`; returns `['failed' => bool, 'ignored' => bool]`, or null on failure. */
     public static function processCommit(SessionHandle $session, string $commit): ?array
     {
         if (is_callable(self::$processCommitCallback)) {
@@ -502,6 +517,7 @@ CDEF;
         }
     }
 
+    /** The serialised MLS key package for `$session`, or null. */
     public static function getMarshalledKeyPackage(SessionHandle $session): ?string
     {
         if (is_callable(self::$keyPackageCallback)) {
@@ -526,6 +542,7 @@ CDEF;
         }
     }
 
+    /** A {@see KeyRatchetHandle} for `$userId` derived from `$session`, or null. */
     public static function getKeyRatchet(SessionHandle $session, string $userId): ?KeyRatchetHandle
     {
         if (is_callable(self::$keyRatchetCallback)) {
@@ -548,6 +565,7 @@ CDEF;
         }
     }
 
+    /** Creates a libdave media {@see EncryptorHandle}, or null on failure. */
     public static function createEncryptor(): ?EncryptorHandle
     {
         $ffi = self::ffi();
@@ -566,6 +584,7 @@ CDEF;
         }
     }
 
+    /** Creates a libdave media {@see DecryptorHandle}, or null on failure. */
     public static function createDecryptor(): ?DecryptorHandle
     {
         if (is_callable(self::$createDecryptorCallback)) {
@@ -588,6 +607,7 @@ CDEF;
         }
     }
 
+    /** Toggles passthrough (no-op encryption) on `$encryptor`. */
     public static function configureEncryptorPassthrough(EncryptorHandle $encryptor, bool $passthroughMode): bool
     {
         $ffi = self::ffi();
@@ -606,6 +626,7 @@ CDEF;
         }
     }
 
+    /** Binds `$keyRatchet` as `$encryptor`'s key source. */
     public static function configureEncryptorKeyRatchet(EncryptorHandle $encryptor, KeyRatchetHandle $keyRatchet): bool
     {
         $ffi = self::ffi();
@@ -624,6 +645,7 @@ CDEF;
         }
     }
 
+    /** Encrypts `$frame` for `$ssrc` (codec `$codec`) with `$encryptor`; returns the ciphertext, or null on failure. */
     public static function encryptWithEncryptor(EncryptorHandle $encryptor, string $frame, int $ssrc, int $codec = self::CODEC_OPUS): ?string
     {
         $ffi = self::ffi();
@@ -678,6 +700,7 @@ CDEF;
         }
     }
 
+    /** Toggles passthrough (no-op decryption) on `$decryptor`. */
     public static function configureDecryptorPassthrough(DecryptorHandle $decryptor, bool $passthroughMode): bool
     {
         if (is_callable(self::$decryptorPassthroughCallback)) {
@@ -700,6 +723,7 @@ CDEF;
         }
     }
 
+    /** Binds `$keyRatchet` as `$decryptor`'s key source. */
     public static function configureDecryptorKeyRatchet(DecryptorHandle $decryptor, KeyRatchetHandle $keyRatchet): bool
     {
         if (is_callable(self::$decryptorKeyRatchetCallback)) {
@@ -722,6 +746,7 @@ CDEF;
         }
     }
 
+    /** Decrypts `$frame` with `$decryptor`; returns the plaintext, false on a decrypt failure, or null when unavailable. */
     public static function decryptWithDecryptor(DecryptorHandle $decryptor, string $frame): string|false|null
     {
         if (is_callable(self::$decryptWithDecryptorCallback)) {
@@ -777,6 +802,7 @@ CDEF;
         }
     }
 
+    /** Calls libdave `$destroyMethod` on `$handle`, recording any error in {@see getLastDestroyError()}. */
     public static function destroyNativeHandle(mixed $handle, string $destroyMethod): void
     {
         $ffi = self::ffi();
@@ -791,6 +817,11 @@ CDEF;
         }
     }
 
+    /**
+     * Loads the libdave shared library and its `dave.h` FFI definitions once,
+     * discovering the library under `.cache/libdave/` or `DISCORDPHP_DAVE_LIBRARY`.
+     * Failures are swallowed and surfaced via {@see getLastLoadError()}.
+     */
     protected static function load(): void
     {
         if (self::$loaded) {
@@ -868,6 +899,7 @@ CDEF;
         );
     }
 
+    /** Whether `$path` is absolute (leading `/`, or a `C:\` / `C:/` drive prefix on Windows). */
     private static function isAbsolutePath(string $path): bool
     {
         // Unix absolute path starts with /
@@ -998,6 +1030,7 @@ CDEF;
         return trim($output) !== '' ? $output : null;
     }
 
+    /** The loaded {@see \FFI} binding (loading it on first call), or null when libdave is unavailable. */
     private static function ffi(): ?FFI
     {
         self::load();
@@ -1064,6 +1097,7 @@ CDEF;
         ];
     }
 
+    /** Reads `$length` bytes from a libdave-allocated output buffer and frees it. Returns null when the buffer pointer is null. */
     protected static function takeOutputBytes(mixed $buffer, mixed $length): ?string
     {
         $ffi = self::$ffi;
@@ -1078,6 +1112,7 @@ CDEF;
         }
     }
 
+    /** Invokes libdave function `$method` on the FFI binding with `$arguments` (an indirection that keeps static analysers happy about the dynamic call). */
     protected static function call(FFI $ffi, string $method, mixed ...$arguments): mixed
     {
         /** @var mixed $native */

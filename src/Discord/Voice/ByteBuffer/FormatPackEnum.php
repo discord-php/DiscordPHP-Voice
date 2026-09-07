@@ -168,6 +168,14 @@ enum FormatPackEnum: string
      */
     case At = '@';
 
+    /**
+     * The fixed byte length of this format.
+     *
+     * Only defined for the fixed-width integer formats used by the byte buffer
+     * (`n`/`v` → 2, `N`/`V` → 4, `c`/`C` → 1); any other case throws.
+     *
+     * @throws \InvalidArgumentException For a format with no fixed length.
+     */
     public function getLength(): int
     {
         return match ($this) {

@@ -251,6 +251,14 @@ final class Packet
         return $resultMessage;
     }
 
+    /**
+     * Encrypts the voice message.
+     *
+     * Applies the optional outbound DAVE frame transform, then AES-256-GCM over the
+     * RTP header as additional data, and assembles `rawData` as `[header][ciphertext+tag][nonce]`.
+     *
+     * @throws \LogicException if the nonce has not been set.
+     */
     public function encrypt()
     {
         $header = $this->getHeader();

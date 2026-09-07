@@ -17,6 +17,9 @@ namespace Discord\Voice\Dave;
 
 final class DecryptorHandle extends NativeHandle
 {
+    /**
+     * @inheritDoc
+     */
     protected function destroyMethod(): string
     {
         return 'daveDecryptorDestroy';

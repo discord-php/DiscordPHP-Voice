@@ -20,15 +20,58 @@ namespace Discord\Voice\ByteBuffer;
  */
 interface ReadableBuffer
 {
+    /**
+     * Reads `$length` raw bytes starting at `$offset`.
+     *
+     * @param int $offset Byte offset to read from.
+     * @param int $length Number of bytes to read.
+     *
+     * @return string The bytes read.
+     */
     public function read(int $offset, int $length);
 
+    /**
+     * Reads an unsigned 8-bit integer at `$offset`.
+     *
+     * @param int $offset
+     *
+     * @return int
+     */
     public function readInt8(int $offset);
 
+    /**
+     * Reads an unsigned 16-bit big-endian integer at `$offset`.
+     *
+     * @param int $offset
+     *
+     * @return int
+     */
     public function readInt16BE(int $offset);
 
+    /**
+     * Reads an unsigned 16-bit little-endian integer at `$offset`.
+     *
+     * @param int $offset
+     *
+     * @return int
+     */
     public function readInt16LE(int $offset);
 
+    /**
+     * Reads an unsigned 32-bit big-endian integer at `$offset`.
+     *
+     * @param int $offset
+     *
+     * @return int
+     */
     public function readInt32BE(int $offset);
 
+    /**
+     * Reads an unsigned 32-bit little-endian integer at `$offset`.
+     *
+     * @param int $offset
+     *
+     * @return int
+     */
     public function readInt32LE(int $offset);
 }

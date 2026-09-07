@@ -220,6 +220,11 @@ enum OpEnum: int
         ];
     }
 
+    /**
+     * Returns every valid voice-gateway opcode.
+     *
+     * @return array<int>
+     */
     public static function getVoiceCodes(): array
     {
         return [
@@ -253,6 +258,11 @@ enum OpEnum: int
         ];
     }
 
+    /**
+     * Returns every valid main-gateway opcode.
+     *
+     * @return array<int>
+     */
     public static function getGatewayCodes(): array
     {
         return [
@@ -272,6 +282,11 @@ enum OpEnum: int
         ];
     }
 
+    /**
+     * Returns every valid gateway and voice opcode.
+     *
+     * @return array<int>
+     */
     public static function getAllCodes(): array
     {
         return array_merge(
@@ -280,46 +295,63 @@ enum OpEnum: int
         );
     }
 
+    /** Whether `$code` is a voice-gateway opcode. */
     public static function isVoiceCode(int $code): bool
     {
         return in_array($code, self::getVoiceCodes(), true);
     }
 
+    /** Whether `$code` is a main-gateway opcode. */
     public static function isGatewayCode(int $code): bool
     {
         return in_array($code, self::getGatewayCodes(), true);
     }
 
+    /** Whether `$code` is any known gateway or voice opcode. */
     public static function isValidCode(int $code): bool
     {
         return in_array($code, self::getAllCodes(), true);
     }
 
+    /** Whether `$code` is a non-recoverable main-gateway close code. */
     public static function isCriticalCloseCode(int $code): bool
     {
         return in_array($code, self::getCriticalCloseCodes(), true);
     }
 
+    /** Whether `$code` is a non-recoverable voice-gateway close code. */
     public static function isCriticalVoiceCloseCode(int $code): bool
     {
         return in_array($code, self::getCriticalVoiceCloseCodes(), true);
     }
 
+    /** Whether `$code` is a gateway or voice opcode. */
     public static function isValidOpCode(int $code): bool
     {
         return self::isGatewayCode($code) || self::isVoiceCode($code);
     }
 
+    /** Whether `$code` is a known critical close code (gateway or voice). */
     public static function isValidCloseCode(int $code): bool
     {
         return self::isCriticalCloseCode($code) || self::isCriticalVoiceCloseCode($code);
     }
 
+    /** Whether `$code` is any known opcode or critical close code. */
     public static function isValidOp(int $code): bool
     {
         return self::isValidOpCode($code) || self::isValidCloseCode($code);
     }
 
+    /**
+     * Renders a voice opcode as its constant name.
+     *
+     * @param self|null $code             The opcode (or its int value); defaults to null.
+     * @param bool      $snakeCase        Return `snake_case` rather than `SCREAMING_CASE`.
+     * @param bool      $pluckVoicePrefix Strip the leading `VOICE_` prefix.
+     *
+     * @return string The rendered name, or an empty string when `$code` is not a voice opcode.
+     */
     public static function voiceCodeToString(
         ?self $code = null,
         bool $snakeCase = false,

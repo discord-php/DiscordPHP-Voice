@@ -585,26 +585,51 @@ final class WS implements GatewayCoordinatorHost
     {
     }
 
+    /**
+     * Routes the VOICE_DAVE_PREPARE_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDavePrepareTransition()}.
+     *
+     * @param Payload $data
+     */
     protected function handleDavePrepareTransition($data): void
     {
         $this->getCoordinator()->handleDavePrepareTransition($data);
     }
 
+    /**
+     * Routes the VOICE_DAVE_EXECUTE_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveExecuteTransition()}.
+     *
+     * @param Payload $data
+     */
     protected function handleDaveExecuteTransition($data): void
     {
         $this->getCoordinator()->handleDaveExecuteTransition($data);
     }
 
+    /**
+     * Routes the VOICE_DAVE_TRANSITION_READY opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveTransitionReady()}.
+     *
+     * @param Payload $data
+     */
     protected function handleDaveTransitionReady($data): void
     {
         $this->getCoordinator()->handleDaveTransitionReady($data);
     }
 
+    /**
+     * Routes the VOICE_DAVE_PREPARE_EPOCH opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDavePrepareEpoch()}.
+     *
+     * @param Payload $data
+     */
     protected function handleDavePrepareEpoch($data): void
     {
         $this->getCoordinator()->handleDavePrepareEpoch($data);
     }
 
+    /**
+     * Routes the VOICE_DAVE_MLS_EXTERNAL_SENDER_PACKAGE opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsExternalSender()}.
+     *
+     * @param Payload $data
+     */
     protected function handleDaveMlsExternalSender($data): void
     {
         $this->getCoordinator()->handleDaveMlsExternalSender($data);
@@ -630,26 +655,51 @@ final class WS implements GatewayCoordinatorHost
         $this->getCoordinator()->handleDaveMlsKeyPackage($data);
     }
 
+    /**
+     * Routes the VOICE_DAVE_MLS_PROPOSALS opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsProposals()}.
+     *
+     * @param Payload $data
+     */
     protected function handleDaveMlsProposals($data): void
     {
         $this->getCoordinator()->handleDaveMlsProposals($data);
     }
 
+    /**
+     * Routes the VOICE_DAVE_MLS_COMMIT_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsCommitWelcome()}.
+     *
+     * @param Payload $data
+     */
     protected function handleDaveMlsCommitWelcome($data): void
     {
         $this->getCoordinator()->handleDaveMlsCommitWelcome($data);
     }
 
+    /**
+     * Routes the VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsAnnounceCommitTransition()}.
+     *
+     * @param Payload $data
+     */
     protected function handleDaveMlsAnnounceCommitTransition($data): void
     {
         $this->getCoordinator()->handleDaveMlsAnnounceCommitTransition($data);
     }
 
+    /**
+     * Routes the VOICE_DAVE_MLS_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsWelcome()}.
+     *
+     * @param Payload $data
+     */
     protected function handleDaveMlsWelcome($data): void
     {
         $this->getCoordinator()->handleDaveMlsWelcome($data);
     }
 
+    /**
+     * Routes the VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsInvalidCommitWelcome()}.
+     *
+     * @param Payload $data
+     */
     protected function handleDaveMlsInvalidCommitWelcome($data): void
     {
         $this->getCoordinator()->handleDaveMlsInvalidCommitWelcome($data);
@@ -663,21 +713,25 @@ final class WS implements GatewayCoordinatorHost
         return $this->getCoordinator()->extractProtocolVersion($data);
     }
 
+    /** Delegates to {@see \Discord\Voice\Dave\GatewayCoordinator::resolveDaveProtocolVersion()}. */
     private function resolveDaveProtocolVersion(int $protocolVersion): int
     {
         return $this->getCoordinator()->resolveDaveProtocolVersion($protocolVersion);
     }
 
+    /** Delegates to {@see \Discord\Voice\Dave\GatewayCoordinator::initializeDaveRuntimeState()}. */
     private function initializeDaveRuntimeState(int $protocolVersion, bool $resetState = false): bool
     {
         return $this->getCoordinator()->initializeDaveRuntimeState($protocolVersion, $resetState);
     }
 
+    /** Delegates to {@see \Discord\Voice\Dave\GatewayCoordinator::sendDaveKeyPackage()}. */
     private function sendDaveKeyPackage(): void
     {
         $this->getCoordinator()->sendDaveKeyPackage();
     }
 
+    /** Records the last gateway sequence in the DAVE state and mirrors it into `$this->data['seq']` for resume. */
     private function recordGatewaySequence(?int $sequence): void
     {
         $this->daveState->recordGatewaySequence($sequence);
@@ -687,11 +741,13 @@ final class WS implements GatewayCoordinatorHost
         }
     }
 
+    /** Handles a VOICE_DISCONNECTED close opcode (logs it; the reconnect path is driven elsewhere). */
     public function handleCloseVoiceDisconnected(Payload $data): void
     {
         $this->discord->logger->debug('Voice disconnected close opcode received.', ['data' => $data]);
     }
 
+    /** The MLS group id for this connection: the channel id, falling back to the guild id. */
     private function resolveDaveGroupId(): int|string|null
     {
         $channelId = $this->vc->channel->id;
@@ -702,11 +758,13 @@ final class WS implements GatewayCoordinatorHost
         return $this->vc->channel->guild_id ?? null;
     }
 
+    /** The active DAVE protocol version for this connection. */
     public function getDaveProtocolVersion(): int
     {
         return $this->daveState->protocolVersion;
     }
 
+    /** The per-connection {@see DaveState}. */
     public function getDaveState(): DaveState
     {
         return $this->daveState;

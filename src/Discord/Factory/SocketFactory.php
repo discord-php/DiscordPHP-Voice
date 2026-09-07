@@ -24,6 +24,13 @@ final class SocketFactory extends Factory
 {
     protected ?WS $ws;
 
+    /**
+     * @param mixed   $loop     ReactPHP event loop; defaults to the global loop.
+     * @param mixed   $resolver DNS resolver; when null, one is built from `$ws->data['dnsConfig']`.
+     * @param WS|null $ws       Voice WebSocket, required when `$resolver` is null and used to wire UDP sockets back to the gateway.
+     *
+     * @throws \InvalidArgumentException if neither a resolver nor a WS instance is given.
+     */
     public function __construct($loop = null, $resolver = null, ?WS $ws = null)
     {
         if (null === $resolver) {
@@ -38,6 +45,13 @@ final class SocketFactory extends Factory
         $this->ws = $ws;
     }
 
+    /**
+     * @inheritDoc
+     *
+     * Resolves `$address` and returns a {@see UDP} client wired back to this factory's WS instance.
+     *
+     * @throws \Exception if the client socket cannot be created.
+     */
     public function createClient($address)
     {
         $loop = $this->loop;

@@ -24,6 +24,9 @@ use Discord\Voice\Exceptions\VoiceException;
  */
 final class AudioAlreadyPlayingException extends \RuntimeException implements VoiceException
 {
+    /**
+     * @param string|null $message Custom message, or null to use this exception's default.
+     */
     public function __construct(?string $message = null)
     {
         parent::__construct($message ?? 'Audio is already playing.');

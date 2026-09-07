@@ -74,23 +74,27 @@ final class State
 
     public bool $keyPackageSent = false;
 
+    /** Frees every native handle in the correct order (see {@see close()}). */
     public function __destruct()
     {
         $this->close();
     }
 
+    /** Records this connection's own user id and MLS group id. */
     public function setIdentity(int|string $selfUserId, int|string|null $groupId): void
     {
         $this->selfUserId = (string) $selfUserId;
         $this->groupId = $groupId === null ? null : (int) $groupId;
     }
 
+    /** Sets the active DAVE protocol version and derives passthrough mode (`version <= 0` means passthrough). */
     public function setProtocolVersion(int $version): void
     {
         $this->protocolVersion = $version;
         $this->passthroughMode = $version <= 0;
     }
 
+    /** Stages a protocol version for an upcoming transition; keeps passthrough on until media E2EE was already active. */
     public function prepareProtocolVersion(int $version): void
     {
         $wasActive = $this->protocolVersion > 0 && ! $this->passthroughMode;
@@ -99,6 +103,7 @@ final class State
         $this->passthroughMode = $version <= 0 || ! $wasActive;
     }
 
+    /** Records a pending transition id and (optionally) the protocol version it will move to. */
     public function prepareTransition(int $transitionId, ?int $protocolVersion = null): void
     {
         $this->pendingTransitionId = $transitionId;
@@ -109,6 +114,7 @@ final class State
         }
     }
 
+    /** Applies the pending transition when `$transitionId` matches, promoting the staged protocol version. */
     public function executeTransition(int $transitionId): void
     {
         if ($this->pendingTransitionId !== $transitionId) {
@@ -123,11 +129,13 @@ final class State
         $this->pendingProtocolVersion = null;
     }
 
+    /** Records the MLS epoch id the next group operations belong to. */
     public function prepareEpoch(int $epoch): void
     {
         $this->epoch = $epoch;
     }
 
+    /** Stores the last gateway sequence number seen, for `seq_ack` on heartbeats/resume. Ignores null. */
     public function recordGatewaySequence(?int $sequence): void
     {
         if ($sequence === null) {
@@ -137,36 +145,43 @@ final class State
         $this->lastReceivedSequence = $sequence;
     }
 
+    /** Stores the group's external-sender package (public key + credential). */
     public function recordExternalSender(string $senderPackage): void
     {
         $this->externalSenderPackage = $senderPackage;
     }
 
+    /** Marks that this client has published its MLS key package. */
     public function markKeyPackageSent(): void
     {
         $this->keyPackageSent = true;
     }
 
+    /** Bumps the consecutive media-encrypt failure counter. */
     public function incrementEncryptFailures(): void
     {
         $this->encryptFailureCount++;
     }
 
+    /** Bumps the consecutive media-decrypt failure counter. */
     public function incrementDecryptFailures(): void
     {
         $this->decryptFailureCount++;
     }
 
+    /** Bumps the consecutive proposal-processing failure counter for the current epoch. */
     public function incrementProposalFailures(): void
     {
         $this->proposalFailureCount++;
     }
 
+    /** Clears the proposal-processing failure counter. */
     public function resetProposalFailures(): void
     {
         $this->proposalFailureCount = 0;
     }
 
+    /** Swaps in a new MLS {@see SessionHandle}, destroying the previous one. */
     public function replaceSession(?SessionHandle $session): void
     {
         if ($this->session !== null && $this->session !== $session) {
@@ -176,6 +191,7 @@ final class State
         $this->session = $session;
     }
 
+    /** Swaps in a new {@see EncryptorHandle}, destroying the previous one. */
     public function replaceEncryptor(?EncryptorHandle $encryptor): void
     {
         if ($this->encryptor !== null && $this->encryptor !== $encryptor) {
@@ -185,6 +201,7 @@ final class State
         $this->encryptor = $encryptor;
     }
 
+    /** Sets (or, with null, removes and destroys) the per-user {@see DecryptorHandle} for `$userId`. */
     public function setDecryptor(int|string $userId, ?DecryptorHandle $decryptor): void
     {
         $userId = (string) $userId;
@@ -202,6 +219,7 @@ final class State
         $this->decryptors[$userId] = $decryptor;
     }
 
+    /** The {@see DecryptorHandle} for `$userId`, or null. */
     public function getDecryptor(int|string $userId): ?DecryptorHandle
     {
         return $this->decryptors[(string) $userId] ?? null;
@@ -215,6 +233,7 @@ final class State
         return $this->decryptors;
     }
 
+    /** Sets (or, with null, removes and destroys) the per-user {@see KeyRatchetHandle} for `$userId`. */
     public function setKeyRatchet(int|string $userId, ?KeyRatchetHandle $keyRatchet): void
     {
         $userId = (string) $userId;
@@ -232,11 +251,13 @@ final class State
         $this->keyRatchets[$userId] = $keyRatchet;
     }
 
+    /** The {@see KeyRatchetHandle} for `$userId`, or null. */
     public function getKeyRatchet(int|string $userId): ?KeyRatchetHandle
     {
         return $this->keyRatchets[(string) $userId] ?? null;
     }
 
+    /** Sets this client's own {@see KeyRatchetHandle}, destroying the previous one. */
     public function setSelfKeyRatchet(?KeyRatchetHandle $keyRatchet): void
     {
         if ($this->selfKeyRatchet !== null && $this->selfKeyRatchet !== $keyRatchet) {
@@ -246,11 +267,13 @@ final class State
         $this->selfKeyRatchet = $keyRatchet;
     }
 
+    /** This client's own {@see KeyRatchetHandle}, or null. */
     public function getSelfKeyRatchet(): ?KeyRatchetHandle
     {
         return $this->selfKeyRatchet;
     }
 
+    /** Destroys and drops every per-user decryptor. */
     public function clearDecryptors(): void
     {
         foreach ($this->decryptors as $decryptor) {
@@ -260,6 +283,7 @@ final class State
         $this->decryptors = [];
     }
 
+    /** Destroys and drops every key ratchet, including this client's own. */
     public function clearKeyRatchets(): void
     {
         foreach ($this->keyRatchets as $keyRatchet) {
@@ -270,6 +294,7 @@ final class State
         $this->setSelfKeyRatchet(null);
     }
 
+    /** Frees all handles and returns the state to a fresh passthrough baseline (version 0). */
     public function resetProtocolState(): void
     {
         $this->replaceEncryptor(null);
@@ -289,6 +314,7 @@ final class State
         $this->keyPackageSent = false;
     }
 
+    /** Destroys every native handle in dependency order: encryptor and decryptors, then key ratchets, then the session. */
     public function close(): void
     {
         $this->replaceEncryptor(null);
@@ -307,6 +333,7 @@ final class State
         }
     }
 
+    /** Forgets `$userId` and destroys its decryptor and key ratchet. */
     public function removeRecognizedUser(int|string $userId): void
     {
         $userId = (string) $userId;

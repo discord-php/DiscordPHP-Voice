@@ -1367,6 +1367,7 @@ class VoiceClient
         return $this->mediaCrypto->decrypt($frame, $userId, $packet?->getSSRC());
     }
 
+    /** Maps `$packet`'s SSRC to a known remote user id, or null when the SSRC is not yet mapped. */
     private function resolveDaveRemoteUserId(Packet $packet): ?string
     {
         return $this->ssrcToUserId[$packet->getSSRC()] ?? null;
@@ -1612,6 +1613,11 @@ class VoiceClient
         return $this->ready;
     }
 
+    /**
+     * The current playback volume expressed in decibels.
+     *
+     * Maps the 0-100 linear `volume` to roughly -100 dB (mute) up to 0 dB (full).
+     */
     public function getDbVolume(): float|int
     {
         return match ($this->volume) {
@@ -1729,6 +1735,14 @@ class VoiceClient
         $this->discord->getLogger()->info('Started recording audio.');
     }
 
+    /**
+     * Stops an in-progress recording started by {@see record()}.
+     *
+     * Finalises every per-user writer, closes recording processes and PCM handles,
+     * and clears all receive-stream, decoder and speaking state.
+     *
+     * @throws \RuntimeException if no recording is in progress.
+     */
     public function stopRecording(): void
     {
         if (! $this->shouldRecord) {
@@ -1775,6 +1789,14 @@ class VoiceClient
         $this->ssrcToUserId = [];
     }
 
+    /**
+     * Merges gateway connection data into this client and boots it once
+     * `token`, `endpoint`, `session` and `dnsConfig` are all present.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return $this
+     */
     public function setData(array $data): self
     {
         $this->data = array_merge($this->data, $data);

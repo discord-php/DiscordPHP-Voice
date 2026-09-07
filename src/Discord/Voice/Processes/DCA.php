@@ -33,6 +33,11 @@ final class DCA extends ProcessAbstract
 
     protected static string $exec = 'dca';
 
+    /**
+     * Locates a `dca` executable on PATH, caching the resolved path in `self::$exec`.
+     *
+     * @return bool True if a usable binary was found.
+     */
     public static function checkForDca(): bool
     {
         $binaries = [
@@ -80,6 +85,16 @@ final class DCA extends ProcessAbstract
         return new Process(self::$exec." $flags");
     }
 
+    /**
+     * Builds a `dca` decode process.
+     *
+     * @param string|null        $filename  Input filename, or null to read from stdin.
+     * @param int|float           $volume    Volume adjustment in dB.
+     * @param int                 $bitrate   Target bitrate in bits per second.
+     * @param int                 $channels  Output channel count.
+     * @param int|null            $frameSize Samples per frame; defaults to 960 (20 ms at 48 kHz).
+     * @param array<string>|null  $preArgs   Extra arguments placed before the main flags.
+     */
     public static function decode(
         ?string $filename = null,
         int|float $volume = 0,

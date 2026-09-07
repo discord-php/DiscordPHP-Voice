@@ -27,6 +27,9 @@ final class Ffmpeg extends ProcessAbstract
 {
     protected static string $exec = '/usr/bin/ffmpeg';
 
+    /**
+     * @throws FFmpegNotFoundException if no ffmpeg binary can be located on PATH.
+     */
     public function __construct()
     {
         if (! $this->checkForFFmpeg()) {
@@ -34,6 +37,15 @@ final class Ffmpeg extends ProcessAbstract
         }
     }
 
+    /**
+     * Guards static `encode()` / `decode()` calls behind an ffmpeg availability check.
+     *
+     * @param string      $name      Method being called.
+     * @param array<mixed> $arguments Forwarded arguments.
+     *
+     * @throws FFmpegNotFoundException  if ffmpeg is not installed.
+     * @throws \BadMethodCallException  for any other method name.
+     */
     public static function __callStatic(string $name, array $arguments)
     {
         if (method_exists(self::class, $name) && in_array($name, ['encode', 'decode'])) {
@@ -47,6 +59,11 @@ final class Ffmpeg extends ProcessAbstract
         throw new \BadMethodCallException("Method {$name} does not exist in ".__CLASS__);
     }
 
+    /**
+     * Locates an `ffmpeg` executable on PATH, caching the resolved path in `self::$exec`.
+     *
+     * @return bool True if a usable binary was found.
+     */
     public static function checkForFFmpeg(): bool
     {
         $binaries = [
@@ -66,6 +83,14 @@ final class Ffmpeg extends ProcessAbstract
         return false;
     }
 
+    /**
+     * Builds an ffmpeg process that transcodes the input to Opus on stdout (`pipe:1`).
+     *
+     * @param string|null        $filename Input filename, or null to read from stdin (`pipe:0`).
+     * @param int|float           $volume   Volume adjustment in dB.
+     * @param int                 $bitrate  Target audio bitrate in bits per second.
+     * @param array<string>|null  $preArgs  Extra arguments placed before the input flags.
+     */
     public static function encode(
         ?string $filename = null,
         int|float $volume = 0,

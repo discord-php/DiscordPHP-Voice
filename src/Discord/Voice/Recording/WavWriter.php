@@ -34,6 +34,7 @@ class WavWriter
 
     private int $dataBytes = 0;
 
+    /** @param string $path Destination path for the WAV file. */
     public function __construct(private string $path)
     {
     }

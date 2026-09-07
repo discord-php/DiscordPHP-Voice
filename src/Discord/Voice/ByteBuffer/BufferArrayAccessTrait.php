@@ -124,11 +124,25 @@ trait BufferArrayAccessTrait
         return $this->extract(FormatPackEnum::I, $offset, 4);
     }
 
+    /**
+     * Reads a signed char.
+     *
+     * @param int $offset The offset to read from.
+     *
+     * @return string The byte read.
+     */
     public function readChar(int $offset): string
     {
         return $this->extract(FormatPackEnum::c, $offset, 1);
     }
 
+    /**
+     * Reads an unsigned char.
+     *
+     * @param int $offset The offset to read from.
+     *
+     * @return string The byte read.
+     */
     public function readUChar(int $offset): string
     {
         return $this->extract(FormatPackEnum::C, $offset, 1);

@@ -20,11 +20,17 @@ namespace Discord\Voice\ByteBuffer;
  */
 abstract class AbstractBuffer implements ReadableBuffer, WriteableBuffer
 {
+    /**
+     * @param string|int $argument A binary string to wrap, or an integer size to pre-allocate.
+     */
     abstract public function __construct($argument);
 
+    /** @return string The buffer's contents as a raw binary string. */
     abstract public function __toString(): string;
 
+    /** @return int The buffer's length in bytes. */
     abstract public function length(): int;
 
+    /** @return int The offset of the first empty (unwritten) byte. */
     abstract public function getLastEmptyPosition(): int;
 }

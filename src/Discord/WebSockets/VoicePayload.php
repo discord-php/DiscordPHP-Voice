@@ -29,6 +29,13 @@ class VoicePayload extends Payload
     /** @var string|null */
     protected $token;
 
+    /**
+     * @param int         $op    Gateway opcode.
+     * @param mixed       $d     Event data payload.
+     * @param int|null    $s     Sequence number.
+     * @param string|null $t     Event name.
+     * @param string|null $token Voice connection token, merged into `d.token` on serialisation.
+     */
     public function __construct(int $op, $d = null, ?int $s = null, ?string $t = null, ?string $token = null)
     {
         $this->op = $op;
@@ -38,6 +45,9 @@ class VoicePayload extends Payload
         $this->token = $token;
     }
 
+    /**
+     * @inheritDoc
+     */
     public static function new(
         int $op,
         $d = null,
@@ -48,6 +58,11 @@ class VoicePayload extends Payload
         return new self($op, $d, $s, $t, $token);
     }
 
+    /**
+     * Sets the voice token merged into `d.token` when the payload is serialised.
+     *
+     * @return $this
+     */
     public function setToken(?string $token = null): self
     {
         $this->token = $token;
@@ -55,11 +70,17 @@ class VoicePayload extends Payload
         return $this;
     }
 
+    /** The voice token, or null when unset. */
     public function getToken(): ?string
     {
         return $this->token ?? null;
     }
 
+    /**
+     * @inheritDoc
+     *
+     * Adds the voice `token` under `d` when one is set.
+     */
     public function jsonSerialize(): array
     {
         $data = parent::jsonSerialize();
@@ -71,6 +92,11 @@ class VoicePayload extends Payload
         return $data;
     }
 
+    /**
+     * @inheritDoc
+     *
+     * Redacts the voice token.
+     */
     public function __debugInfo()
     {
         $array = parent::__debugInfo();

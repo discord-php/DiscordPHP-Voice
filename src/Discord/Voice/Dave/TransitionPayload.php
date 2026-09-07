@@ -17,6 +17,10 @@ namespace Discord\Voice\Dave;
 
 final class TransitionPayload
 {
+    /**
+     * @param int    $transitionId The 16-bit transition id this MLS payload belongs to.
+     * @param string $payload      The MLS message bytes that follow the 2-byte id prefix.
+     */
     public function __construct(
         public readonly int $transitionId,
         public readonly string $payload,

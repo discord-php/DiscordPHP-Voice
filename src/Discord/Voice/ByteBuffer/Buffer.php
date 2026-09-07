@@ -28,6 +28,12 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
 
     protected \SplFixedArray $buffer;
 
+    /**
+     * @param string|int $argument A binary string to wrap, or a non-negative integer size to zero-fill.
+     *
+     * @throws \OutOfRangeException      When an integer size is negative.
+     * @throws \InvalidArgumentException When the argument is neither a string nor an integer.
+     */
     public function __construct($argument)
     {
         if (is_int($argument) && $argument < 0) {
@@ -41,16 +47,29 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
                 : throw new \InvalidArgumentException('Constructor argument must be an binary string or integer'));
     }
 
+    /** @return string The buffer's bytes as a raw binary string. */
     public function __toString(): string
     {
         return implode('', iterator_to_array($this->buffer, false));
     }
 
+    /**
+     * Convenience factory equivalent to `new static($argument)`.
+     *
+     * @param string|int $argument
+     */
     public static function make($argument): static
     {
         return new static($argument);
     }
 
+    /**
+     * Allocates the backing {@see \SplFixedArray} of `$length` bytes and copies
+     * `$content` into it.
+     *
+     * @param int    $length
+     * @param string $content
+     */
     protected function initializeStructs($length, string $content): void
     {
         $this->buffer = new \SplFixedArray($length);
@@ -141,11 +160,17 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
         return $this;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function length(): int
     {
         return $this->buffer->getSize();
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getLastEmptyPosition(): int
     {
         foreach ($this->buffer as $key => $value) {
@@ -289,6 +314,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
         return $this->extract('a'.$length, $offset, $length);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function readInt8(int $offset)
     {
         $format = FormatPackEnum::C;
@@ -296,6 +324,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
         return $this->extract($format, $offset, $format->getLength());
     }
 
+    /**
+     * @inheritDoc
+     */
     public function readInt16BE(int $offset)
     {
         $format = FormatPackEnum::n;
@@ -303,6 +334,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
         return $this->extract($format, $offset, $format->getLength());
     }
 
+    /**
+     * @inheritDoc
+     */
     public function readInt16LE(int $offset)
     {
         $format = FormatPackEnum::v;
@@ -310,6 +344,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
         return $this->extract($format, $offset, $format->getLength());
     }
 
+    /**
+     * @inheritDoc
+     */
     public function readInt32BE(int $offset)
     {
         $format = FormatPackEnum::N;
@@ -317,6 +354,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
         return $this->extract($format, $offset, $format->getLength());
     }
 
+    /**
+     * @inheritDoc
+     */
     public function readInt32LE(int $offset)
     {
         $format = FormatPackEnum::V;

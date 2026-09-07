@@ -19,6 +19,10 @@ use Psr\Log\LoggerInterface;
 
 final class MediaCryptoService
 {
+    /**
+     * @param State           $state  Per-connection DAVE state holding the active encryptor and per-user decryptors.
+     * @param LoggerInterface $logger Sink for encrypt/decrypt failure diagnostics.
+     */
     public function __construct(
         private readonly State $state,
         private readonly LoggerInterface $logger,

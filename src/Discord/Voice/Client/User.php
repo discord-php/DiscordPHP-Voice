@@ -26,6 +26,14 @@ use React\ChildProcess\Process;
  */
 final class User
 {
+    /**
+     * @param Discord       $discord     The Discord client.
+     * @param VoiceClient   $voiceClient The voice connection this user is heard on.
+     * @param int           $ssrc        The RTP SSRC assigned to this user's audio.
+     * @param Process       $decoder     The per-user Opus-to-PCM decoder process.
+     * @param ReceiveStream $stream      The stream emitting this user's decoded audio.
+     * @param Speaking|null $part        The last received speaking payload, if any.
+     */
     public function __construct(
         protected Discord $discord,
         protected VoiceClient $voiceClient,

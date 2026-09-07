@@ -20,6 +20,14 @@ namespace Discord\Voice\ByteBuffer;
  */
 interface WriteableBuffer
 {
+    /**
+     * Writes a raw value into the buffer.
+     *
+     * @param mixed    $value
+     * @param int|null $offset Offset to write at; the buffer length is used when null.
+     *
+     * @return self
+     */
     public function write($value, ?int $offset = null): self;
 
     /**

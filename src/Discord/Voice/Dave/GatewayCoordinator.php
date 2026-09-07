@@ -29,6 +29,7 @@ use Discord\WebSockets\VoicePayload;
  */
 class GatewayCoordinator
 {
+    /** @param GatewayCoordinatorHost $host The voice WebSocket that owns this coordinator and exposes the DAVE state, logger and send primitives. */
     public function __construct(private readonly GatewayCoordinatorHost $host)
     {
     }
@@ -37,6 +38,13 @@ class GatewayCoordinator
     // DAVE opcode handlers — called via WS proxy methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Handles opcode 21 (VOICE_DAVE_PREPARE_TRANSITION): stages the move to
+     * `protocol_version` for `transition_id`, pre-creating remote decryptors, then
+     * readies the transition or (for id 0) executes it immediately.
+     *
+     * @param VoicePayload $data
+     */
     public function handleDavePrepareTransition(mixed $data): void
     {
         $transitionId = (int) ($data->d['transition_id'] ?? 0);
@@ -47,6 +55,12 @@ class GatewayCoordinator
         $this->completeDaveMediaTransition($transitionId);
     }
 
+    /**
+     * Handles opcode 22 (VOICE_DAVE_EXECUTE_TRANSITION): promotes the pending
+     * `transition_id` so its staged protocol version becomes the active one.
+     *
+     * @param VoicePayload $data
+     */
     public function handleDaveExecuteTransition(mixed $data): void
     {
         $transitionId = (int) ($data->d['transition_id'] ?? 0);
@@ -55,6 +69,13 @@ class GatewayCoordinator
         $this->executeDaveMediaTransition($transitionId);
     }
 
+    /**
+     * Handles opcode 23 (VOICE_DAVE_TRANSITION_READY): when it matches the pending
+     * transition, applies this client's own encryptor for the staged protocol
+     * version and marks the transition executed.
+     *
+     * @param VoicePayload $data
+     */
     public function handleDaveTransitionReady(mixed $data): void
     {
         $transitionId = (int) ($data->d['transition_id'] ?? 0);
@@ -71,6 +92,14 @@ class GatewayCoordinator
         $daveState->executeTransition($transitionId);
     }
 
+    /**
+     * Handles opcode 24 (VOICE_DAVE_PREPARE_EPOCH): records the MLS `epoch`, stages
+     * the transition and protocol version, and for a non-passthrough version
+     * initialises the DAVE runtime fail-closed (closing the connection on failure),
+     * sending the local key package when `epoch === 1`.
+     *
+     * @param VoicePayload $data
+     */
     public function handleDavePrepareEpoch(mixed $data): void
     {
         $epoch = (int) ($data->d['epoch'] ?? 0);
@@ -105,6 +134,13 @@ class GatewayCoordinator
         }
     }
 
+    /**
+     * Handles opcode 25 (VOICE_DAVE_MLS_EXTERNAL_SENDER_PACKAGE): stores the
+     * group's external-sender package, installs it on the live MLS session and
+     * (re)sends this client's key package. Non-binary payloads are ignored.
+     *
+     * @param BinaryFrame|VoicePayload $data
+     */
     public function handleDaveMlsExternalSender(mixed $data): void
     {
         $this->host->getLogger()->debug('DAVE: MLS external sender');
@@ -148,6 +184,15 @@ class GatewayCoordinator
         // Server handles proposal aggregation; we passively receive forwarded key packages.
     }
 
+    /**
+     * Handles opcode 27 (VOICE_DAVE_MLS_PROPOSALS): builds an MLS commit+welcome
+     * from the proposals payload and replies with opcode 28. Per spec, an
+     * unbuildable commit is not answered with INVALID_COMMIT_WELCOME; instead the
+     * consecutive-failure counter is bumped and the connection is dropped after
+     * three failures so a fresh DAVE epoch is obtained on reconnect.
+     *
+     * @param BinaryFrame|VoicePayload $data
+     */
     public function handleDaveMlsProposals(mixed $data): void
     {
         $this->host->getLogger()->debug('DAVE: MLS proposals');
@@ -196,6 +241,14 @@ class GatewayCoordinator
         $this->host->sendDaveBinary(Op::VOICE_DAVE_MLS_COMMIT_WELCOME, $payload);
     }
 
+    /**
+     * Handles opcode 28 (VOICE_DAVE_MLS_COMMIT_WELCOME): processes the commit for
+     * the carried transition id (falling back to processing it as a welcome), then
+     * prepares and completes the media transition. On failure, requests re-add to
+     * the MLS group.
+     *
+     * @param BinaryFrame|VoicePayload $data
+     */
     public function handleDaveMlsCommitWelcome(mixed $data): void
     {
         $this->host->getLogger()->debug('DAVE: MLS commit welcome');
@@ -239,6 +292,13 @@ class GatewayCoordinator
         $this->handleInvalidDaveTransition($transitionId);
     }
 
+    /**
+     * Handles opcode 29 (VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION): applies the
+     * announced commit and, unless it was ignored, prepares and completes the media
+     * transition. A failed commit triggers re-add with a fresh key package.
+     *
+     * @param BinaryFrame|VoicePayload $data
+     */
     public function handleDaveMlsAnnounceCommitTransition(mixed $data): void
     {
         $this->host->getLogger()->debug('DAVE: MLS announce commit transition');
@@ -270,6 +330,13 @@ class GatewayCoordinator
         $this->completeDaveMediaTransition($transitionId);
     }
 
+    /**
+     * Handles opcode 30 (VOICE_DAVE_MLS_WELCOME): joins the MLS group from the
+     * welcome for the carried transition id, then prepares and completes the media
+     * transition. Failure to join triggers re-add with a fresh key package.
+     *
+     * @param BinaryFrame|VoicePayload $data
+     */
     public function handleDaveMlsWelcome(mixed $data): void
     {
         $this->host->getLogger()->debug('DAVE: MLS welcome');
@@ -301,6 +368,13 @@ class GatewayCoordinator
         $this->completeDaveMediaTransition($transitionId);
     }
 
+    /**
+     * Handles opcode 31 (VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME): recovers DAVE
+     * state after the gateway reports our commit/welcome was unprocessable by
+     * requesting re-add to the MLS group with a fresh key package.
+     *
+     * @param BinaryFrame|VoicePayload $data
+     */
     public function handleDaveMlsInvalidCommitWelcome(mixed $data): void
     {
         $this->host->getLogger()->warning('DAVE: invalid MLS commit/welcome; recovering state.');
@@ -448,6 +522,12 @@ class GatewayCoordinator
     // Private DAVE helpers
     // -------------------------------------------------------------------------
 
+    /**
+     * Promotes the pending transition when `$transitionId` matches: for a
+     * non-positive protocol version it downgrades to passthrough and resets the
+     * session; otherwise it sets the session protocol version, applies this
+     * client's encryptor and marks the transition executed.
+     */
     private function executeDaveMediaTransition(int $transitionId): void
     {
         $daveState = $this->host->getDaveState();
@@ -481,6 +561,11 @@ class GatewayCoordinator
         $daveState->executeTransition($transitionId);
     }
 
+    /**
+     * Records the pending transition and target protocol version, then pre-creates
+     * a decryptor for every recognised remote user so inbound media keeps decoding
+     * across the switch.
+     */
     private function prepareDaveMediaTransition(int $transitionId, int $protocolVersion): void
     {
         $daveState = $this->host->getDaveState();
@@ -491,6 +576,11 @@ class GatewayCoordinator
         }
     }
 
+    /**
+     * Finishes a prepared transition: id 0 is executed immediately with no gateway
+     * round-trip; any other id sends VOICE_DAVE_TRANSITION_READY and waits for the
+     * gateway to drive execution.
+     */
     private function completeDaveMediaTransition(int $transitionId): void
     {
         if ($transitionId === 0) {
@@ -593,6 +683,7 @@ class GatewayCoordinator
         $daveState->setSelfKeyRatchet($keyRatchet);
     }
 
+    /** Sends VOICE_DAVE_TRANSITION_READY (opcode 23) for `$transitionId`. */
     private function sendDaveTransitionReady(int $transitionId): void
     {
         $this->host->getLogger()->debug('sending DAVE transition ready', [
@@ -605,6 +696,7 @@ class GatewayCoordinator
         ));
     }
 
+    /** Sends VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME (opcode 31) with no payload. */
     private function sendDaveInvalidCommitWelcome(): void
     {
         $this->host->sendDaveBinary(Op::VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME);

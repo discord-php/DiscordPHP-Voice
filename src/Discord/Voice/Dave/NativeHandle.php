@@ -21,11 +21,17 @@ abstract class NativeHandle
 
     private bool $destroyed = false;
 
+    /** @param mixed $handle The raw libdave native pointer/object this wrapper takes ownership of. */
     public function __construct(mixed $handle)
     {
         $this->handle = $handle;
     }
 
+    /**
+     * The underlying native handle.
+     *
+     * @throws \RuntimeException if the handle has already been destroyed.
+     */
     public function raw(): mixed
     {
         if ($this->destroyed || $this->handle === null) {
@@ -35,6 +41,7 @@ abstract class NativeHandle
         return $this->handle;
     }
 
+    /** Frees the native handle through libdave. Idempotent — safe to call more than once. */
     public function destroy(): void
     {
         if ($this->destroyed || $this->handle === null) {
@@ -47,10 +54,12 @@ abstract class NativeHandle
         $this->destroyed = true;
     }
 
+    /** Frees the native handle when this wrapper is garbage-collected. */
     public function __destruct()
     {
         $this->destroy();
     }
 
+    /** The libdave FFI function name that frees this kind of handle. */
     abstract protected function destroyMethod(): string;
 }

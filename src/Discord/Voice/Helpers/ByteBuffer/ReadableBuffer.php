@@ -16,19 +16,7 @@ declare(strict_types=1);
 namespace Discord\Voice\Helpers\ByteBuffer;
 
 /**
- * @author alexandre433
+ * @deprecated Use {@see \Discord\Voice\ByteBuffer\ReadableBuffer}. This alias is kept only for
+ *             backward compatibility and will be removed in a future release.
  */
-interface ReadableBuffer
-{
-    public function read(int $offset, int $length);
-
-    public function readInt8(int $offset);
-
-    public function readInt16BE(int $offset);
-
-    public function readInt16LE(int $offset);
-
-    public function readInt32BE(int $offset);
-
-    public function readInt32LE(int $offset);
-}
+\class_alias(\Discord\Voice\ByteBuffer\ReadableBuffer::class, ReadableBuffer::class);

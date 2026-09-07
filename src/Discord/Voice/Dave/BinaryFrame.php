@@ -24,6 +24,11 @@ final class BinaryFrame
     private const SERVER_HEADER_UNPACK_FORMAT = 'nsequence/Copcode';
     private const CLIENT_HEADER_UNPACK_FORMAT = 'Copcode';
 
+    /**
+     * @param int|null $sequence Gateway sequence number (server frames only; null for client frames).
+     * @param int      $opcode   DAVE binary opcode.
+     * @param string   $payload  Raw MLS/DAVE payload following the header.
+     */
     public function __construct(
         public readonly ?int $sequence,
         public readonly int $opcode,
@@ -83,6 +88,11 @@ final class BinaryFrame
         );
     }
 
+    /**
+     * Serialises this frame with the 3-byte server header (uint16 big-endian sequence + uint8 opcode).
+     *
+     * @throws \RuntimeException if this frame has no sequence number.
+     */
     public function toServerPayload(): string
     {
         if ($this->sequence === null) {
@@ -100,6 +110,7 @@ final class BinaryFrame
         return $this->toServerPayload();
     }
 
+    /** Serialises this frame with the 1-byte client header (uint8 opcode). */
     public function toClientPayload(): string
     {
         return pack('C', $this->opcode).$this->payload;

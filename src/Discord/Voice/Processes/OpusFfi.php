@@ -36,6 +36,7 @@ class OpusFfi implements OpusDecoderInterface
     /** @var array<string, mixed> Persistent decoder handles keyed by "channels:rate". */
     private array $decoderHandles = [];
 
+    /** Destroys every cached libopus decoder handle. */
     public function __destruct()
     {
         foreach ($this->decoderHandles as $decoder) {
@@ -44,6 +45,11 @@ class OpusFfi implements OpusDecoderInterface
         $this->decoderHandles = [];
     }
 
+    /**
+     * Loads libopus via FFI and declares the decoder functions used by {@see decode()}.
+     *
+     * @throws \FFI\Exception if libopus cannot be loaded.
+     */
     public function __construct()
     {
         // Load libopus and define needed functions/types
@@ -61,11 +67,13 @@ class OpusFfi implements OpusDecoderInterface
         ', 'libopus.so.0');
     }
 
+    /** Convenience factory equivalent to `new self()`. */
     public static function new(): self
     {
         return new self();
     }
 
+    /** Whether libopus can be loaded via FFI in this environment. */
     public static function isAvailable(): bool
     {
         try {

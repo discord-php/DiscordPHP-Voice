@@ -59,6 +59,7 @@ class Buffer implements WritableStreamInterface
      */
     protected $loop;
 
+    /** @param LoopInterface|null $loop ReactPHP event loop used for read timeouts; defaults to the global loop. */
     public function __construct(?LoopInterface $loop = null)
     {
         $this->loop = $loop ?? Loop::get();
