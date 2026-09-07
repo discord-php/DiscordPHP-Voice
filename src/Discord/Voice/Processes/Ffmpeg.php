@@ -40,11 +40,11 @@ final class Ffmpeg extends ProcessAbstract
     /**
      * Guards static `encode()` / `decode()` calls behind an ffmpeg availability check.
      *
-     * @param string      $name      Method being called.
+     * @param string       $name      Method being called.
      * @param array<mixed> $arguments Forwarded arguments.
      *
-     * @throws FFmpegNotFoundException  if ffmpeg is not installed.
-     * @throws \BadMethodCallException  for any other method name.
+     * @throws FFmpegNotFoundException if ffmpeg is not installed.
+     * @throws \BadMethodCallException for any other method name.
      */
     public static function __callStatic(string $name, array $arguments)
     {
@@ -86,10 +86,10 @@ final class Ffmpeg extends ProcessAbstract
     /**
      * Builds an ffmpeg process that transcodes the input to Opus on stdout (`pipe:1`).
      *
-     * @param string|null        $filename Input filename, or null to read from stdin (`pipe:0`).
-     * @param int|float           $volume   Volume adjustment in dB.
-     * @param int                 $bitrate  Target audio bitrate in bits per second.
-     * @param array<int|string>|null $preArgs Extra arguments placed before the input flags.
+     * @param string|null            $filename Input filename, or null to read from stdin (`pipe:0`).
+     * @param int|float              $volume   Volume adjustment in dB.
+     * @param int                    $bitrate  Target audio bitrate in bits per second.
+     * @param array<int|string>|null $preArgs  Extra arguments placed before the input flags.
      */
     public static function encode(
         ?string $filename = null,
