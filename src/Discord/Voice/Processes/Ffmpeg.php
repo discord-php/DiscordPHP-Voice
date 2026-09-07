@@ -89,7 +89,7 @@ final class Ffmpeg extends ProcessAbstract
      * @param string|null        $filename Input filename, or null to read from stdin (`pipe:0`).
      * @param int|float           $volume   Volume adjustment in dB.
      * @param int                 $bitrate  Target audio bitrate in bits per second.
-     * @param array<string>|null  $preArgs  Extra arguments placed before the input flags.
+     * @param array<int|string>|null $preArgs Extra arguments placed before the input flags.
      */
     public static function encode(
         ?string $filename = null,

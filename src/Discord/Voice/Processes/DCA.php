@@ -93,7 +93,7 @@ final class DCA extends ProcessAbstract
      * @param int                 $bitrate   Target bitrate in bits per second.
      * @param int                 $channels  Output channel count.
      * @param int|null            $frameSize Samples per frame; defaults to 960 (20 ms at 48 kHz).
-     * @param array<string>|null  $preArgs   Extra arguments placed before the main flags.
+     * @param array<int|string>|null $preArgs  Extra arguments placed before the main flags.
      */
     public static function decode(
         ?string $filename = null,

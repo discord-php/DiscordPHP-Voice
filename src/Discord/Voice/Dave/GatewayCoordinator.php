@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace Discord\Voice\Dave;
 
 use Discord\WebSockets\Op;
+use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
 
 /**
@@ -43,7 +44,7 @@ class GatewayCoordinator
      * `protocol_version` for `transition_id`, pre-creating remote decryptors, then
      * readies the transition or (for id 0) executes it immediately.
      *
-     * @param VoicePayload $data
+     * @param BinaryFrame|Payload $data
      */
     public function handleDavePrepareTransition(mixed $data): void
     {
@@ -59,7 +60,7 @@ class GatewayCoordinator
      * Handles opcode 22 (VOICE_DAVE_EXECUTE_TRANSITION): promotes the pending
      * `transition_id` so its staged protocol version becomes the active one.
      *
-     * @param VoicePayload $data
+     * @param BinaryFrame|Payload $data
      */
     public function handleDaveExecuteTransition(mixed $data): void
     {
@@ -74,7 +75,7 @@ class GatewayCoordinator
      * transition, applies this client's own encryptor for the staged protocol
      * version and marks the transition executed.
      *
-     * @param VoicePayload $data
+     * @param BinaryFrame|Payload $data
      */
     public function handleDaveTransitionReady(mixed $data): void
     {
@@ -98,7 +99,7 @@ class GatewayCoordinator
      * initialises the DAVE runtime fail-closed (closing the connection on failure),
      * sending the local key package when `epoch === 1`.
      *
-     * @param VoicePayload $data
+     * @param BinaryFrame|Payload $data
      */
     public function handleDavePrepareEpoch(mixed $data): void
     {
@@ -139,7 +140,7 @@ class GatewayCoordinator
      * group's external-sender package, installs it on the live MLS session and
      * (re)sends this client's key package. Non-binary payloads are ignored.
      *
-     * @param BinaryFrame|VoicePayload $data
+     * @param BinaryFrame|Payload $data
      */
     public function handleDaveMlsExternalSender(mixed $data): void
     {
@@ -191,7 +192,7 @@ class GatewayCoordinator
      * consecutive-failure counter is bumped and the connection is dropped after
      * three failures so a fresh DAVE epoch is obtained on reconnect.
      *
-     * @param BinaryFrame|VoicePayload $data
+     * @param BinaryFrame|Payload $data
      */
     public function handleDaveMlsProposals(mixed $data): void
     {
@@ -247,7 +248,7 @@ class GatewayCoordinator
      * prepares and completes the media transition. On failure, requests re-add to
      * the MLS group.
      *
-     * @param BinaryFrame|VoicePayload $data
+     * @param BinaryFrame|Payload $data
      */
     public function handleDaveMlsCommitWelcome(mixed $data): void
     {
@@ -297,7 +298,7 @@ class GatewayCoordinator
      * announced commit and, unless it was ignored, prepares and completes the media
      * transition. A failed commit triggers re-add with a fresh key package.
      *
-     * @param BinaryFrame|VoicePayload $data
+     * @param BinaryFrame|Payload $data
      */
     public function handleDaveMlsAnnounceCommitTransition(mixed $data): void
     {
@@ -335,7 +336,7 @@ class GatewayCoordinator
      * welcome for the carried transition id, then prepares and completes the media
      * transition. Failure to join triggers re-add with a fresh key package.
      *
-     * @param BinaryFrame|VoicePayload $data
+     * @param BinaryFrame|Payload $data
      */
     public function handleDaveMlsWelcome(mixed $data): void
     {
@@ -373,7 +374,7 @@ class GatewayCoordinator
      * state after the gateway reports our commit/welcome was unprocessable by
      * requesting re-add to the MLS group with a fresh key package.
      *
-     * @param BinaryFrame|VoicePayload $data
+     * @param BinaryFrame|Payload $data
      */
     public function handleDaveMlsInvalidCommitWelcome(mixed $data): void
     {
