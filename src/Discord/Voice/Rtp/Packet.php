@@ -204,11 +204,11 @@ final class Packet
         if ($encryptedLength < 0) {
             return false;
         }
-        $cipherText = substr($message, $this->headerSize, $encryptedLength);
-        $authTag = substr($message, $this->headerSize + $encryptedLength, HeaderValuesEnum::AUTH_TAG_LENGTH->value);
 
-        // Concatenate the ciphertext and the auth tag
-        $combined = "$cipherText$authTag";
+        // The wire layout is [header][ciphertext][auth tag][nonce], so the ciphertext
+        // and auth tag are already contiguous — slice them out in one go rather than
+        // two substr() calls plus a concat (this runs once per inbound frame).
+        $combined = substr($message, $this->headerSize, $encryptedLength + HeaderValuesEnum::AUTH_TAG_LENGTH->value);
 
         $resultMessage = null;
 
