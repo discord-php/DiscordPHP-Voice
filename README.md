@@ -12,7 +12,7 @@ Before you start using this Library, you **need** to know how PHP works, you nee
 
 - [DiscordPHP](https://github.com/discord-php/DiscordPHP/)
 - [PHP 8.3](https://php.net) or higher (latest version recommended)
-	- x86 (32-bit) PHP requires [`ext-gmp`](https://www.php.net/manual/en/book.gmp.php) enabled.
+    - x86 (32-bit) PHP requires [`ext-gmp`](https://www.php.net/manual/en/book.gmp.php) enabled.
 - [`ext-json`](https://www.php.net/manual/en/book.json.php)
 
 ### DAVE (Discord Audio/Video End-to-End Encryption) runtime support

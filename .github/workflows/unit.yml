@@ -52,7 +52,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: editorconfig-checker/action-editorconfig-checker@v2
+      # v3 of the action resolves the editorconfig-checker v4 binary name;
+      # v2 breaks on `version: latest` now that the v4 release renamed it.
+      # v3 only installs the binary — the check is a separate run step.
+      - name: Set up editorconfig-checker
+        uses: editorconfig-checker/action-editorconfig-checker@v3.0.0
+      - name: Run editorconfig-checker
+        run: editorconfig-checker
 
   coverage:
     name: Coverage
