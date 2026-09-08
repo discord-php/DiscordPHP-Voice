@@ -41,3 +41,8 @@ infection-summary.log
 skills-lock.json
 todos.db
 /.phplint.cache
+/build/
+/.phpdoc/
+/tools/
+/phive.xml
+/.phive/
