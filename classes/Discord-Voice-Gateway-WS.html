@@ -1,0 +1,3748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+            <title>DiscordPHP-Voice Documentation</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="../">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"/>
+    <link rel="icon" href="images/favicon.ico"/>
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png"/>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/base.css">
+            <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@100;200;300;400;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="css/template.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0/css/all.min.css" integrity="sha256-ybRkN9dBjhcS2qrW1z+hfCxq+1aBdwyQM5wlQoQVt/0=" crossorigin="anonymous" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/themes/prism-okaidia.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-numbers/prism-line-numbers.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-highlight/prism-line-highlight.css">
+                <script src="https://cdn.jsdelivr.net/npm/fuse.js@3.4.6"></script>
+        <script src="https://cdn.jsdelivr.net/npm/css-vars-ponyfill@2"></script>
+        <script src="js/template.js"></script>
+        <script src="js/search.js"></script>
+        <script defer src="js/searchIndex.js"></script>
+    </head>
+<body id="top">
+    <header class="phpdocumentor-header phpdocumentor-section">
+    <h1 class="phpdocumentor-title"><a href="" class="phpdocumentor-title__link">DiscordPHP-Voice Documentation</a></h1>
+    <input class="phpdocumentor-header__menu-button" type="checkbox" id="menu-button" name="menu-button" />
+    <label class="phpdocumentor-header__menu-icon" for="menu-button">
+        <i class="fas fa-bars"></i>
+    </label>
+    <section data-search-form class="phpdocumentor-search">
+    <label>
+        <span class="visually-hidden">Search for</span>
+        <svg class="phpdocumentor-search__icon" width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="2"/>
+            <line x1="12.4892" y1="12.2727" x2="19.1559" y2="18.9393" stroke="currentColor" stroke-width="3"/>
+        </svg>
+        <input type="search" class="phpdocumentor-field phpdocumentor-search__field" placeholder="Loading .." disabled />
+    </label>
+</section>
+
+    <nav class="phpdocumentor-topnav">
+    <ul class="phpdocumentor-topnav__menu">
+        </ul>
+</nav>
+</header>
+
+    <main class="phpdocumentor">
+        <div class="phpdocumentor-section">
+            <input class="phpdocumentor-sidebar__menu-button" type="checkbox" id="sidebar-button" name="sidebar-button" />
+<label class="phpdocumentor-sidebar__menu-icon" for="sidebar-button">
+    Menu
+</label>
+<aside class="phpdocumentor-column -three phpdocumentor-sidebar">
+                    <section class="phpdocumentor-sidebar__category -namespaces">
+            <h2 class="phpdocumentor-sidebar__category-header">Namespaces</h2>
+                                    <h4 class="phpdocumentor-sidebar__root-namespace">
+    <a href="namespaces/discord.html" class="">Discord</a>
+</h4>
+    <ul class="phpdocumentor-list">
+                    <li>
+                <a href="namespaces/discord-factory.html" class="">Factory</a>
+                
+            </li>
+                    <li>
+                <a href="namespaces/discord-parts.html" class="">Parts</a>
+                
+            </li>
+                    <li>
+                <a href="namespaces/discord-voice.html" class="">Voice</a>
+                
+            </li>
+                    <li>
+                <a href="namespaces/discord-websockets.html" class="">WebSockets</a>
+                
+            </li>
+            </ul>
+
+                        </section>
+                <section class="phpdocumentor-sidebar__category -packages">
+            <h2 class="phpdocumentor-sidebar__category-header">Packages</h2>
+                                    <h4 class="phpdocumentor-sidebar__root-namespace">
+    <a href="packages/Application.html" class="">Application</a>
+</h4>
+
+                        </section>
+            
+    <section class="phpdocumentor-sidebar__category -reports">
+        <h2 class="phpdocumentor-sidebar__category-header">Reports</h2>
+                <h3 class="phpdocumentor-sidebar__root-package"><a href="reports/deprecated.html">Deprecated</a></h3>
+        <h3 class="phpdocumentor-sidebar__root-package"><a href="reports/errors.html">Errors</a></h3>
+        <h3 class="phpdocumentor-sidebar__root-package"><a href="reports/markers.html">Markers</a></h3>
+    </section>
+
+    <section class="phpdocumentor-sidebar__category -indices">
+        <h2 class="phpdocumentor-sidebar__category-header">Indices</h2>
+        <h3 class="phpdocumentor-sidebar__root-package"><a href="indices/files.html">Files</a></h3>
+    </section>
+</aside>
+
+            <div class="phpdocumentor-column -nine phpdocumentor-content">
+                                <section>
+                                        <ul class="phpdocumentor-breadcrumbs">
+            <li class="phpdocumentor-breadcrumb"><a href="namespaces/discord.html">Discord</a></li>
+            <li class="phpdocumentor-breadcrumb"><a href="namespaces/discord-voice.html">Voice</a></li>
+            <li class="phpdocumentor-breadcrumb"><a href="namespaces/discord-voice-gateway.html">Gateway</a></li>
+    </ul>
+
+    <article class="phpdocumentor-element -class">
+        <h2 class="phpdocumentor-content__title">
+    WS
+
+    
+            <div class="phpdocumentor-element__package">
+            in package
+            <ul class="phpdocumentor-breadcrumbs">
+                                    <li class="phpdocumentor-breadcrumb"><a href="packages/Application.html">Application</a></li>
+                            </ul>
+        </div>
+    
+            <span class="phpdocumentor-element__implements">
+            implements
+                            <a href="classes/Discord-Voice-Dave-GatewayCoordinatorHost.html"><abbr title="\Discord\Voice\Dave\GatewayCoordinatorHost">GatewayCoordinatorHost</abbr></a>                    </span>
+    
+            <span class="phpdocumentor-element__extends">
+            uses
+                            <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html"><abbr title="\Discord\Voice\Gateway\Concerns\HandlesDaveOpcodes">HandlesDaveOpcodes</abbr></a>                    </span>
+    </h2>
+
+<div class="phpdocumentor-label-line">
+
+    <div class="phpdocumentor-label phpdocumentor-label--success"><span>Final</span><span>Yes</span></div>
+
+
+</div>
+
+        <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">58</span>
+
+    </aside>
+
+            <p class="phpdocumentor-summary">Handles the Discord voice WebSocket connection.</p>
+
+
+    <section class="phpdocumentor-description"><p>This class manages the WebSocket connection to the Discord voice gateway,
+handling events, sending messages, and managing the voice connection state.</p>
+</section>
+
+
+    <h5 class="phpdocumentor-tag-list__heading" id="tags">
+        Tags
+        <a href="classes/Discord-Voice-Gateway-WS.html#tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                    <dt class="phpdocumentor-tag-list__entry">
+                <span class="phpdocumentor-tag__name">since</span>
+            </dt>
+                            <dd class="phpdocumentor-tag-list__definition">
+                                            <span class="phpdocumentor-tag-link">10.19.0</span>
+                                                                                                        
+                                    </dd>
+                        </dl>
+
+    
+    
+<h3 id="toc">
+    Table of Contents
+    <a href="classes/Discord-Voice-Gateway-WS.html#toc" class="headerlink"><i class="fas fa-link"></i></a>
+
+</h3>
+
+
+
+    <h4 id="toc-interfaces">
+        Interfaces
+        <a href="classes/Discord-Voice-Gateway-WS.html#toc-interfaces" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <dl class="phpdocumentor-table-of-contents">
+                    <dt class="phpdocumentor-table-of-contents__entry -interface"><a href="classes/Discord-Voice-Dave-GatewayCoordinatorHost.html"><abbr title="\Discord\Voice\Dave\GatewayCoordinatorHost">GatewayCoordinatorHost</abbr></a></dt><dd>Narrow interface exposing WS capabilities required by GatewayCoordinator.</dd>    </dl>
+
+
+
+
+<h4 id="toc-constants">
+    Constants
+    <a href="classes/Discord-Voice-Gateway-WS.html#toc-constants" class="headerlink"><i class="fas fa-link"></i></a>
+
+</h4>
+<dl class="phpdocumentor-table-of-contents">
+            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#constant_MAX_DAVE_PROTOCOL_VERSION">MAX_DAVE_PROTOCOL_VERSION</a>
+    <span>
+        &nbsp;: mixed&nbsp;= 1                            </span>
+</dt>
+<dd>The maximum DAVE protocol version supported.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -constant -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#constant_VOICE_OP_HANDLERS">VOICE_OP_HANDLERS</a>
+    <span>
+        &nbsp;: array&lt;int, string&gt;&nbsp;= [\Discord\WebSockets\Op::VOICE_READY =&gt; &#039;handle...                            </span>
+</dt>
+<dd>Dispatch table mapping Discord Voice Gateway opcodes to handler methods.</dd>
+
+    </dl>
+
+
+<h4 id="toc-properties">
+    Properties
+    <a href="classes/Discord-Voice-Gateway-WS.html#toc-properties" class="headerlink"><i class="fas fa-link"></i></a>
+
+</h4>
+<dl class="phpdocumentor-table-of-contents">
+            <dt class="phpdocumentor-table-of-contents__entry -property -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_data">$data</a>
+    <span>
+                        &nbsp;: array&lt;string|int, mixed&gt;|null            </span>
+</dt>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_mode">$mode</a>
+    <span>
+                        &nbsp;: string            </span>
+</dt>
+<dd>The Voice WebSocket mode.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_ssrc">$ssrc</a>
+    <span>
+                        &nbsp;: null|string|int            </span>
+</dt>
+<dd>The SSRC identifier for the voice connection client.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_vc">$vc</a>
+    <span>
+                        &nbsp;: <a href="classes/Discord-Voice-Client.html"><abbr title="\Discord\Voice\Client">Client</abbr></a>            </span>
+</dt>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_daveState">$daveState</a>
+    <span>
+                        &nbsp;: <a href="classes/Discord-Voice-Dave-State.html"><abbr title="\Discord\Voice\Dave\State">State</abbr></a>            </span>
+</dt>
+<dd>DAVE protocol state for this voice connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_discord">$discord</a>
+    <span>
+                        &nbsp;: <abbr title="\Discord\Discord">Discord</abbr>|null            </span>
+</dt>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_hbInterval">$hbInterval</a>
+    <span>
+                        &nbsp;: mixed            </span>
+</dt>
+<dd>The heartbeat interval for the voice connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_hbSequence">$hbSequence</a>
+    <span>
+                        &nbsp;: int            </span>
+</dt>
+<dd>The heartbeat sequence number.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_heartbeat">$heartbeat</a>
+    <span>
+                        &nbsp;: <abbr title="\React\EventLoop\TimerInterface">TimerInterface</abbr>            </span>
+</dt>
+<dd>The heartbeat timer for the voice connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_maxDaveProtocolVersion">$maxDaveProtocolVersion</a>
+    <span>
+                        &nbsp;: int            </span>
+</dt>
+<dd>Maximum supported DAVE protocol version for this runtime.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_rawKey">$rawKey</a>
+    <span>
+                        &nbsp;: array&lt;string|int, mixed&gt;|null            </span>
+</dt>
+<dd>The raw secret key.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_secretKey">$secretKey</a>
+    <span>
+                        &nbsp;: string|null            </span>
+</dt>
+<dd>The secret key used for encrypting voice.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_socket">$socket</a>
+    <span>
+                        &nbsp;: <abbr title="\Ratchet\Client\WebSocket">WebSocket</abbr>            </span>
+</dt>
+<dd>The WebSocket instance for the voice connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_udpfac">$udpfac</a>
+    <span>
+                        &nbsp;: <a href="classes/Discord-Factory-SocketFactory.html"><abbr title="\Discord\Factory\SocketFactory">SocketFactory</abbr></a>            </span>
+</dt>
+<dd>The SocketFactory instance for creating UDP sockets.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_version">$version</a>
+    <span>
+                        &nbsp;: mixed            </span>
+</dt>
+<dd>The Discord voice gateway version.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -private">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_coordinator">$coordinator</a>
+    <span>
+                        &nbsp;: <a href="classes/Discord-Voice-Dave-GatewayCoordinator.html"><abbr title="\Discord\Voice\Dave\GatewayCoordinator">GatewayCoordinator</abbr></a>|null            </span>
+</dt>
+<dd>The DAVE gateway coordinator for this voice connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -private">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#property_sentLoginFrame">$sentLoginFrame</a>
+    <span>
+                        &nbsp;: bool            </span>
+</dt>
+<dd>Indicates whether the login frame has been sent.</dd>
+
+    </dl>
+
+<h4 id="toc-methods">
+    Methods
+    <a href="classes/Discord-Voice-Gateway-WS.html#toc-methods" class="headerlink"><i class="fas fa-link"></i></a>
+
+</h4>
+<dl class="phpdocumentor-table-of-contents">
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method___construct">__construct()</a>
+    <span>
+                                &nbsp;: mixed    </span>
+</dt>
+<dd>The WebSocket connection for the voice client.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method___debugInfo">__debugInfo()</a>
+    <span>
+                                &nbsp;: array&lt;string|int, mixed&gt;    </span>
+</dt>
+<dd>Redacts sensitive cryptographic material from debug output.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_closeConnection">closeConnection()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Closes the underlying WebSocket connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_getDaveProtocolVersion">getDaveProtocolVersion()</a>
+    <span>
+                                &nbsp;: int    </span>
+</dt>
+<dd>The active DAVE protocol version for this connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_getDaveState">getDaveState()</a>
+    <span>
+                                &nbsp;: <a href="classes/Discord-Voice-Dave-State.html"><abbr title="\Discord\Voice\Dave\State">State</abbr></a>    </span>
+</dt>
+<dd>The per-connection {@see DaveState}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_getLogger">getLogger()</a>
+    <span>
+                                &nbsp;: <abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr>    </span>
+</dt>
+<dd>Returns the PSR-3 logger for this voice connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_getMaxDaveProtocolVersion">getMaxDaveProtocolVersion()</a>
+    <span>
+                                &nbsp;: int    </span>
+</dt>
+<dd>Returns the maximum DAVE protocol version supported at runtime.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_getVoiceClient">getVoiceClient()</a>
+    <span>
+                                &nbsp;: <a href="classes/Discord-Voice-VoiceClient.html"><abbr title="\Discord\Voice\VoiceClient">VoiceClient</abbr></a>    </span>
+</dt>
+<dd>Returns the VoiceClient associated with this connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleAny">handleAny()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the any event from the voice server.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleClose">handleClose()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the close event of the WebSocket connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleCloseVoiceDisconnected">handleCloseVoiceDisconnected()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles a VOICE_DISCONNECTED close opcode (logs it; the reconnect path is driven elsewhere).</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleConnection">handleConnection()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles a WebSocket connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleHeartbeatAck">handleHeartbeatAck()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the heartbeat acknowledgement from the voice WebSocket connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleSendingOfLoginFrame">handleSendingOfLoginFrame()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles sending the login frame to the voice WebSocket.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_make">make()</a>
+    <span>
+                                &nbsp;: <a href="classes/Discord-Voice-Gateway-WS.html"><abbr title="\Discord\Voice\Gateway\WS">WS</abbr></a>    </span>
+</dt>
+<dd>Creates a new instance of the WS class.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_send">send()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Sends a message to the voice websocket.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_sendDaveBinary">sendDaveBinary()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Sends a DAVE binary payload over the voice websocket.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_sendHeartbeat">sendHeartbeat()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Sends a heartbeat to the voice WebSocket.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleBinaryVoiceMessage">handleBinaryVoiceMessage()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles binary voice websocket frames.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleClientConnect">handleClientConnect()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the event when a client connects to the voice server.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleClientDisconnect">handleClientDisconnect()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the event when a client disconnects from the voice server.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveExecuteTransition">handleDaveExecuteTransition()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Routes the VOICE_DAVE_EXECUTE_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveExecuteTransition()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsAnnounceCommitTransition">handleDaveMlsAnnounceCommitTransition()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Routes the VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsAnnounceCommitTransition()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsCommitWelcome">handleDaveMlsCommitWelcome()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Routes the VOICE_DAVE_MLS_COMMIT_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsCommitWelcome()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsExternalSender">handleDaveMlsExternalSender()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Routes the VOICE_DAVE_MLS_EXTERNAL_SENDER_PACKAGE opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsExternalSender()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsInvalidCommitWelcome">handleDaveMlsInvalidCommitWelcome()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Routes the VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsInvalidCommitWelcome()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsKeyPackage">handleDaveMlsKeyPackage()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handle an inbound opcode 26 (VOICE_DAVE_MLS_KEY_PACKAGE) frame from the gateway.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsProposals">handleDaveMlsProposals()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Routes the VOICE_DAVE_MLS_PROPOSALS opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsProposals()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsWelcome">handleDaveMlsWelcome()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Routes the VOICE_DAVE_MLS_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsWelcome()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDavePrepareEpoch">handleDavePrepareEpoch()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Routes the VOICE_DAVE_PREPARE_EPOCH opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDavePrepareEpoch()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDavePrepareTransition">handleDavePrepareTransition()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Routes the VOICE_DAVE_PREPARE_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDavePrepareTransition()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveTransitionReady">handleDaveTransitionReady()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Routes the VOICE_DAVE_TRANSITION_READY opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveTransitionReady()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleFlags">handleFlags()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the flags event from the voice server.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleHello">handleHello()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the &quot;Hello&quot; event from the Discord voice server.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handlePlatform">handlePlatform()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the platform event from the voice server.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleReady">handleReady()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the &quot;ready&quot; event for the voice client, initializing UDP connection and heartbeat.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleResume">handleResume()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Resumes a previously established voice connection.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleResumed">handleResumed()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the &#039;resumed&#039; event for the voice client.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleSessionDescription">handleSessionDescription()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the session description packet received from the Discord voice server.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleSpeaking">handleSpeaking()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles the speaking state of a user.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -protected">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_handleUndocumented">handleUndocumented()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Handles undocumented voice opcodes not intended for use by bots.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -private">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_extractProtocolVersion">extractProtocolVersion()</a>
+    <span>
+                                &nbsp;: int    </span>
+</dt>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -private">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_getCoordinator">getCoordinator()</a>
+    <span>
+                                &nbsp;: <a href="classes/Discord-Voice-Dave-GatewayCoordinator.html"><abbr title="\Discord\Voice\Dave\GatewayCoordinator">GatewayCoordinator</abbr></a>    </span>
+</dt>
+<dd>Returns the GatewayCoordinator, creating it lazily if needed.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -private">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_initializeDaveRuntimeState">initializeDaveRuntimeState()</a>
+    <span>
+                                &nbsp;: bool    </span>
+</dt>
+<dd>Delegates to {@see \Discord\Voice\Dave\GatewayCoordinator::initializeDaveRuntimeState()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -private">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_recordGatewaySequence">recordGatewaySequence()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Records the last gateway sequence in the DAVE state and mirrors it into `$this-&gt;data[&#039;seq&#039;]` for resume.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -private">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_resolveDaveGroupId">resolveDaveGroupId()</a>
+    <span>
+                                &nbsp;: int|string|null    </span>
+</dt>
+<dd>The MLS group id for this connection: the channel id, falling back to the guild id.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -private">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_resolveDaveProtocolVersion">resolveDaveProtocolVersion()</a>
+    <span>
+                                &nbsp;: int    </span>
+</dt>
+<dd>Delegates to {@see \Discord\Voice\Dave\GatewayCoordinator::resolveDaveProtocolVersion()}.</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -private">
+    <a class="" href="classes/Discord-Voice-Gateway-WS.html#method_sendDaveKeyPackage">sendDaveKeyPackage()</a>
+    <span>
+                                &nbsp;: void    </span>
+</dt>
+<dd>Delegates to {@see \Discord\Voice\Dave\GatewayCoordinator::sendDaveKeyPackage()}.</dd>
+
+    </dl>
+
+
+
+        
+    <section class="phpdocumentor-constants">
+        <h3 class="phpdocumentor-elements__header" id="constants">
+            Constants
+            <a href="classes/Discord-Voice-Gateway-WS.html#constants" class="headerlink"><i class="fas fa-link"></i></a>
+
+        </h3>
+                    <article class="phpdocumentor-element -constant -public ">
+    <h4 class="phpdocumentor-element__name" id="constant_MAX_DAVE_PROTOCOL_VERSION">
+        MAX_DAVE_PROTOCOL_VERSION
+        <a href="classes/Discord-Voice-Gateway-WS.html#constant_MAX_DAVE_PROTOCOL_VERSION" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">65</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The maximum DAVE protocol version supported.</p>
+
+    
+    <code class="phpdocumentor-signature phpdocumentor-code ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+        <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">MAX_DAVE_PROTOCOL_VERSION</span>
+    = <span class="phpdocumentor-signature__default-value">1</span>
+</code>
+
+
+    
+    
+    
+
+        
+    </article>
+                    <article class="phpdocumentor-element -constant -public ">
+    <h4 class="phpdocumentor-element__name" id="constant_VOICE_OP_HANDLERS">
+        VOICE_OP_HANDLERS
+        <a href="classes/Discord-Voice-Gateway-WS.html#constant_VOICE_OP_HANDLERS" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">72</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Dispatch table mapping Discord Voice Gateway opcodes to handler methods.</p>
+
+    
+    <code class="phpdocumentor-signature phpdocumentor-code ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+        <span class="phpdocumentor-signature__type">array&lt;int, string&gt;</span>
+    <span class="phpdocumentor-signature__name">VOICE_OP_HANDLERS</span>
+    = <span class="phpdocumentor-signature__default-value">[\Discord\WebSockets\Op::VOICE_READY =&gt; &#039;handleReady&#039;, \Discord\WebSockets\Op::VOICE_SESSION_DESCRIPTION =&gt; &#039;handleSessionDescription&#039;, \Discord\WebSockets\Op::VOICE_SPEAKING =&gt; &#039;handleSpeaking&#039;, \Discord\WebSockets\Op::VOICE_HEARTBEAT_ACK =&gt; &#039;handleHeartbeatAck&#039;, \Discord\WebSockets\Op::VOICE_HELLO =&gt; &#039;handleHello&#039;, \Discord\WebSockets\Op::VOICE_RESUMED =&gt; &#039;handleResumed&#039;, \Discord\WebSockets\Op::VOICE_CLIENT_CONNECT =&gt; &#039;handleClientConnect&#039;, \Discord\WebSockets\Op::VOICE_CLIENT_DISCONNECT =&gt; &#039;handleClientDisconnect&#039;, \Discord\WebSockets\Op::VOICE_CLIENT_UNKNOWN_15 =&gt; &#039;handleAny&#039;, \Discord\WebSockets\Op::VOICE_CLIENT_UNKNOWN_18 =&gt; &#039;handleFlags&#039;, \Discord\WebSockets\Op::VOICE_CLIENT_PLATFORM =&gt; &#039;handlePlatform&#039;, \Discord\WebSockets\Op::VOICE_DAVE_PREPARE_TRANSITION =&gt; &#039;handleDavePrepareTransition&#039;, \Discord\WebSockets\Op::VOICE_DAVE_EXECUTE_TRANSITION =&gt; &#039;handleDaveExecuteTransition&#039;, \Discord\WebSockets\Op::VOICE_DAVE_PREPARE_EPOCH =&gt; &#039;handleDavePrepareEpoch&#039;, \Discord\WebSockets\Op::VOICE_DAVE_MLS_EXTERNAL_SENDER =&gt; &#039;handleDaveMlsExternalSender&#039;, \Discord\WebSockets\Op::VOICE_DAVE_MLS_PROPOSALS =&gt; &#039;handleDaveMlsProposals&#039;, \Discord\WebSockets\Op::VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION =&gt; &#039;handleDaveMlsAnnounceCommitTransition&#039;, \Discord\WebSockets\Op::VOICE_DAVE_MLS_WELCOME =&gt; &#039;handleDaveMlsWelcome&#039;, \Discord\WebSockets\Op::VOICE_DAVE_TRANSITION_READY =&gt; &#039;handleDaveTransitionReady&#039;, \Discord\WebSockets\Op::VOICE_DAVE_MLS_KEY_PACKAGE =&gt; &#039;handleDaveMlsKeyPackage&#039;, \Discord\WebSockets\Op::VOICE_DAVE_MLS_COMMIT_WELCOME =&gt; &#039;handleDaveMlsCommitWelcome&#039;, \Discord\WebSockets\Op::VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME =&gt; &#039;handleDaveMlsInvalidCommitWelcome&#039;, \Discord\WebSockets\Op::CLOSE_VOICE_DISCONNECTED =&gt; &#039;handleCloseVoiceDisconnected&#039;]</span>
+</code>
+
+
+    
+        <section class="phpdocumentor-description"><p>Method name indexed by opcode constant.</p>
+</section>
+
+    
+
+        
+    </article>
+            </section>
+
+        
+    <section class="phpdocumentor-properties">
+        <h3 class="phpdocumentor-elements__header" id="properties">
+            Properties
+            <a href="classes/Discord-Voice-Gateway-WS.html#properties" class="headerlink"><i class="fas fa-link"></i></a>
+
+        </h3>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -public
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_data">
+        $data
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_data" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">183</span>
+
+    </aside>
+
+    
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">public</span>
+            <span class="phpdocumentor-signature__type">array&lt;string|int, mixed&gt;|null</span>
+    <span class="phpdocumentor-signature__name">$data</span>
+     = <span class="phpdocumentor-signature__default-value">[]</span></code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -public
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_mode">
+        $mode
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_mode" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">121</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The Voice WebSocket mode.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">public</span>
+            <span class="phpdocumentor-signature__type">string</span>
+    <span class="phpdocumentor-signature__name">$mode</span>
+     = <span class="phpdocumentor-signature__default-value">&#039;aead_aes256_gcm_rtpsize&#039;</span></code>
+
+    
+    
+    
+    <h5 class="phpdocumentor-tag-list__heading" id="property_mode_tags">
+        Tags
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_mode_tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                    <dt class="phpdocumentor-tag-list__entry">
+                <span class="phpdocumentor-tag__name">link</span>
+            </dt>
+                            <dd class="phpdocumentor-tag-list__definition">
+                                                                                                        <a class="phpdocumentor-tag-link" href="https://discord.com/developers/docs/topics/voice-connections#transport-encryption-modes"> https://discord.com/developers/docs/topics/voice-connections#transport-encryption-modes </a>
+                                    </dd>
+                        </dl>
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -public
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_ssrc">
+        $ssrc
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_ssrc" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">136</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The SSRC identifier for the voice connection client.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">public</span>
+            <span class="phpdocumentor-signature__type">null|string|int</span>
+    <span class="phpdocumentor-signature__name">$ssrc</span>
+    </code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -public
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_vc">
+        $vc
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_vc" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">181</span>
+
+    </aside>
+
+    
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">public</span>
+            <span class="phpdocumentor-signature__type"><a href="classes/Discord-Voice-Client.html"><abbr title="\Discord\Voice\Client">Client</abbr></a></span>
+    <span class="phpdocumentor-signature__name">$vc</span>
+    </code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_daveState">
+        $daveState
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_daveState" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">163</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">DAVE protocol state for this voice connection.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type"><a href="classes/Discord-Voice-Dave-State.html"><abbr title="\Discord\Voice\Dave\State">State</abbr></a></span>
+    <span class="phpdocumentor-signature__name">$daveState</span>
+    </code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_discord">
+        $discord
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_discord" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">182</span>
+
+    </aside>
+
+    
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type"><abbr title="\Discord\Discord">Discord</abbr>|null</span>
+    <span class="phpdocumentor-signature__name">$discord</span>
+     = <span class="phpdocumentor-signature__default-value">null</span></code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_hbInterval">
+        $hbInterval
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_hbInterval" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">151</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The heartbeat interval for the voice connection.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">$hbInterval</span>
+    </code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_hbSequence">
+        $hbSequence
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_hbSequence" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">158</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The heartbeat sequence number.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type">int</span>
+    <span class="phpdocumentor-signature__name">$hbSequence</span>
+     = <span class="phpdocumentor-signature__default-value">0</span></code>
+
+        <section class="phpdocumentor-description"><p>This is used to track the sequence of heartbeat messages sent to the voice gateway.</p>
+</section>
+
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_heartbeat">
+        $heartbeat
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_heartbeat" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">146</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The heartbeat timer for the voice connection.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type"><abbr title="\React\EventLoop\TimerInterface">TimerInterface</abbr></span>
+    <span class="phpdocumentor-signature__name">$heartbeat</span>
+    </code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_maxDaveProtocolVersion">
+        $maxDaveProtocolVersion
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_maxDaveProtocolVersion" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">168</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Maximum supported DAVE protocol version for this runtime.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type">int</span>
+    <span class="phpdocumentor-signature__name">$maxDaveProtocolVersion</span>
+     = <span class="phpdocumentor-signature__default-value">self::MAX_DAVE_PROTOCOL_VERSION</span></code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_rawKey">
+        $rawKey
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_rawKey" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">131</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The raw secret key.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type">array&lt;string|int, mixed&gt;|null</span>
+    <span class="phpdocumentor-signature__name">$rawKey</span>
+    </code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_secretKey">
+        $secretKey
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_secretKey" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">126</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The secret key used for encrypting voice.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type">string|null</span>
+    <span class="phpdocumentor-signature__name">$secretKey</span>
+    </code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_socket">
+        $socket
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_socket" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">107</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The WebSocket instance for the voice connection.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type"><abbr title="\Ratchet\Client\WebSocket">WebSocket</abbr></span>
+    <span class="phpdocumentor-signature__name">$socket</span>
+    </code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_udpfac">
+        $udpfac
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_udpfac" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">102</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The SocketFactory instance for creating UDP sockets.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type"><a href="classes/Discord-Factory-SocketFactory.html"><abbr title="\Discord\Factory\SocketFactory">SocketFactory</abbr></a></span>
+    <span class="phpdocumentor-signature__name">$udpfac</span>
+    </code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+            -static                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="property_version">
+        $version
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_version" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">114</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The Discord voice gateway version.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+        <span class="phpdocumentor-signature__static">static</span>    <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__name">$version</span>
+     = <span class="phpdocumentor-signature__default-value">8</span></code>
+
+    
+    
+    
+    <h5 class="phpdocumentor-tag-list__heading" id="property_version_tags">
+        Tags
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_version_tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                    <dt class="phpdocumentor-tag-list__entry">
+                <span class="phpdocumentor-tag__name">see</span>
+            </dt>
+                            <dd class="phpdocumentor-tag-list__definition">
+                                                                                    <span class="phpdocumentor-tag-link"><a href="https://discord.com/developers/docs/topics/voice-connections#voice-gateway-versioning-gateway-versions">https://discord.com/developers/docs/topics/voice-connections#voice-gateway-versioning-gateway-versions</a></span>
+                                                                
+                                    </dd>
+                        </dl>
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -private
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_coordinator">
+        $coordinator
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_coordinator" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">173</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The DAVE gateway coordinator for this voice connection.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">private</span>
+            <span class="phpdocumentor-signature__type"><a href="classes/Discord-Voice-Dave-GatewayCoordinator.html"><abbr title="\Discord\Voice\Dave\GatewayCoordinator">GatewayCoordinator</abbr></a>|null</span>
+    <span class="phpdocumentor-signature__name">$coordinator</span>
+     = <span class="phpdocumentor-signature__default-value">null</span></code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -private
+                                                                    "
+>
+    <h4 class="phpdocumentor-element__name" id="property_sentLoginFrame">
+        $sentLoginFrame
+        <a href="classes/Discord-Voice-Gateway-WS.html#property_sentLoginFrame" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">141</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Indicates whether the login frame has been sent.</p>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">private</span>
+            <span class="phpdocumentor-signature__type">bool</span>
+    <span class="phpdocumentor-signature__name">$sentLoginFrame</span>
+     = <span class="phpdocumentor-signature__default-value">false</span></code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+            </section>
+
+            <section class="phpdocumentor-methods">
+        <h3 class="phpdocumentor-elements__header" id="methods">
+            Methods
+            <a href="classes/Discord-Voice-Gateway-WS.html#methods" class="headerlink"><i class="fas fa-link"></i></a>
+
+        </h3>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method___construct">
+        __construct()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method___construct" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">180</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The WebSocket connection for the voice client.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><a href="classes/Discord-Voice-Client.html"><abbr title="\Discord\Voice\Client">Client</abbr></a>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$vc</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\Discord">Discord</abbr>|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$discord</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">array&lt;string|int, mixed&gt;|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">[]</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+        <section class="phpdocumentor-description"><p>This is used to send and receive messages over the WebSocket connection.</p>
+</section>
+
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$vc</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><a href="classes/Discord-Voice-Client.html"><abbr title="\Discord\Voice\Client">Client</abbr></a></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$discord</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\Discord">Discord</abbr>|null</span>
+                 = <span class="phpdocumentor-argument-list__argument__default-value">null</span>            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type">array&lt;string|int, mixed&gt;|null</span>
+                 = <span class="phpdocumentor-argument-list__argument__default-value">[]</span>            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method___debugInfo">
+        __debugInfo()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method___debugInfo" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">824</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Redacts sensitive cryptographic material from debug output.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">__debugInfo</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">array&lt;string|int, mixed&gt;</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">array&lt;string|int, mixed&gt;</span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_closeConnection">
+        closeConnection()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_closeConnection" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">312</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Closes the underlying WebSocket connection.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">closeConnection</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_getDaveProtocolVersion">
+        getDaveProtocolVersion()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_getDaveProtocolVersion" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">646</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The active DAVE protocol version for this connection.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">getDaveProtocolVersion</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">int</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">int</span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_getDaveState">
+        getDaveState()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_getDaveState" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">652</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The per-connection {@see DaveState}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">getDaveState</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><a href="classes/Discord-Voice-Dave-State.html"><abbr title="\Discord\Voice\Dave\State">State</abbr></a></span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type"><a href="classes/Discord-Voice-Dave-State.html"><abbr title="\Discord\Voice\Dave\State">State</abbr></a></span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_getLogger">
+        getLogger()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_getLogger" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">320</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Returns the PSR-3 logger for this voice connection.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">getLogger</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr></span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type"><abbr title="\Psr\Log\LoggerInterface">LoggerInterface</abbr></span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_getMaxDaveProtocolVersion">
+        getMaxDaveProtocolVersion()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_getMaxDaveProtocolVersion" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">336</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Returns the maximum DAVE protocol version supported at runtime.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">getMaxDaveProtocolVersion</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">int</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">int</span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_getVoiceClient">
+        getVoiceClient()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_getVoiceClient" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">328</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Returns the VoiceClient associated with this connection.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">getVoiceClient</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><a href="classes/Discord-Voice-VoiceClient.html"><abbr title="\Discord\Voice\VoiceClient">VoiceClient</abbr></a></span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type"><a href="classes/Discord-Voice-VoiceClient.html"><abbr title="\Discord\Voice\VoiceClient">VoiceClient</abbr></a></span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleAny">
+        handleAny()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleAny" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">552</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the any event from the voice server.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">handleAny</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleClose">
+        handleClose()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleClose" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">678</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the close event of the WebSocket connection.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">handleClose</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">int&nbsp;</span><span class="phpdocumentor-signature__argument__name">$op</span></span><span class="phpdocumentor-signature__argument"><span>, </span><span class="phpdocumentor-signature__argument__type">string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$reason</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$op</span>
+                : <span class="phpdocumentor-argument-list__argument__type">int</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                    <section class="phpdocumentor-description"><p>The opcode of the close event.</p>
+</section>
+
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$reason</span>
+                : <span class="phpdocumentor-argument-list__argument__type">string</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                    <section class="phpdocumentor-description"><p>The reason for closing the connection.</p>
+</section>
+
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleCloseVoiceDisconnected">
+        handleCloseVoiceDisconnected()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleCloseVoiceDisconnected" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">629</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles a VOICE_DISCONNECTED close opcode (logs it; the reconnect path is driven elsewhere).</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">handleCloseVoiceDisconnected</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleConnection">
+        handleConnection()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleConnection" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">234</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles a WebSocket connection.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">handleConnection</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Ratchet\Client\WebSocket">WebSocket</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$ws</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$ws</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Ratchet\Client\WebSocket">WebSocket</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleHeartbeatAck">
+        handleHeartbeatAck()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleHeartbeatAck" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">475</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the heartbeat acknowledgement from the voice WebSocket connection.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">handleHeartbeatAck</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleSendingOfLoginFrame">
+        handleSendingOfLoginFrame()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleSendingOfLoginFrame" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">740</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles sending the login frame to the voice WebSocket.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">handleSendingOfLoginFrame</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+        <section class="phpdocumentor-description"><p>This method sends the initial identification payload to the voice gateway
+to establish the voice connection.</p>
+</section>
+
+    
+    
+    <h5 class="phpdocumentor-tag-list__heading" id="method_handleSendingOfLoginFrame_tags">
+        Tags
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleSendingOfLoginFrame_tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                    <dt class="phpdocumentor-tag-list__entry">
+                <span class="phpdocumentor-tag__name">link</span>
+            </dt>
+                            <dd class="phpdocumentor-tag-list__definition">
+                                                                                                        <a class="phpdocumentor-tag-link" href="https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-identify-payload"> https://discord.com/developers/docs/topics/voice-connections#establishing-a-voice-websocket-connection-example-voice-identify-payload </a>
+                                    </dd>
+                        </dl>
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                    -static                    "
+>
+    <h4 class="phpdocumentor-element__name" id="method_make">
+        make()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_make" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">226</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Creates a new instance of the WS class.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">make</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><a href="classes/Discord-Voice-Client.html"><abbr title="\Discord\Voice\Client">Client</abbr></a>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$vc</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">null|<abbr title="\Discord\Discord">Discord</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$discord</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">null|array&lt;string|int, mixed&gt;&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><a href="classes/Discord-Voice-Gateway-WS.html"><abbr title="\Discord\Voice\Gateway\WS">WS</abbr></a></span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$vc</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><a href="classes/Discord-Voice-Client.html"><abbr title="\Discord\Voice\Client">Client</abbr></a></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$discord</span>
+                : <span class="phpdocumentor-argument-list__argument__type">null|<abbr title="\Discord\Discord">Discord</abbr></span>
+                 = <span class="phpdocumentor-argument-list__argument__default-value">null</span>            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type">null|array&lt;string|int, mixed&gt;</span>
+                 = <span class="phpdocumentor-argument-list__argument__default-value">null</span>            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type"><a href="classes/Discord-Voice-Gateway-WS.html"><abbr title="\Discord\Voice\Gateway\WS">WS</abbr></a></span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_send">
+        send()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_send" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">287</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Sends a message to the voice websocket.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">send</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><a href="classes/Discord-WebSockets-VoicePayload.html"><abbr title="\Discord\WebSockets\VoicePayload">VoicePayload</abbr></a>|array&lt;string|int, mixed&gt;&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><a href="classes/Discord-WebSockets-VoicePayload.html"><abbr title="\Discord\WebSockets\VoicePayload">VoicePayload</abbr></a>|array&lt;string|int, mixed&gt;</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_sendDaveBinary">
+        sendDaveBinary()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_sendDaveBinary" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">295</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Sends a DAVE binary payload over the voice websocket.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">sendDaveBinary</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">int&nbsp;</span><span class="phpdocumentor-signature__argument__name">$opcode</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$payload</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">''</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$opcode</span>
+                : <span class="phpdocumentor-argument-list__argument__type">int</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$payload</span>
+                : <span class="phpdocumentor-argument-list__argument__type">string</span>
+                 = <span class="phpdocumentor-argument-list__argument__default-value">''</span>            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_sendHeartbeat">
+        sendHeartbeat()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_sendHeartbeat" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">660</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Sends a heartbeat to the voice WebSocket.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+                    <span class="phpdocumentor-signature__name">sendHeartbeat</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleBinaryVoiceMessage">
+        handleBinaryVoiceMessage()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleBinaryVoiceMessage" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">359</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles binary voice websocket frames.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleBinaryVoiceMessage</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$payload</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$payload</span>
+                : <span class="phpdocumentor-argument-list__argument__type">string</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleClientConnect">
+        handleClientConnect()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleClientConnect" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">524</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the event when a client connects to the voice server.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleClientConnect</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleClientDisconnect">
+        handleClientDisconnect()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleClientDisconnect" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">540</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the event when a client disconnects from the voice server.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleClientDisconnect</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDaveExecuteTransition">
+        handleDaveExecuteTransition()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveExecuteTransition" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">47</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Routes the VOICE_DAVE_EXECUTE_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveExecuteTransition()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDaveExecuteTransition</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDaveMlsAnnounceCommitTransition">
+        handleDaveMlsAnnounceCommitTransition()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsAnnounceCommitTransition" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">127</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Routes the VOICE_DAVE_MLS_ANNOUNCE_COMMIT_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsAnnounceCommitTransition()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDaveMlsAnnounceCommitTransition</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDaveMlsCommitWelcome">
+        handleDaveMlsCommitWelcome()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsCommitWelcome" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">117</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Routes the VOICE_DAVE_MLS_COMMIT_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsCommitWelcome()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDaveMlsCommitWelcome</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDaveMlsExternalSender">
+        handleDaveMlsExternalSender()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsExternalSender" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">77</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Routes the VOICE_DAVE_MLS_EXTERNAL_SENDER_PACKAGE opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsExternalSender()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDaveMlsExternalSender</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDaveMlsInvalidCommitWelcome">
+        handleDaveMlsInvalidCommitWelcome()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsInvalidCommitWelcome" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">147</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Routes the VOICE_DAVE_MLS_INVALID_COMMIT_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsInvalidCommitWelcome()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDaveMlsInvalidCommitWelcome</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDaveMlsKeyPackage">
+        handleDaveMlsKeyPackage()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsKeyPackage" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">97</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handle an inbound opcode 26 (VOICE_DAVE_MLS_KEY_PACKAGE) frame from the gateway.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDaveMlsKeyPackage</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+        <section class="phpdocumentor-description"><p>Opcode 26 is primarily client→server: we send our own key package to the gateway
+via <abbr title="\Discord\Voice\Gateway\Concerns\sendDaveKeyPackage()">sendDaveKeyPackage()</abbr> during the DAVE epoch-1 setup.  The gateway may
+also forward a remote member's key package back to us as an informational notice —
+that is what this handler receives.</p>
+<p>The gateway (server) is responsible for aggregating all key packages and driving
+the subsequent proposal/commit flow.  We passively receive the forwarded package;
+no action is required on the client side.</p>
+<p>Per the Discord DAVE spec: &quot;Key packages are only used one time&quot; — each time we
+need to join or rejoin a session we generate and send a fresh key package.</p>
+</section>
+
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type">mixed</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDaveMlsProposals">
+        handleDaveMlsProposals()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsProposals" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">107</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Routes the VOICE_DAVE_MLS_PROPOSALS opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsProposals()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDaveMlsProposals</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDaveMlsWelcome">
+        handleDaveMlsWelcome()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsWelcome" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">137</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Routes the VOICE_DAVE_MLS_WELCOME opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveMlsWelcome()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDaveMlsWelcome</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDavePrepareEpoch">
+        handleDavePrepareEpoch()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDavePrepareEpoch" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">67</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Routes the VOICE_DAVE_PREPARE_EPOCH opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDavePrepareEpoch()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDavePrepareEpoch</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDavePrepareTransition">
+        handleDavePrepareTransition()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDavePrepareTransition" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">37</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Routes the VOICE_DAVE_PREPARE_TRANSITION opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDavePrepareTransition()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDavePrepareTransition</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleDaveTransitionReady">
+        handleDaveTransitionReady()
+        <a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveTransitionReady" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php"><a href="files/src-discord-voice-gateway-concerns-handlesdaveopcodes.html"><abbr title="src/Discord/Voice/Gateway/Concerns/HandlesDaveOpcodes.php">HandlesDaveOpcodes.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">57</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Routes the VOICE_DAVE_TRANSITION_READY opcode to the {@see \Discord\Voice\Dave\GatewayCoordinator::handleDaveTransitionReady()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleDaveTransitionReady</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleFlags">
+        handleFlags()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleFlags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">564</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the flags event from the voice server.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleFlags</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleHello">
+        handleHello()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleHello" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">489</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the &quot;Hello&quot; event from the Discord voice server.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleHello</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handlePlatform">
+        handlePlatform()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handlePlatform" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">576</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the platform event from the voice server.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handlePlatform</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleReady">
+        handleReady()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleReady" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">388</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the &quot;ready&quot; event for the voice client, initializing UDP connection and heartbeat.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleReady</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                    <section class="phpdocumentor-description"><p>The data object containing voice server connection details:</p>
+<ul>
+<li>$data-&gt;d['ssrc']:  The synchronization source identifier.</li>
+<li>$data-&gt;d['ip']:    The IP address for the UDP connection.</li>
+<li>$data-&gt;d['port']:  The port for the UDP connection.</li>
+<li>$data-&gt;d['modes']: Supported encryption modes.</li>
+</ul>
+</section>
+
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleResume">
+        handleResume()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleResume" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">778</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Resumes a previously established voice connection.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleResume</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleResumed">
+        handleResumed()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleResumed" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">507</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the &#039;resumed&#039; event for the voice client.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleResumed</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleSessionDescription">
+        handleSessionDescription()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleSessionDescription" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">418</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the session description packet received from the Discord voice server.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleSessionDescription</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleSpeaking">
+        handleSpeaking()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleSpeaking" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">459</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles the speaking state of a user.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleSpeaking</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                    <section class="phpdocumentor-description"><p>The data object received from the WebSocket.</p>
+</section>
+
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -protected
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_handleUndocumented">
+        handleUndocumented()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_handleUndocumented" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">588</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Handles undocumented voice opcodes not intended for use by bots.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">protected</span>
+                    <span class="phpdocumentor-signature__name">handleUndocumented</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\WebSockets\Payload">Payload</abbr></span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -private
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_extractProtocolVersion">
+        extractProtocolVersion()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_extractProtocolVersion" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">595</span>
+
+    </aside>
+
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">private</span>
+                    <span class="phpdocumentor-signature__name">extractProtocolVersion</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">array&lt;string|int, mixed&gt;&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">int</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$data</span>
+                : <span class="phpdocumentor-argument-list__argument__type">array&lt;string|int, mixed&gt;</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">int</span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -private
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_getCoordinator">
+        getCoordinator()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_getCoordinator" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">347</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Returns the GatewayCoordinator, creating it lazily if needed.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">private</span>
+                    <span class="phpdocumentor-signature__name">getCoordinator</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><a href="classes/Discord-Voice-Dave-GatewayCoordinator.html"><abbr title="\Discord\Voice\Dave\GatewayCoordinator">GatewayCoordinator</abbr></a></span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+        <section class="phpdocumentor-description"><p>Lazy initialisation allows tests that bypass the constructor to still
+exercise DAVE methods without explicitly injecting the coordinator.</p>
+</section>
+
+    
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type"><a href="classes/Discord-Voice-Dave-GatewayCoordinator.html"><abbr title="\Discord\Voice\Dave\GatewayCoordinator">GatewayCoordinator</abbr></a></span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -private
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_initializeDaveRuntimeState">
+        initializeDaveRuntimeState()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_initializeDaveRuntimeState" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">607</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Delegates to {@see \Discord\Voice\Dave\GatewayCoordinator::initializeDaveRuntimeState()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">private</span>
+                    <span class="phpdocumentor-signature__name">initializeDaveRuntimeState</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">int&nbsp;</span><span class="phpdocumentor-signature__argument__name">$protocolVersion</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$resetState</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">false</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">bool</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$protocolVersion</span>
+                : <span class="phpdocumentor-argument-list__argument__type">int</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$resetState</span>
+                : <span class="phpdocumentor-argument-list__argument__type">bool</span>
+                 = <span class="phpdocumentor-argument-list__argument__default-value">false</span>            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">bool</span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -private
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_recordGatewaySequence">
+        recordGatewaySequence()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_recordGatewaySequence" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">619</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Records the last gateway sequence in the DAVE state and mirrors it into `$this-&gt;data[&#039;seq&#039;]` for resume.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">private</span>
+                    <span class="phpdocumentor-signature__name">recordGatewaySequence</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">int|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$sequence</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$sequence</span>
+                : <span class="phpdocumentor-argument-list__argument__type">int|null</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+    
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -private
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_resolveDaveGroupId">
+        resolveDaveGroupId()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_resolveDaveGroupId" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">635</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">The MLS group id for this connection: the channel id, falling back to the guild id.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">private</span>
+                    <span class="phpdocumentor-signature__name">resolveDaveGroupId</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">int|string|null</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">int|string|null</span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -private
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_resolveDaveProtocolVersion">
+        resolveDaveProtocolVersion()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_resolveDaveProtocolVersion" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">601</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Delegates to {@see \Discord\Voice\Dave\GatewayCoordinator::resolveDaveProtocolVersion()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">private</span>
+                    <span class="phpdocumentor-signature__name">resolveDaveProtocolVersion</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type">int&nbsp;</span><span class="phpdocumentor-signature__argument__name">$protocolVersion</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">int</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$protocolVersion</span>
+                : <span class="phpdocumentor-argument-list__argument__type">int</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+        
+    
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">int</span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -private
+                                                        "
+>
+    <h4 class="phpdocumentor-element__name" id="method_sendDaveKeyPackage">
+        sendDaveKeyPackage()
+        <a href="classes/Discord-Voice-Gateway-WS.html#method_sendDaveKeyPackage" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Gateway/WS.php"><a href="files/src-discord-voice-gateway-ws.html"><abbr title="src/Discord/Voice/Gateway/WS.php">WS.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">613</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">Delegates to {@see \Discord\Voice\Dave\GatewayCoordinator::sendDaveKeyPackage()}.</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">private</span>
+                    <span class="phpdocumentor-signature__name">sendDaveKeyPackage</span><span>(</span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">void</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+    
+    
+    
+    
+
+        
+    
+    
+</article>
+            </section>
+
+        
+    </article>
+                                </section>
+                <section class="phpdocumentor-on-this-page__sidebar">
+                                
+    <section class="phpdocumentor-on-this-page__content">
+        <strong class="phpdocumentor-on-this-page__title">On this page</strong>
+
+        <ul class="phpdocumentor-list -clean">
+            <li class="phpdocumentor-on-this-page-section__title">Table Of Contents</li>
+            <li>
+                <ul class="phpdocumentor-list -clean">
+                                        <li><a href="classes/Discord-Voice-Gateway-WS.html#toc-constants">Constants</a></li>
+                                                            <li><a href="classes/Discord-Voice-Gateway-WS.html#toc-properties">Properties</a></li>
+                                                            <li><a href="classes/Discord-Voice-Gateway-WS.html#toc-methods">Methods</a></li>
+                                    </ul>
+            </li>
+                            <li class="phpdocumentor-on-this-page-section__title">Constants</li>
+                <li>
+                    <ul class="phpdocumentor-list -clean">
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#constant_MAX_DAVE_PROTOCOL_VERSION">MAX_DAVE_PROTOCOL_VERSION</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#constant_VOICE_OP_HANDLERS">VOICE_OP_HANDLERS</a></li>
+                                            </ul>
+                </li>
+            
+                            <li class="phpdocumentor-on-this-page-section__title">Properties</li>
+                <li>
+                    <ul class="phpdocumentor-list -clean">
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_data">$data</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_mode">$mode</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_ssrc">$ssrc</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_vc">$vc</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_daveState">$daveState</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_discord">$discord</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_hbInterval">$hbInterval</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_hbSequence">$hbSequence</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_heartbeat">$heartbeat</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_maxDaveProtocolVersion">$maxDaveProtocolVersion</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_rawKey">$rawKey</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_secretKey">$secretKey</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_socket">$socket</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_udpfac">$udpfac</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_version">$version</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_coordinator">$coordinator</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#property_sentLoginFrame">$sentLoginFrame</a></li>
+                                            </ul>
+                </li>
+            
+                        <li class="phpdocumentor-on-this-page-section__title">Methods</li>
+            <li>
+                <ul class="phpdocumentor-list -clean">
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method___construct">__construct()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method___debugInfo">__debugInfo()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_closeConnection">closeConnection()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_getDaveProtocolVersion">getDaveProtocolVersion()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_getDaveState">getDaveState()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_getLogger">getLogger()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_getMaxDaveProtocolVersion">getMaxDaveProtocolVersion()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_getVoiceClient">getVoiceClient()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleAny">handleAny()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleClose">handleClose()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleCloseVoiceDisconnected">handleCloseVoiceDisconnected()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleConnection">handleConnection()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleHeartbeatAck">handleHeartbeatAck()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleSendingOfLoginFrame">handleSendingOfLoginFrame()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_make">make()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_send">send()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_sendDaveBinary">sendDaveBinary()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_sendHeartbeat">sendHeartbeat()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleBinaryVoiceMessage">handleBinaryVoiceMessage()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleClientConnect">handleClientConnect()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleClientDisconnect">handleClientDisconnect()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveExecuteTransition">handleDaveExecuteTransition()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsAnnounceCommitTransition">handleDaveMlsAnnounceCommitTransition()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsCommitWelcome">handleDaveMlsCommitWelcome()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsExternalSender">handleDaveMlsExternalSender()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsInvalidCommitWelcome">handleDaveMlsInvalidCommitWelcome()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsKeyPackage">handleDaveMlsKeyPackage()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsProposals">handleDaveMlsProposals()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveMlsWelcome">handleDaveMlsWelcome()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDavePrepareEpoch">handleDavePrepareEpoch()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDavePrepareTransition">handleDavePrepareTransition()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-Concerns-HandlesDaveOpcodes.html#method_handleDaveTransitionReady">handleDaveTransitionReady()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleFlags">handleFlags()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleHello">handleHello()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handlePlatform">handlePlatform()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleReady">handleReady()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleResume">handleResume()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleResumed">handleResumed()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleSessionDescription">handleSessionDescription()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleSpeaking">handleSpeaking()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_handleUndocumented">handleUndocumented()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_extractProtocolVersion">extractProtocolVersion()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_getCoordinator">getCoordinator()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_initializeDaveRuntimeState">initializeDaveRuntimeState()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_recordGatewaySequence">recordGatewaySequence()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_resolveDaveGroupId">resolveDaveGroupId()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_resolveDaveProtocolVersion">resolveDaveProtocolVersion()</a></li>
+                                            <li class=""><a href="classes/Discord-Voice-Gateway-WS.html#method_sendDaveKeyPackage">sendDaveKeyPackage()</a></li>
+                                    </ul>
+            </li>
+                    </ul>
+    </section>
+
+                </section>
+                            </div>
+            <section data-search-results class="phpdocumentor-search-results phpdocumentor-search-results--hidden">
+    <section class="phpdocumentor-search-results__dialog">
+        <header class="phpdocumentor-search-results__header">
+            <h2 class="phpdocumentor-search-results__title">Search results</h2>
+            <button class="phpdocumentor-search-results__close"><i class="fas fa-times"></i></button>
+        </header>
+        <section class="phpdocumentor-search-results__body">
+            <ul class="phpdocumentor-search-results__entries"></ul>
+        </section>
+    </section>
+</section>
+        </div>
+        <a href="classes/Discord-Voice-Gateway-WS.html#top" class="phpdocumentor-back-to-top"><i class="fas fa-chevron-circle-up"></i></a>
+
+    </main>
+
+    <script>
+        cssVars({});
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-highlight/prism-line-highlight.min.js"></script>
+</body>
+</html>
