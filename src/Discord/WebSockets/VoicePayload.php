@@ -23,6 +23,10 @@ namespace Discord\WebSockets;
  * @link https://discord.com/developers/docs/topics/voice-connections#retrieving-voice-server-information-example-voice-server-update-payload
  *
  * @property token
+ *
+ * @todo Next major release: override `fromArray()`, inherited from `Payload`, to return a `VoicePayload`;
+ *       it currently builds a plain `Payload`. Not before, because this class is not final and a subclass
+ *       already overriding `fromArray()` with `: Payload` would fail to load.
  */
 class VoicePayload extends Payload
 {

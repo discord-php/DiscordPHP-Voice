@@ -188,6 +188,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      * @param  string   $value  The value that will be written.
      * @param  int|null $offset The offset that the value will be written at.
      * @return static
+     *
+     * @todo Next major release: narrow the native return type from `self` to `static`; it already returns `$this`.
+     *       Not before, because `Buffer` is not final and a subclass overriding this with `: self` would fail to load.
      */
     public function write($value, ?int $offset = null): self
     {
@@ -207,6 +210,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      * @param  int      $value  The value that will be written.
      * @param  int|null $offset The offset that the value will be written at.
      * @return static
+     *
+     * @todo Next major release: narrow the native return type from `self` to `static`; it already returns `$this`.
+     *       Not before, because `Buffer` is not final and a subclass overriding this with `: self` would fail to load.
      */
     public function writeInt8($value, ?int $offset = null): self
     {
@@ -227,6 +233,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      * @param  int      $value  The value that will be written.
      * @param  int|null $offset The offset that the value will be written at.
      * @return static
+     *
+     * @todo Next major release: narrow the native return type from `self` to `static`; it already returns `$this`.
+     *       Not before, because `Buffer` is not final and a subclass overriding this with `: self` would fail to load.
      */
     public function writeInt16BE($value, ?int $offset = null): self
     {
@@ -247,6 +256,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      * @param  int      $value  The value that will be written.
      * @param  int|null $offset The offset that the value will be written at.
      * @return static
+     *
+     * @todo Next major release: narrow the native return type from `self` to `static`; it already returns `$this`.
+     *       Not before, because `Buffer` is not final and a subclass overriding this with `: self` would fail to load.
      */
     public function writeInt16LE($value, ?int $offset = null): self
     {
@@ -267,6 +279,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      * @param  int      $value  The value that will be written.
      * @param  int|null $offset The offset that the value will be written at.
      * @return static
+     *
+     * @todo Next major release: narrow the native return type from `self` to `static`; it already returns `$this`.
+     *       Not before, because `Buffer` is not final and a subclass overriding this with `: self` would fail to load.
      */
     public function writeInt32BE($value, ?int $offset = null): self
     {
@@ -287,6 +302,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      * @param  int      $value  The value that will be written.
      * @param  int|null $offset The offset that the value will be written at.
      * @return static
+     *
+     * @todo Next major release: narrow the native return type from `self` to `static`; it already returns `$this`.
+     *       Not before, because `Buffer` is not final and a subclass overriding this with `: self` would fail to load.
      */
     #[\Override]
     public function writeInt32LE($value, ?int $offset = null): self
@@ -308,6 +326,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
      * @param  int    $offset The offset to read from.
      * @param  int    $length The length of the string to read.
      * @return string The data read.
+     *
+     * @todo Next major release: declare the native return type `string`.
+     *       Not before, because `Buffer` is not final and a subclass overriding this without a return type would fail to load.
      */
     public function read(int $offset, int $length)
     {
@@ -316,6 +337,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
 
     /**
      * @inheritDoc
+     *
+     * @todo Next major release: declare the native return type `int`.
+     *       Not before, because `Buffer` is not final and a subclass overriding this without a return type would fail to load.
      */
     public function readInt8(int $offset)
     {
@@ -326,6 +350,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
 
     /**
      * @inheritDoc
+     *
+     * @todo Next major release: declare the native return type `int`.
+     *       Not before, because `Buffer` is not final and a subclass overriding this without a return type would fail to load.
      */
     public function readInt16BE(int $offset)
     {
@@ -336,6 +363,9 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
 
     /**
      * @inheritDoc
+     *
+     * @todo Next major release: declare the native return type `int`.
+     *       Not before, because `Buffer` is not final and a subclass overriding this without a return type would fail to load.
      */
     public function readInt16LE(int $offset)
     {
@@ -346,6 +376,10 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
 
     /**
      * @inheritDoc
+     *
+     * @todo Next major release: declare the native return type `int|float`. On 32-bit PHP, a value above
+     *       `PHP_INT_MAX` comes back as a float, so `int` alone would not hold on every path.
+     *       Not before, because `Buffer` is not final and a subclass overriding this without a return type would fail to load.
      */
     public function readInt32BE(int $offset)
     {
@@ -356,6 +390,10 @@ class Buffer extends AbstractBuffer implements \ArrayAccess
 
     /**
      * @inheritDoc
+     *
+     * @todo Next major release: declare the native return type `int|float`. On 32-bit PHP, a value above
+     *       `PHP_INT_MAX` comes back as a float, so `int` alone would not hold on every path.
+     *       Not before, because `Buffer` is not final and a subclass overriding this without a return type would fail to load.
      */
     public function readInt32LE(int $offset)
     {
