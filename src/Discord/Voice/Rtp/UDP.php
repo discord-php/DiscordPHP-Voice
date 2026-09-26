@@ -111,7 +111,10 @@ class UDP extends Socket
      */
     public function handleMessages(string $secret): self
     {
-        return $this->on('message', function (string $message) use ($secret) {
+        // The key and the mode both come from the same session description.
+        $mode = $this->ws->getEncryptionMode();
+
+        return $this->on('message', function (string $message) use ($secret, $mode) {
             // Minimum valid RTP+encryption overhead: 12 (header) + 4 (nonce) + 16 (auth tag) = 32 bytes
             if (strlen($message) < 32) {
                 return null;
@@ -134,7 +137,8 @@ class UDP extends Socket
             return $this->ws->vc->handleAudioData(new Packet(
                 $message,
                 key: $secret,
-                inboundFrameDecryptor: [$this->ws->vc, 'decryptDaveFrame']
+                inboundFrameDecryptor: [$this->ws->vc, 'decryptDaveFrame'],
+                mode: $mode,
             ));
         });
     }
@@ -298,6 +302,7 @@ class UDP extends Socket
             [$vc, 'encryptDaveFrame'],
             null,
             $vc->nonce,
+            $this->ws->getEncryptionMode(),
         );
         $this->send($packet->getEncryptedMessage());
 

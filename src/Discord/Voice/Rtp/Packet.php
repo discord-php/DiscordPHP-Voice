@@ -22,7 +22,8 @@ use Discord\Voice\Exceptions\Libraries\LibSodiumNotFoundException;
  * An RTP voice packet: builds outbound frames and decodes inbound frames.
  *
  * Decrypt flow order for inbound packets:
- *  1. AES-256-GCM transport decrypt (libsodium) — `sodium_crypto_aead_aes256gcm_decrypt()`
+ *  1. Transport decrypt with the negotiated AEAD mode (libsodium) — `EncryptionMode::decrypt()`,
+ *     AES-256-GCM or XChaCha20-Poly1305
  *  2. Strip RTP header extension payload — `RtpHeader::stripExtensionPayload()`
  *  3. Optional DAVE inbound callback — `inboundFrameDecryptor` (injected by VoiceClient);
  *     calls `DaveRuntime::decryptWithDecryptor()` when `passthroughMode = false`.
@@ -93,7 +94,8 @@ final class Packet
      * @param string|null                               $key                    The encryption key.
      * @param null|callable(string): string             $outboundFrameEncryptor Optional callback to transform outgoing decrypted frame data.
      * @param null|callable(string, self): false|string $inboundFrameDecryptor  Optional callback to transform incoming decrypted frame data.
-     * @param int|null                                  $nonce                  32-bit nonce counter for AES-256-GCM. Required for encryption; null is only valid on the decrypt path.
+     * @param int|null                                  $nonce                  32-bit nonce counter for the transport cipher. Required for encryption; null is only valid on the decrypt path.
+     * @param EncryptionMode                            $mode                   The transport encryption mode negotiated with the voice server.
      */
     public function __construct(
         ?string $data = null,
@@ -104,7 +106,8 @@ final class Packet
         protected ?string $key = null,
         protected mixed $outboundFrameEncryptor = null,
         protected mixed $inboundFrameDecryptor = null,
-        protected ?int $nonce = null
+        protected ?int $nonce = null,
+        protected EncryptionMode $mode = EncryptionMode::AEAD_AES256_GCM_RTPSIZE,
     ) {
         if (! function_exists('sodium_crypto_secretbox')) {
             throw new LibSodiumNotFoundException('libsodium-php could not be found.');
@@ -194,8 +197,8 @@ final class Packet
 
         // 3. Extract the nonce
         $nonce = substr($message, $len - HeaderValuesEnum::TIMESTAMP_OR_NONCE_INDEX->value, HeaderValuesEnum::TIMESTAMP_OR_NONCE_INDEX->value);
-        // 4. Pad the nonce to 12 bytes (AES-256-GCM NPUBBYTES)
-        $nonceBuffer = str_pad($nonce, HeaderValuesEnum::RTP_HEADER_OR_NONCE_LENGTH->value, "\0", STR_PAD_RIGHT);
+        // 4. Pad the nonce to the cipher's nonce length (12 bytes for AES-256-GCM, 24 for XChaCha20-Poly1305)
+        $nonceBuffer = str_pad($nonce, $this->mode->nonceLength(), "\0", STR_PAD_RIGHT);
 
         // 5. Extract the ciphertext and auth tag
         //    The message: [header][ciphertext][auth tag][nonce]
@@ -214,7 +217,7 @@ final class Packet
 
         try {
             // Decrypt the message
-            $resultMessage = sodium_crypto_aead_aes256gcm_decrypt(
+            $resultMessage = $this->mode->decrypt(
                 $combined,
                 $header,
                 $nonceBuffer,
@@ -253,8 +256,9 @@ final class Packet
     /**
      * Encrypts the voice message.
      *
-     * Applies the optional outbound DAVE frame transform, then AES-256-GCM over the
-     * RTP header as additional data, and assembles `rawData` as `[header][ciphertext+tag][nonce]`.
+     * Applies the optional outbound DAVE frame transform, then the negotiated AEAD cipher
+     * (AES-256-GCM or XChaCha20-Poly1305) with the RTP header as additional data, and
+     * assembles `rawData` as `[header][ciphertext+tag][nonce]`.
      *
      * @throws \LogicException if the nonce has not been set.
      */
@@ -273,12 +277,12 @@ final class Packet
             throw new \LogicException('Nonce must be set before encrypting a packet.');
         }
 
-        // pad nonce to 12 bytes for AES 256 GCM (NPUBBYTES)
+        // pad the nonce counter to the cipher's nonce length (12 bytes for AES-256-GCM, 24 for XChaCha20-Poly1305)
         $nonce = pack('V', $this->nonce);
-        $paddedNonce = str_pad($nonce, HeaderValuesEnum::RTP_HEADER_OR_NONCE_LENGTH->value, "\0", STR_PAD_RIGHT);
+        $paddedNonce = str_pad($nonce, $this->mode->nonceLength(), "\0", STR_PAD_RIGHT);
 
         // encrypt the audio
-        $this->encryptedAudio = sodium_crypto_aead_aes256gcm_encrypt($this->decryptedAudio, $header, $paddedNonce, $this->key);
+        $this->encryptedAudio = $this->mode->encrypt($this->decryptedAudio, $header, $paddedNonce, $this->key);
 
         // set the raw encrypted data with header prepended and nonce appended
         $this->rawData = $header.$this->encryptedAudio.$nonce;

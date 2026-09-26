@@ -32,6 +32,7 @@ use Discord\Voice\Hello;
 use Discord\Voice\Platform;
 use Discord\Voice\Ready;
 use Discord\Voice\Resumed;
+use Discord\Voice\Rtp\EncryptionMode;
 use Discord\Voice\Rtp\UDP;
 use Discord\Voice\SessionDescription;
 use Discord\Voice\Speaking;
@@ -115,6 +116,9 @@ final class WS implements GatewayCoordinatorHost
 
     /**
      * The Voice WebSocket mode.
+     *
+     * Negotiated from the modes offered in Ready (op 2) and confirmed by the session
+     * description (op 4); see {@see EncryptionMode::negotiate()}.
      *
      * @link https://discord.com/developers/docs/topics/voice-connections#transport-encryption-modes
      */
@@ -393,6 +397,15 @@ final class WS implements GatewayCoordinatorHost
         $this->vc->ssrc = $ready->ssrc;
         $this->discord->logger->debug('received voice ready packet', ['data' => json_decode(json_encode($data->d), true)]);
 
+        // Select Protocol (sent once IP discovery answers) carries whatever mode is chosen here.
+        $offered = $data->d['modes'] ?? [];
+        $mode = EncryptionMode::negotiate(is_array($offered) ? $offered : []);
+        if ($mode !== null) {
+            $this->mode = $mode->value;
+        } else {
+            $this->discord->logger->warning('voice server offered no encryption mode this machine supports', ['modes' => $offered, 'mode' => $this->mode]);
+        }
+
         /** @var PromiseInterface */
         $this->udpfac->createClient("{$ready->ip}:".$ready->port)->then(function (UDP $client) use ($ready): void {
             $this->vc->udp = $client;
@@ -421,7 +434,15 @@ final class WS implements GatewayCoordinatorHost
         $sd = $this->discord->factory(SessionDescription::class, (array) $data->d, true);
 
         $this->vc->ready = true;
-        $this->mode = $sd->mode === $this->mode ? $this->mode : 'aead_aes256_gcm_rtpsize';
+        // The server confirms the mode we selected. Should it name one this machine cannot
+        // run, keep ours: packets have to be encrypted with something we can actually compute.
+        $confirmed = EncryptionMode::tryFrom((string) $sd->mode);
+        if ($confirmed?->isAvailable()) {
+            $this->mode = $confirmed->value;
+        } else {
+            $this->discord->logger->warning('voice session description named an unsupported encryption mode', ['mode' => $sd->mode, 'selected' => $this->mode]);
+        }
+
         $this->rawKey = $data->d['secret_key'];
         $this->secretKey = $sd->secret_key;
 
@@ -806,6 +827,20 @@ final class WS implements GatewayCoordinatorHost
     public function getSecretKey(): ?string
     {
         return $this->secretKey;
+    }
+
+    /**
+     * Returns the negotiated transport encryption mode.
+     *
+     * @throws \ValueError If {@see self::$mode} was set to a mode this library does not implement.
+     *
+     * @since 8.2.0
+     *
+     * @internal
+     */
+    public function getEncryptionMode(): EncryptionMode
+    {
+        return EncryptionMode::from($this->mode);
     }
 
     /**

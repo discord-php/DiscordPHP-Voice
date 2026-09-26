@@ -24,6 +24,7 @@ use Discord\Voice\Dave\EncryptorHandle;
 use Discord\Voice\Dave\Runtime;
 use Discord\Voice\Dave\SessionHandle;
 use Discord\Voice\Dave\State;
+use Discord\Voice\Rtp\EncryptionMode;
 use Discord\Voice\Speaking;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
@@ -106,6 +107,52 @@ it('handleReady captures the SSRC from the ready payload onto the voice client',
     ])]);
 
     expect($ws->vc->ssrc)->toBe(987654);
+});
+
+it('handleReady negotiates the encryption mode from the offered modes', function (array $offered, string $expected): void {
+    $sentPayloads = [];
+    $ws = makeWsForHandlersTest($this, $sentPayloads);
+
+    setHandlersFactoryReturn($ws, new class() {
+        public int $ssrc = 1;
+        public string $ip = 'voice.example.invalid';
+        public int $port = 50001;
+    });
+    installPendingUdpFactory($ws);
+
+    invokeHandlersMethod($ws, 'handleReady', [new Payload(Op::VOICE_READY, [
+        'ssrc' => 1,
+        'ip' => 'voice.example.invalid',
+        'port' => 50001,
+        'modes' => $offered,
+    ])]);
+
+    expect($ws->mode)->toBe($expected);
+})->with([
+    'only XChaCha20-Poly1305 is supported' => [['xsalsa20_poly1305', 'aead_xchacha20_poly1305_rtpsize'], 'aead_xchacha20_poly1305_rtpsize'],
+    'nothing supported keeps the default' => [['xsalsa20_poly1305_lite'], 'aead_aes256_gcm_rtpsize'],
+]);
+
+it('handleReady prefers aead_aes256_gcm_rtpsize over aead_xchacha20_poly1305_rtpsize when hardware AES is available', function (): void {
+    $sentPayloads = [];
+    $ws = makeWsForHandlersTest($this, $sentPayloads);
+    $ws->mode = 'aead_xchacha20_poly1305_rtpsize';
+
+    setHandlersFactoryReturn($ws, new class() {
+        public int $ssrc = 1;
+        public string $ip = 'voice.example.invalid';
+        public int $port = 50001;
+    });
+    installPendingUdpFactory($ws);
+
+    invokeHandlersMethod($ws, 'handleReady', [new Payload(Op::VOICE_READY, [
+        'ssrc' => 1,
+        'ip' => 'voice.example.invalid',
+        'port' => 50001,
+        'modes' => ['aead_xchacha20_poly1305_rtpsize', 'aead_aes256_gcm_rtpsize'],
+    ])]);
+
+    expect($ws->mode)->toBe(sodium_crypto_aead_aes256gcm_is_available() ? 'aead_aes256_gcm_rtpsize' : 'aead_xchacha20_poly1305_rtpsize');
 });
 
 it('handleReady triggers IP discovery by dispatching the announced host through SocketFactory', function (): void {
@@ -219,11 +266,12 @@ it('handleSessionDescription captures the secret key, marks the client ready and
     expect($events)->toContain('ready');
 });
 
-it('handleSessionDescription falls back to aead_aes256_gcm_rtpsize when the offered mode does not match', function (): void {
+it('handleSessionDescription keeps the selected mode when the server names one this library does not implement', function (): void {
     $sentPayloads = [];
     $ws = makeWsForHandlersTest($this, $sentPayloads);
     $ws->vc->deaf = true;
     $ws->vc->reconnecting = false;
+    $ws->mode = 'aead_xchacha20_poly1305_rtpsize';
 
     $sd = new class() {
         public string $mode = 'xsalsa20_poly1305_unsupported';
@@ -242,7 +290,34 @@ it('handleSessionDescription falls back to aead_aes256_gcm_rtpsize when the offe
         'dave_protocol_version' => 0,
     ])]);
 
-    expect($ws->mode)->toBe('aead_aes256_gcm_rtpsize');
+    expect($ws->mode)->toBe('aead_xchacha20_poly1305_rtpsize');
+});
+
+it('handleSessionDescription adopts aead_xchacha20_poly1305_rtpsize when the server confirms it', function (): void {
+    $sentPayloads = [];
+    $ws = makeWsForHandlersTest($this, $sentPayloads);
+    $ws->vc->deaf = true;
+    $ws->vc->reconnecting = false;
+
+    $sd = new class() {
+        public string $mode = 'aead_xchacha20_poly1305_rtpsize';
+        public string $secret_key = 'some-binary-key';
+
+        public function __debugInfo(): array
+        {
+            return ['mode' => $this->mode];
+        }
+    };
+    setHandlersFactoryReturn($ws, $sd);
+
+    invokeHandlersMethod($ws, 'handleSessionDescription', [new Payload(Op::VOICE_SESSION_DESCRIPTION, [
+        'mode' => 'aead_xchacha20_poly1305_rtpsize',
+        'secret_key' => array_fill(0, 32, 1),
+        'dave_protocol_version' => 0,
+    ])]);
+
+    expect($ws->mode)->toBe('aead_xchacha20_poly1305_rtpsize')
+        ->and($ws->getEncryptionMode())->toBe(EncryptionMode::AEAD_XCHACHA20_POLY1305_RTPSIZE);
 });
 
 it('handleSessionDescription resets DAVE protocol state when dave_protocol_version is 0', function (): void {

@@ -24,7 +24,7 @@ These opcodes are used on the **voice** WebSocket connection (separate from the 
 | 1 | `VOICE_SELECT_PROTO` | client → server | Select the voice protocol and encryption mode. | Sent by the client after receiving `VOICE_READY` (op 2). |
 | 2 | `VOICE_READY` | server → client | Complete the WebSocket handshake. | Server responds to `VOICE_IDENTIFY`; carries `ssrc`, `ip`, `port`, and supported encryption `modes`. |
 | 3 | `VOICE_HEARTBEAT` | client → server | Keep the WebSocket connection alive. | Sent periodically at the interval given by `VOICE_HELLO`. |
-| 4 | `VOICE_DESCRIPTION` | server → client | Describe the session (secret key for encryption). | Sent by the server after `VOICE_SELECT_PROTO`; carries the `secret_key` used by libsodium. |
+| 4 | `VOICE_DESCRIPTION` | server → client | Describe the session (secret key for encryption). | Sent by the server after `VOICE_SELECT_PROTO`; carries the `secret_key` used by libsodium and the confirmed encryption `mode`. |
 | 5 | `VOICE_SPEAKING` | both | Identify which users are speaking. | Client sends before/after transmitting audio; server relays for all connected users. |
 | 6 | `VOICE_HEARTBEAT_ACK` | server → client | Acknowledge a heartbeat. | Server replies to every `VOICE_HEARTBEAT`. |
 | 7 | `VOICE_RESUME` | client → server | Resume a dropped voice connection. | Sent instead of `VOICE_IDENTIFY` when reconnecting with an existing session. |
@@ -140,6 +140,23 @@ Critical gateway close codes are enumerated by `OpEnum::getCriticalCloseCodes()`
 | `OpEnum::getVoiceCodes()` | Returns all voice opcodes as an array of enum cases. |
 | `OpEnum::getGatewayCodes()` | Returns all gateway opcodes as an array of enum cases. |
 | `OpEnum::voiceCodeToString(?self $code, bool $snakeCase, bool $pluckVoicePrefix)` | Converts a voice opcode enum value to a human-readable string. |
+
+### Transport encryption modes
+
+Every RTP packet is encrypted with one of the two AEAD modes in `Discord\Voice\Rtp\EncryptionMode`. The mode is picked from the `modes` offered in `VOICE_READY` (op 2), sent in `VOICE_SELECT_PROTO` (op 1), and confirmed by `VOICE_DESCRIPTION` (op 4).
+
+| Mode | Cipher | Nonce | Discord status | Picked when |
+|------|--------|-------|----------------|-------------|
+| `aead_aes256_gcm_rtpsize` | AES-256-GCM | 12 bytes | Available (preferred) | Offered, and `sodium_crypto_aead_aes256gcm_is_available()` is `true` (the CPU has hardware AES). |
+| `aead_xchacha20_poly1305_rtpsize` | XChaCha20-Poly1305 | 24 bytes | Available (required) | Otherwise. Every voice server offers it. |
+
+Both modes use the same packet layout:
+
+```
+[RTP header][ciphertext][16-byte auth tag][4-byte nonce counter]
+```
+
+The RTP header, including the 4-byte extension preamble when present, is the additional data. The 32-bit nonce counter goes on the wire as is. It is zero-padded to the cipher's nonce length. The deprecated `xsalsa20_poly1305*` and `aead_aes256_gcm` modes are never selected.
 
 ### Undocumented opcodes
 

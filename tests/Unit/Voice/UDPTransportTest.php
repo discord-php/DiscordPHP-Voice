@@ -17,6 +17,8 @@ namespace Discord\Tests\Unit\Voice;
 
 use Discord\Discord;
 use Discord\Voice\Client as VoiceClient;
+use Discord\Voice\Rtp\EncryptionMode;
+use Discord\Voice\Rtp\Packet;
 use Discord\Voice\Rtp\UDP;
 use Discord\Voice\Gateway\WS;
 use Discord\Voice\Dave\State as DaveState;
@@ -219,6 +221,87 @@ it('sendBuffer emits an encrypted RTP packet and round-trips through sodium', fu
     );
 
     expect($decrypted)->toBe($payload);
+});
+
+it('sendBuffer encrypts with aead_xchacha20_poly1305_rtpsize when that mode was negotiated', function (): void {
+    if (! EncryptionMode::AEAD_XCHACHA20_POLY1305_RTPSIZE->isAvailable()) {
+        $this->markTestSkipped('libsodium XChaCha20-Poly1305 not available.');
+    }
+
+    $sentBytes = [];
+    $secretKey = str_repeat("\x42", SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES);
+    $udp = makeUdpTransportMock($this, $sentBytes, loop: null, ssrc: 0x11223344, secretKey: $secretKey);
+
+    $udp->ws->mode = EncryptionMode::AEAD_XCHACHA20_POLY1305_RTPSIZE->value;
+    $udp->ws->vc->ready = true;
+    $udp->ws->vc->seq = 7;
+    $udp->ws->vc->timestamp = 960;
+    $udp->ws->vc->nonce = 1;
+
+    $udp->sendBuffer("\xFA\xFB\xFC\xFD");
+
+    expect($sentBytes)->toHaveCount(1);
+
+    // [12-byte header][ciphertext + tag][4-byte nonce], the nonce padded to 24 bytes for XChaCha20.
+    $raw = $sentBytes[0];
+    $nonce = substr($raw, -4);
+    $decrypted = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt(
+        substr($raw, 12, strlen($raw) - 12 - 4),
+        substr($raw, 0, 12),
+        str_pad($nonce, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES, "\0", STR_PAD_RIGHT),
+        $secretKey,
+    );
+
+    expect($nonce)->toBe(pack('V', 1))
+        ->and($decrypted)->toBe("\xFA\xFB\xFC\xFD");
+});
+
+it('handleMessages decrypts inbound packets with the negotiated mode', function (): void {
+    if (! EncryptionMode::AEAD_XCHACHA20_POLY1305_RTPSIZE->isAvailable()) {
+        $this->markTestSkipped('libsodium XChaCha20-Poly1305 not available.');
+    }
+
+    $sentBytes = [];
+    $secretKey = random_bytes(SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES);
+    $udp = makeUdpTransportMock($this, $sentBytes, loop: null, ssrc: 1);
+    $udp->ws->mode = EncryptionMode::AEAD_XCHACHA20_POLY1305_RTPSIZE->value;
+
+    $received = [];
+    $vc = $this->getMockBuilder(VoiceClient::class)
+        ->disableOriginalConstructor()
+        ->onlyMethods(['handleAudioData'])
+        ->getMock();
+    $vc->method('handleAudioData')->willReturnCallback(function (Packet $packet) use (&$received): void {
+        $received[] = $packet->getAudioData();
+    });
+    $vc->deaf = false;
+    $udp->ws->vc = $vc;
+
+    $header = pack('CCnNN', 0x80, 0x78, 3, 960, 99);
+    $nonce = pack('V', 5);
+    $sealed = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
+        'inbound-opus',
+        $header,
+        str_pad($nonce, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES, "\0", STR_PAD_RIGHT),
+        $secretKey,
+    );
+
+    $udp->handleMessages($secretKey);
+    $udp->emit('message', [$header.$sealed.$nonce]);
+
+    expect($received)->toBe(['inbound-opus']);
+});
+
+it('decodeOnce selects the negotiated encryption mode', function (): void {
+    $wsSent = [];
+    $udp = makeUdpTransportMock($this, $unused, loop: null, ssrc: 12345, wsSent: $wsSent);
+    $udp->ws->mode = EncryptionMode::AEAD_XCHACHA20_POLY1305_RTPSIZE->value;
+
+    $udp->decodeOnce();
+    $udp->emit('message', [pack('CCnNA64n', 0x00, 0x02, 70, 12345, str_pad('203.0.113.42', 64, "\0"), 50001)]);
+
+    expect($wsSent)->toHaveCount(1)
+        ->and(json_decode($wsSent[0], true)['d']['data']['mode'])->toBe('aead_xchacha20_poly1305_rtpsize');
 });
 
 it('sendBuffer is a no-op when the voice client is not ready', function (): void {

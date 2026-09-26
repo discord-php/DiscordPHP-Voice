@@ -107,9 +107,9 @@ sequenceDiagram
     GW-->>WS: Op 8 Hello<br/>{ heartbeat_interval }
     Note over WS: Starts heartbeat timer
     GW-->>WS: Op 2 Ready<br/>{ ssrc, ip, port, modes }
-    Note over WS: Creates UDP client,<br/>starts IP discovery
+    Note over WS: Picks the encryption mode,<br/>creates UDP client,<br/>starts IP discovery
 
-    WS->>GW: Op 1 Select Protocol<br/>{ mode: "aead_aes256_gcm_rtpsize" }
+    WS->>GW: Op 1 Select Protocol<br/>{ mode: "aead_aes256_gcm_rtpsize"<br/>or "aead_xchacha20_poly1305_rtpsize" }
     GW-->>WS: Op 4 Session Description<br/>{ secret_key, dave_protocol_version: 1 }
 
     WS->>WS: initializeDaveRuntimeState(protocolVersion)
@@ -320,7 +320,7 @@ flowchart LR
     E -->|No / Passthrough| G["Raw Opus frame"]
     F --> H["Runtime::<br/>encryptWithEncryptor()<br/><small>AES-128-GCM E2EE</small>"]
     H --> H2{"Encryption<br/>OK?"}
-    H2 -->|Yes| I["Packet::encrypt()<br/><small>AES-256-GCM transport<br/>+ RTP header</small>"]
+    H2 -->|Yes| I["Packet::encrypt()<br/><small>AES-256-GCM or XChaCha20<br/>transport + RTP header</small>"]
     H2 -->|No + Active| X["❌ Drop frame<br/><small>Preserves E2EE integrity</small>"]
     H2 -->|No + Passthrough| G
     G --> I
@@ -336,7 +336,7 @@ flowchart LR
 
 ```mermaid
 flowchart RL
-    A["Discord SFU<br/>→ UDP"] --> B["Packet::decrypt()<br/><small>AES-256-GCM transport<br/>strip RTP header</small>"]
+    A["Discord SFU<br/>→ UDP"] --> B["Packet::decrypt()<br/><small>AES-256-GCM or XChaCha20<br/>transport, strip RTP header</small>"]
     B --> B2["Strip RTP extension payload<br/><small>after transport decrypt,<br/>before DAVE frame decrypt</small>"]
     B2 --> C{"DAVE<br/>Active?"}
     C -->|Yes| D["VoiceClient::<br/>decryptDaveFrame()"]
@@ -366,7 +366,7 @@ Inbound RTP header extensions are removed only after transport decryption succee
 │                         UDP Packet (wire)                          │
 │  ┌───────────────────────────────────────────────────────────────┐  │
 │  │              Transport Encryption (Packet)                    │  │
-│  │         AES-256-GCM  •  Key from Session Description         │  │
+│  │  AES-256-GCM or XChaCha20-Poly1305 • Session Description key  │  │
 │  │  ┌─────────────┬─────────────────────────────────────────┐   │  │
 │  │  │  RTP Header  │          Encrypted Payload              │   │  │
 │  │  │  (12 bytes)  │  ┌───────────────────────────────────┐  │   │  │
@@ -525,7 +525,7 @@ Packet::encrypt()
   │         VoiceClient::encryptDaveFrame()
   │           └─ DaveRuntime::encryptWithEncryptor()   [libdave AES-128-GCM]
   │
-  └─ sodium_crypto_aead_aes256gcm_encrypt()            [transport AES-256-GCM]
+  └─ EncryptionMode::encrypt()                         [transport AES-256-GCM or XChaCha20-Poly1305]
 ```
 
 If DAVE encryption fails while `passthroughMode = false`, the frame is **dropped** — never sent to Discord. This preserves E2EE integrity and prevents silent fallback to plaintext Opus.
@@ -536,7 +536,7 @@ If DAVE encryption fails while `passthroughMode = false`, the frame is **dropped
 UDP receives raw packet
   │
   Packet::decrypt()
-    1. sodium_crypto_aead_aes256gcm_decrypt()          [transport AES-256-GCM]
+    1. EncryptionMode::decrypt()                       [transport AES-256-GCM or XChaCha20-Poly1305]
     2. RtpHeader::stripExtensionPayload()              [remove RTP header extensions]
     3. inboundFrameDecryptor callback (injected by VoiceClient)
          └─ if DAVE active (passthroughMode = false):

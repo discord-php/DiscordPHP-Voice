@@ -29,7 +29,7 @@ graph TD
     TIMER["ReactPHP loop timer<br/><small>addTimer(0.02 s) per frame<br/>= 20 ms / frame = 50 fps</small>"]
     ROLLOVER["Sequence/Timestamp rollover<br/><small>seq: 16-bit → wraps 65535→0<br/>ts:  32-bit → wraps at 2³²−1</small>"]
     SILENCE["5 silence frames<br/><small>Sent on stop() or EOF<br/>to flush Discord jitter buffer.</small>"]
-    ENC["Rtp\Packet::encrypt(opus)<br/><small>Builds RTP header (seq, timestamp, SSRC).<br/>Encrypts payload with libsodium<br/>AES-256-GCM (XSalsa20-Poly1305).<br/>Calls optional DAVE frame callback.</small>"]
+    ENC["Rtp\Packet::encrypt(opus)<br/><small>Builds RTP header (seq, timestamp, SSRC).<br/>Encrypts payload with libsodium<br/>AES-256-GCM or XChaCha20-Poly1305<br/>(negotiated at Ready).<br/>Calls optional DAVE frame callback.</small>"]
     DAVE["VoiceClient::encryptDaveFrame()<br/><small>Optional DAVE E2EE media layer<br/>on top of RTP. Only active when<br/>DAVE session is established.</small>"]
     UDP["Rtp\UDP::sendBuffer(packet)<br/><small>Writes encrypted RTP bytes<br/>to the UDP socket.</small>"]
     DISCORD["Discord UDP Voice Server"]
@@ -86,7 +86,7 @@ The path from raw bytes arriving on the UDP socket to `channel-pcm` / `channel-o
 flowchart TD
     RUDP["Discord UDP Voice Server<br/><small>Sends encrypted RTP packets<br/>to the client UDP socket.</small>"]
     RECV["Rtp\UDP socket<br/><small>ReactPHP datagram listener.<br/>Emits raw bytes on each UDP datagram.</small>"]
-    DEC["Rtp\Packet::decrypt(data)<br/><small>Strips RTP header, reads SSRC.<br/>Decrypts AES-256-GCM payload.<br/>Strips RTP extension payload before<br/>optional DAVE decrypt callback.</small>"]
+    DEC["Rtp\Packet::decrypt(data)<br/><small>Strips RTP header, reads SSRC.<br/>Decrypts the AES-256-GCM or<br/>XChaCha20-Poly1305 payload.<br/>Strips RTP extension payload before<br/>optional DAVE decrypt callback.</small>"]
     DAVD["VoiceClient::decryptDaveFrame()<br/><small>Optional DAVE E2EE media layer.<br/>Only active when DAVE session<br/>is established for this user.</small>"]
     HAD["VoiceClient::handleAudioData(packet)<br/><small>Routes packet to the correct<br/>per-user decoder.</small>"]
     SSRC["SSRC → userId map<br/><small>speakingStatus + ssrcToUserId<br/>populated by WS speaking events.<br/>Packet dropped if SSRC unknown.</small>"]
@@ -221,7 +221,7 @@ graph LR
     FFMPEG["FFmpeg<br/><small>Transcodes to Opus<br/>48 kHz stereo 128 kbps<br/>wrapped in Ogg container</small>"]
     OPUS["Ogg/Opus<br/><small>Variable-bitrate Opus frames<br/>20 ms / 960 samples each</small>"]
     RTP["RTP Packet<br/><small>12-byte header:<br/>V=2, PT=120, seq, ts, SSRC<br/>+ raw Opus payload</small>"]
-    ERTP["Encrypted RTP<br/><small>libsodium AES-256-GCM<br/>(XSalsa20-Poly1305)<br/>nonce derived from RTP header</small>"]
+    ERTP["Encrypted RTP<br/><small>libsodium AES-256-GCM<br/>or XChaCha20-Poly1305<br/>32-bit nonce counter appended</small>"]
     DAVE["DAVE E2EE Frame<br/><small>MLS-derived key ratchet<br/>wraps the encrypted RTP frame.<br/>Only present when DAVE active.</small>"]
     WIRE["Discord UDP Wire<br/><small>Raw UDP datagram<br/>sent to Discord voice server</small>"]
 
