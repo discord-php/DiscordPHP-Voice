@@ -136,7 +136,7 @@
         <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">36</span>
+    <span class="phpdocumentor-element-found-in__line">37</span>
 
     </aside>
 
@@ -145,7 +145,8 @@
 
     <section class="phpdocumentor-description"><p>Decrypt flow order for inbound packets:</p>
 <ol>
-<li>AES-256-GCM transport decrypt (libsodium) — <code class="prettyprint">sodium_crypto_aead_aes256gcm_decrypt()</code></li>
+<li>Transport decrypt with the negotiated AEAD mode (libsodium) — <code class="prettyprint">EncryptionMode::decrypt()</code>,
+AES-256-GCM or XChaCha20-Poly1305</li>
 <li>Strip RTP header extension payload — <code class="prettyprint">RtpHeader::stripExtensionPayload()</code></li>
 <li>Optional DAVE inbound callback — <code class="prettyprint">inboundFrameDecryptor</code> (injected by VoiceClient);
 calls <code class="prettyprint">DaveRuntime::decryptWithDecryptor()</code> when <code class="prettyprint">passthroughMode = false</code>.</li>
@@ -277,6 +278,12 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <a class="" href="classes/Discord-Voice-Rtp-Packet.html#property_key">$key</a>
     <span>
                         &nbsp;: string|null            </span>
+</dt>
+
+            <dt class="phpdocumentor-table-of-contents__entry -property -protected">
+    <a class="" href="classes/Discord-Voice-Rtp-Packet.html#property_mode">$mode</a>
+    <span>
+                        &nbsp;: <a href="classes/Discord-Voice-Rtp-EncryptionMode.html"><abbr title="\Discord\Voice\Rtp\EncryptionMode">EncryptionMode</abbr></a>            </span>
 </dt>
 
             <dt class="phpdocumentor-table-of-contents__entry -property -protected">
@@ -441,7 +448,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">68</span>
+    <span class="phpdocumentor-element-found-in__line">69</span>
 
     </aside>
 
@@ -479,7 +486,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">63</span>
+    <span class="phpdocumentor-element-found-in__line">64</span>
 
     </aside>
 
@@ -517,7 +524,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">58</span>
+    <span class="phpdocumentor-element-found-in__line">59</span>
 
     </aside>
 
@@ -555,7 +562,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">73</span>
+    <span class="phpdocumentor-element-found-in__line">74</span>
 
     </aside>
 
@@ -593,7 +600,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">101</span>
+    <span class="phpdocumentor-element-found-in__line">103</span>
 
     </aside>
 
@@ -630,7 +637,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">100</span>
+    <span class="phpdocumentor-element-found-in__line">102</span>
 
     </aside>
 
@@ -667,7 +674,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">102</span>
+    <span class="phpdocumentor-element-found-in__line">104</span>
 
     </aside>
 
@@ -704,7 +711,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">53</span>
+    <span class="phpdocumentor-element-found-in__line">54</span>
 
     </aside>
 
@@ -742,7 +749,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">48</span>
+    <span class="phpdocumentor-element-found-in__line">49</span>
 
     </aside>
 
@@ -786,7 +793,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">41</span>
+    <span class="phpdocumentor-element-found-in__line">42</span>
 
     </aside>
 
@@ -824,7 +831,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">83</span>
+    <span class="phpdocumentor-element-found-in__line">84</span>
 
     </aside>
 
@@ -862,7 +869,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">106</span>
+    <span class="phpdocumentor-element-found-in__line">108</span>
 
     </aside>
 
@@ -899,7 +906,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">104</span>
+    <span class="phpdocumentor-element-found-in__line">106</span>
 
     </aside>
 
@@ -926,6 +933,43 @@ https://github.com/DV8FromTheWorld/JDA</p>
             -protected
                                                                     "
 >
+    <h4 class="phpdocumentor-element__name" id="property_mode">
+        $mode
+        <a href="classes/Discord-Voice-Rtp-Packet.html#property_mode" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                            </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">110</span>
+
+    </aside>
+
+    
+    
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+        <span class="phpdocumentor-signature__visibility">protected</span>
+            <span class="phpdocumentor-signature__type"><a href="classes/Discord-Voice-Rtp-EncryptionMode.html"><abbr title="\Discord\Voice\Rtp\EncryptionMode">EncryptionMode</abbr></a></span>
+    <span class="phpdocumentor-signature__name">$mode</span>
+     = <span class="phpdocumentor-signature__default-value">EncryptionMode::AEAD_AES256_GCM_RTPSIZE</span></code>
+
+    
+    
+    
+
+        
+        
+
+</article>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -protected
+                                                                    "
+>
     <h4 class="phpdocumentor-element__name" id="property_nonce">
         $nonce
         <a href="classes/Discord-Voice-Rtp-Packet.html#property_nonce" class="headerlink"><i class="fas fa-link"></i></a>
@@ -936,7 +980,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">107</span>
+    <span class="phpdocumentor-element-found-in__line">109</span>
 
     </aside>
 
@@ -973,7 +1017,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">105</span>
+    <span class="phpdocumentor-element-found-in__line">107</span>
 
     </aside>
 
@@ -1010,7 +1054,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">78</span>
+    <span class="phpdocumentor-element-found-in__line">79</span>
 
     </aside>
 
@@ -1053,7 +1097,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">98</span>
+    <span class="phpdocumentor-element-found-in__line">100</span>
 
     </aside>
 
@@ -1061,7 +1105,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
 
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-                    <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span>[</span><span class="phpdocumentor-signature__argument__type">string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">int&nbsp;</span><span class="phpdocumentor-signature__argument__name">$ssrc</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">int&nbsp;</span><span class="phpdocumentor-signature__argument__name">$seq</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">int&nbsp;</span><span class="phpdocumentor-signature__argument__name">$timestamp</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$decrypt</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">true</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">string|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$key</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">null|callable(string): string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$outboundFrameEncryptor</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">null|callable(string, self): false|string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$inboundFrameDecryptor</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">int|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$nonce</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
+                    <span class="phpdocumentor-signature__name">__construct</span><span>(</span><span class="phpdocumentor-signature__argument"><span>[</span><span class="phpdocumentor-signature__argument__type">string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">int&nbsp;</span><span class="phpdocumentor-signature__argument__name">$ssrc</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">int&nbsp;</span><span class="phpdocumentor-signature__argument__name">$seq</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">int&nbsp;</span><span class="phpdocumentor-signature__argument__name">$timestamp</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$decrypt</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">true</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">string|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$key</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">null|callable(string): string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$outboundFrameEncryptor</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">null|callable(string, self): false|string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$inboundFrameDecryptor</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">int|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$nonce</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type"><a href="classes/Discord-Voice-Rtp-EncryptionMode.html"><abbr title="\Discord\Voice\Rtp\EncryptionMode">EncryptionMode</abbr></a>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$mode</span><span> = </span><span class="phpdocumentor-signature__argument__default-value"><a href="classes/Discord-Voice-Rtp-EncryptionMode.html#enumcase_AEAD_AES256_GCM_RTPSIZE"><abbr title="\Discord\Voice\Rtp\EncryptionMode::AEAD_AES256_GCM_RTPSIZE">EncryptionMode::AEAD_AES256_GCM_RTPSIZE</abbr></a></span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">mixed</span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -1144,7 +1188,16 @@ https://github.com/DV8FromTheWorld/JDA</p>
                 : <span class="phpdocumentor-argument-list__argument__type">int|null</span>
                  = <span class="phpdocumentor-argument-list__argument__default-value">null</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                    <section class="phpdocumentor-description"><p>32-bit nonce counter for AES-256-GCM. Required for encryption; null is only valid on the decrypt path.</p>
+                    <section class="phpdocumentor-description"><p>32-bit nonce counter for the transport cipher. Required for encryption; null is only valid on the decrypt path.</p>
+</section>
+
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-argument-list__argument__name">$mode</span>
+                : <span class="phpdocumentor-argument-list__argument__type"><a href="classes/Discord-Voice-Rtp-EncryptionMode.html"><abbr title="\Discord\Voice\Rtp\EncryptionMode">EncryptionMode</abbr></a></span>
+                 = <span class="phpdocumentor-argument-list__argument__default-value"><a href="classes/Discord-Voice-Rtp-EncryptionMode.html#enumcase_AEAD_AES256_GCM_RTPSIZE"><abbr title="\Discord\Voice\Rtp\EncryptionMode::AEAD_AES256_GCM_RTPSIZE">EncryptionMode::AEAD_AES256_GCM_RTPSIZE</abbr></a></span>            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                    <section class="phpdocumentor-description"><p>The transport encryption mode negotiated with the voice server.</p>
 </section>
 
             </dd>
@@ -1170,7 +1223,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">175</span>
+    <span class="phpdocumentor-element-found-in__line">178</span>
 
     </aside>
 
@@ -1219,7 +1272,7 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">261</span>
+    <span class="phpdocumentor-element-found-in__line">265</span>
 
     </aside>
 
@@ -1232,8 +1285,9 @@ https://github.com/DV8FromTheWorld/JDA</p>
     <div class="phpdocumentor-label-line">
         </div>
     
-        <section class="phpdocumentor-description"><p>Applies the optional outbound DAVE frame transform, then AES-256-GCM over the
-RTP header as additional data, and assembles <code class="prettyprint">rawData</code> as <code class="prettyprint">[header][ciphertext+tag][nonce]</code>.</p>
+        <section class="phpdocumentor-description"><p>Applies the optional outbound DAVE frame transform, then the negotiated AEAD cipher
+(AES-256-GCM or XChaCha20-Poly1305) with the RTP header as additional data, and
+assembles <code class="prettyprint">rawData</code> as <code class="prettyprint">[header][ciphertext+tag][nonce]</code>.</p>
 </section>
 
     
@@ -1273,7 +1327,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">403</span>
+    <span class="phpdocumentor-element-found-in__line">407</span>
 
     </aside>
 
@@ -1314,7 +1368,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">364</span>
+    <span class="phpdocumentor-element-found-in__line">368</span>
 
     </aside>
 
@@ -1353,7 +1407,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">412</span>
+    <span class="phpdocumentor-element-found-in__line">416</span>
 
     </aside>
 
@@ -1394,7 +1448,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">332</span>
+    <span class="phpdocumentor-element-found-in__line">336</span>
 
     </aside>
 
@@ -1433,7 +1487,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">340</span>
+    <span class="phpdocumentor-element-found-in__line">344</span>
 
     </aside>
 
@@ -1472,7 +1526,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">356</span>
+    <span class="phpdocumentor-element-found-in__line">360</span>
 
     </aside>
 
@@ -1511,7 +1565,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">348</span>
+    <span class="phpdocumentor-element-found-in__line">352</span>
 
     </aside>
 
@@ -1550,7 +1604,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">375</span>
+    <span class="phpdocumentor-element-found-in__line">379</span>
 
     </aside>
 
@@ -1599,7 +1653,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">388</span>
+    <span class="phpdocumentor-element-found-in__line">392</span>
 
     </aside>
 
@@ -1648,7 +1702,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">310</span>
+    <span class="phpdocumentor-element-found-in__line">314</span>
 
     </aside>
 
@@ -1699,7 +1753,7 @@ RTP header as additional data, and assembles <code class="prettyprint">rawData</
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">137</span>
+    <span class="phpdocumentor-element-found-in__line">140</span>
 
     </aside>
 
@@ -1779,7 +1833,7 @@ a* (string)                              | Encrypted audio       | n bytes | Bin
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Rtp/Packet.php"><a href="files/src-discord-voice-rtp-packet.html"><abbr title="src/Discord/Voice/Rtp/Packet.php">Packet.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">294</span>
+    <span class="phpdocumentor-element-found-in__line">298</span>
 
     </aside>
 
@@ -1843,6 +1897,7 @@ layout in a single <abbr title="\Discord\Voice\Rtp\pack()">pack()</abbr> call ra
                                                     <li class=""><a href="classes/Discord-Voice-Rtp-Packet.html#property_headerSize">$headerSize</a></li>
                                                     <li class=""><a href="classes/Discord-Voice-Rtp-Packet.html#property_inboundFrameDecryptor">$inboundFrameDecryptor</a></li>
                                                     <li class=""><a href="classes/Discord-Voice-Rtp-Packet.html#property_key">$key</a></li>
+                                                    <li class=""><a href="classes/Discord-Voice-Rtp-Packet.html#property_mode">$mode</a></li>
                                                     <li class=""><a href="classes/Discord-Voice-Rtp-Packet.html#property_nonce">$nonce</a></li>
                                                     <li class=""><a href="classes/Discord-Voice-Rtp-Packet.html#property_outboundFrameEncryptor">$outboundFrameEncryptor</a></li>
                                                     <li class=""><a href="classes/Discord-Voice-Rtp-Packet.html#property_rawData">$rawData</a></li>

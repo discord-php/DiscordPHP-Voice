@@ -2591,6 +2591,46 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/Discord-Voice-Recording-WavWriter.html#property_path"
         },                {
+            "fqsen": "\\Discord\\Voice\\Rtp\\EncryptionMode",
+            "name": "EncryptionMode",
+            "summary": "The\u0020voice\u0020transport\u0020encryption\u0020modes\u0020this\u0020library\u0020can\u0020negotiate.",
+            "url": "classes/Discord-Voice-Rtp-EncryptionMode.html"
+        },                {
+            "fqsen": "\\Discord\\Voice\\Rtp\\EncryptionMode\u003A\u003Anegotiate\u0028\u0029",
+            "name": "negotiate",
+            "summary": "Picks\u0020the\u0020mode\u0020to\u0020select\u0020from\u0020the\u0020voice\u0020server\u0027s\u0020offer\u003A\u0020the\u0020most\u0020preferred\u0020mode\u0020that\nis\u0020both\u0020offered\u0020and\u0020available\u0020on\u0020this\u0020machine.",
+            "url": "classes/Discord-Voice-Rtp-EncryptionMode.html#method_negotiate"
+        },                {
+            "fqsen": "\\Discord\\Voice\\Rtp\\EncryptionMode\u003A\u003AisAvailable\u0028\u0029",
+            "name": "isAvailable",
+            "summary": "Returns\u0020true\u0020if\u0020libsodium\u0020on\u0020this\u0020machine\u0020implements\u0020the\u0020mode\u0027s\u0020cipher.",
+            "url": "classes/Discord-Voice-Rtp-EncryptionMode.html#method_isAvailable"
+        },                {
+            "fqsen": "\\Discord\\Voice\\Rtp\\EncryptionMode\u003A\u003AnonceLength\u0028\u0029",
+            "name": "nonceLength",
+            "summary": "Returns\u0020the\u0020cipher\u0027s\u0020nonce\u0020length\u0020in\u0020bytes\u003A\u002012\u0020for\u0020AES\u002D256\u002DGCM,\u002024\u0020for\u0020XChaCha20\u002DPoly1305.",
+            "url": "classes/Discord-Voice-Rtp-EncryptionMode.html#method_nonceLength"
+        },                {
+            "fqsen": "\\Discord\\Voice\\Rtp\\EncryptionMode\u003A\u003Aencrypt\u0028\u0029",
+            "name": "encrypt",
+            "summary": "Encrypts\u0020a\u0020frame,\u0020returning\u0020the\u0020ciphertext\u0020with\u0020the\u002016\u002Dbyte\u0020auth\u0020tag\u0020appended.",
+            "url": "classes/Discord-Voice-Rtp-EncryptionMode.html#method_encrypt"
+        },                {
+            "fqsen": "\\Discord\\Voice\\Rtp\\EncryptionMode\u003A\u003Adecrypt\u0028\u0029",
+            "name": "decrypt",
+            "summary": "Decrypts\u0020and\u0020authenticates\u0020a\u0020frame.",
+            "url": "classes/Discord-Voice-Rtp-EncryptionMode.html#method_decrypt"
+        },                {
+            "fqsen": "\\Discord\\Voice\\Rtp\\EncryptionMode\u003A\u003AAEAD_AES256_GCM_RTPSIZE",
+            "name": "AEAD_AES256_GCM_RTPSIZE",
+            "summary": "AES\u002D256\u002DGCM.\u0020Discord\u0027s\u0020preferred\u0020mode,\u0020but\u0020libsodium\u0020only\u0020offers\u0020it\u0020on\u0020CPUs\u0020with\u0020hardware\u0020AES.",
+            "url": "classes/Discord-Voice-Rtp-EncryptionMode.html#enumcase_AEAD_AES256_GCM_RTPSIZE"
+        },                {
+            "fqsen": "\\Discord\\Voice\\Rtp\\EncryptionMode\u003A\u003AAEAD_XCHACHA20_POLY1305_RTPSIZE",
+            "name": "AEAD_XCHACHA20_POLY1305_RTPSIZE",
+            "summary": "XChaCha20\u002DPoly1305.\u0020Discord\u0020requires\u0020every\u0020client\u0020to\u0020support\u0020it.",
+            "url": "classes/Discord-Voice-Rtp-EncryptionMode.html#enumcase_AEAD_XCHACHA20_POLY1305_RTPSIZE"
+        },                {
             "fqsen": "\\Discord\\Voice\\Rtp\\HeaderValuesEnum",
             "name": "HeaderValuesEnum",
             "summary": "Enum\u0020for\u0020header\u0020values\u0020used\u0020in\u0020Discord\u0020voice\u0020client.",
@@ -2800,6 +2840,11 @@ Search.appendIndex(
             "name": "nonce",
             "summary": "",
             "url": "classes/Discord-Voice-Rtp-Packet.html#property_nonce"
+        },                {
+            "fqsen": "\\Discord\\Voice\\Rtp\\Packet\u003A\u003A\u0024mode",
+            "name": "mode",
+            "summary": "",
+            "url": "classes/Discord-Voice-Rtp-Packet.html#property_mode"
         },                {
             "fqsen": "\\Discord\\Voice\\Rtp\\RtpHeader",
             "name": "RtpHeader",
