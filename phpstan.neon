@@ -4,6 +4,13 @@ parameters:
         - src
     excludePaths:
         - src/Discord/Voice/Helpers
+        # class_alias() shims keeping the pre-8.2 names of moved classes resolving, like
+        # the ones in Helpers above; PHPStan cannot see a class that only an alias declares.
+        - src/Discord/Voice/Client
+        - src/Discord/Voice/OggPage.php
+        - src/Discord/Voice/OggStream.php
+        - src/Discord/Voice/OpusHead.php
+        - src/Discord/Voice/OpusTags.php
         # Relocated from src/Discord/Voice/Helpers/Buffer.php (which was excluded above).
         # The React Promise<T, E> PHPDoc style it uses predates the move; keeping it
         # out of analysis preserves the prior coverage rather than reworking its types here.
