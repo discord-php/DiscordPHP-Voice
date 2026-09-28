@@ -260,7 +260,7 @@ it('Manager removes the server gateway listener after ready fires', function ():
  */
 function makeDiscordForLifecycleTest(TestCase $test, array &$sent): Discord
 {
-    $discord = invokeLifecycleTestMethod($test, 'getMockBuilder', [Discord::class])
+    $discord = invokeLifecycleTestMethod($test, 'getMockBuilder', [DiscordForLifecycleTest::class])
         ->disableOriginalConstructor()
         ->onlyMethods(['send'])
         ->getMock();
@@ -365,4 +365,14 @@ function invokeLifecycleTestMethod(object $object, string $method, array $argume
     $reflectionMethod->setAccessible(true);
 
     return $reflectionMethod->invokeArgs($object, $arguments);
+}
+
+/**
+ * A client that keeps voice sessions in an array, as DiscordPHP did before 10.66, whichever DiscordPHP is
+ * installed. {@see \Discord\Voice\VoiceSessions} handles both; these tests are about the manager.
+ * Not final: the tests mock it.
+ */
+class DiscordForLifecycleTest extends Discord
+{
+    public array $voice_sessions = [];
 }

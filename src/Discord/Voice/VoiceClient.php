@@ -25,6 +25,7 @@ use Discord\Helpers\Collection;
 use Discord\Helpers\ExCollectionInterface;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\WebSockets\VoiceStateUpdate;
+use Discord\Repository\AbstractRepository;
 use Discord\Voice\Receive\User;
 use Discord\Voice\Rtp\Packet;
 use Discord\Voice\Rtp\UDP;
@@ -392,19 +393,22 @@ class VoiceClient
     /**
      * Constructs the Voice client instance.
      *
-     * @param Discord       $discord         The Discord instance.
-     * @param Channel       $channel
-     * @param string[]      &$voice_sessions
-     * @param array         $data
-     * @param bool          $deaf            Default: false
-     * @param bool          $mute            Default: false
-     * @param Deferred|null $deferred
-     * @param Manager|null  $manager
+     * @param Discord                       $discord        The Discord instance.
+     * @param Channel                       $channel
+     * @param array|AbstractRepository|null $voice_sessions `$discord->voice_sessions`, kept as given. Sessions are read from
+     *                                                      `$discord->voice_sessions` itself, through {@see VoiceSessions}.
+     * @param array                         $data
+     * @param bool                          $deaf           Default: false
+     * @param bool                          $mute           Default: false
+     * @param Deferred|null                 $deferred
+     * @param Manager|null                  $manager
+     *
+     * @since 8.3.0 `$voice_sessions` is no longer taken by reference, and may be DiscordPHP's voice session repository.
      */
     public function __construct(
         public Discord $discord,
         public Channel $channel,
-        public array &$voice_sessions,
+        public array|AbstractRepository|null $voice_sessions = null,
         public array $data = [],
         public bool $deaf = false,
         public bool $mute = false,

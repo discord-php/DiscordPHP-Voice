@@ -76,7 +76,7 @@ it('binary gateway frames update sequence ack bookkeeping', function (): void {
 function makeWs(TestCase $test, callable $sendHook): WS
 {
     $ws = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();
-    $discord = (new \ReflectionClass(Discord::class))->newInstanceWithoutConstructor();
+    $discord = (new \ReflectionClass(DiscordForSequenceAckTest::class))->newInstanceWithoutConstructor();
     $state = new State();
 
     $voiceClient = invokeProtectedMethod($test, 'getMockBuilder', [Client::class])
@@ -95,9 +95,7 @@ function makeWs(TestCase $test, callable $sendHook): WS
     $loggerProperty->setAccessible(true);
     $loggerProperty->setValue($discord, new NullLogger());
 
-    $voiceSessionsProperty = new \ReflectionProperty(Discord::class, 'voice_sessions');
-    $voiceSessionsProperty->setAccessible(true);
-    $voiceSessionsProperty->setValue($discord, ['guild-1' => 'session-1']);
+    $discord->voice_sessions = ['guild-1' => 'session-1'];
 
     $socket = invokeProtectedMethod($test, 'getMockBuilder', [WebSocket::class])
         ->disableOriginalConstructor()
@@ -135,6 +133,15 @@ function invokeProtectedMethod(object $object, string $method, array $arguments 
     $reflectionMethod->setAccessible(true);
 
     return $reflectionMethod->invokeArgs($object, $arguments);
+}
+
+/**
+ * A client that keeps voice sessions in an array, as DiscordPHP did before 10.66, whichever DiscordPHP is
+ * installed. {@see \Discord\Voice\VoiceSessions} handles both; these tests are about the voice gateway.
+ */
+final class DiscordForSequenceAckTest extends Discord
+{
+    public array $voice_sessions = [];
 }
 
 /**

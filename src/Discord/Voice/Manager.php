@@ -25,6 +25,7 @@ use Discord\Voice\Exceptions\Libraries\LibDaveNotFoundException;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\WebSockets\VoiceServerUpdate;
 use Discord\Parts\WebSockets\VoiceStateUpdate;
+use Discord\Repository\AbstractRepository;
 use Discord\WebSockets\Event;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\VoicePayload;
@@ -75,11 +76,12 @@ final class Manager
     /**
      * Handles the creation of a new voice client and joins the specified channel.
      *
-     * @param \Discord\Parts\Channel\Channel $channel
-     * @param \Discord\Discord               $discord
-     * @param array                          &$voice_sessions
-     * @param bool                           $mute
-     * @param bool                           $deaf
+     * @param \Discord\Parts\Channel\Channel                    $channel
+     * @param \Discord\Discord                                  $discord
+     * @param array|\Discord\Repository\AbstractRepository|null $voice_sessions `$discord->voice_sessions`, handed to the voice client as given.
+     *                                                                          Sessions are read from `$discord->voice_sessions` itself, through {@see VoiceSessions}.
+     * @param bool                                              $mute
+     * @param bool                                              $deaf
      *
      * @throws \Discord\Voice\Exceptions\Channels\ChannelMustAllowVoiceException
      * @throws \Discord\Voice\Exceptions\Channels\EnterChannelDeniedException
@@ -87,8 +89,10 @@ final class Manager
      * @throws \Discord\Voice\Exceptions\Channels\CantSpeakInChannelException
      *
      * @return \React\Promise\PromiseInterface
+     *
+     * @since 8.3.0 `$voice_sessions` is no longer taken by reference, and may be DiscordPHP's voice session repository.
      */
-    public function joinChannel(Channel $channel, Discord $discord, array &$voice_sessions, bool $mute = false, bool $deaf = true): PromiseInterface
+    public function joinChannel(Channel $channel, Discord $discord, array|AbstractRepository|null $voice_sessions = null, bool $mute = false, bool $deaf = true): PromiseInterface
     {
         $deferred = new Deferred();
 
@@ -223,7 +227,7 @@ final class Manager
         ]);
 
         $this->discord->getLogger()->info('received session id for voice session', ['guild' => $channel->guild_id]);
-        $this->discord->voice_sessions[$channel->guild_id] = $state->session_id;
+        VoiceSessions::remember($this->discord, $channel->guild_id, $state->session_id);
     }
 
     /**
@@ -265,7 +269,7 @@ final class Manager
         $client->once('close', function () use ($channel, $deferred) {
             $this->discord->logger->warning('voice manager closed');
             unset($this->discord->voice->clients[$channel->guild_id]);
-            unset($this->discord->voice_sessions[$channel->guild_id]);
+            VoiceSessions::forget($this->discord, $channel->guild_id);
             $this->removeAllListeners($channel->guild_id);
             $deferred->reject(new \RuntimeException('Voice connection closed before becoming ready.'));
         });

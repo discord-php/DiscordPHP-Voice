@@ -223,7 +223,7 @@ function makeChannelWithGuildIdRaw(mixed $guildId): Channel
  */
 function makeDiscordForManagerGuildIdTest(string $botId, array $voiceSessions = []): Discord
 {
-    $discord = (new \ReflectionClass(Discord::class))->newInstanceWithoutConstructor();
+    $discord = (new \ReflectionClass(DiscordForManagerGuildIdTest::class))->newInstanceWithoutConstructor();
 
     $loggerProp = new \ReflectionProperty(Discord::class, 'logger');
     $loggerProp->setAccessible(true);
@@ -240,4 +240,13 @@ function makeDiscordForManagerGuildIdTest(string $botId, array $voiceSessions = 
     $discord->voice_sessions = $voiceSessions;
 
     return $discord;
+}
+
+/**
+ * A client that keeps voice sessions in an array, as DiscordPHP did before 10.66, whichever DiscordPHP is
+ * installed. {@see \Discord\Voice\VoiceSessions} handles both; these tests are about the manager.
+ */
+final class DiscordForManagerGuildIdTest extends Discord
+{
+    public array $voice_sessions = [];
 }
