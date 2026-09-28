@@ -172,7 +172,7 @@ function makeWsForCloseTest(
     Runtime::configureCallbacks(availabilityOverride: false);
 
     $ws = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();
-    $discordInstance = (new \ReflectionClass(Discord::class))->newInstanceWithoutConstructor();
+    $discordInstance = (new \ReflectionClass(DiscordForCloseTest::class))->newInstanceWithoutConstructor();
     $state = new State();
 
     // Logger
@@ -180,7 +180,7 @@ function makeWsForCloseTest(
     $loggerProp->setAccessible(true);
     $loggerProp->setValue($discordInstance, new NullLogger());
 
-    // voice_sessions (public property on Discord)
+    // voice_sessions (public array property on DiscordForCloseTest)
     $discordInstance->voice_sessions = ['guild-1' => 'session-1'];
 
     // Mock event loop — capture cancelTimer calls; silently swallow addTimer.
@@ -266,4 +266,13 @@ function invokeCloseTestWsMethod(object $object, string $method, array $argument
     $reflectionMethod->setAccessible(true);
 
     return $reflectionMethod->invokeArgs($object, $arguments);
+}
+
+/**
+ * A client that keeps voice sessions in an array, as DiscordPHP did before 10.66, whichever DiscordPHP is
+ * installed. {@see \Discord\Voice\VoiceSessions} handles both; these tests are about the voice gateway.
+ */
+final class DiscordForCloseTest extends Discord
+{
+    public array $voice_sessions = [];
 }

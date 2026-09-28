@@ -200,7 +200,7 @@ function makeWsForReconnectTest(TestCase $test, callable $sendHook): WS
 {
     $ws = (new \ReflectionClass(WS::class))->newInstanceWithoutConstructor();
 
-    $discord = invokeReconnectWsMethod($test, 'getMockBuilder', [Discord::class])
+    $discord = invokeReconnectWsMethod($test, 'getMockBuilder', [DiscordForReconnectTest::class])
         ->disableOriginalConstructor()
         ->onlyMethods(['factory', 'getFactory', 'getLogger'])
         ->getMock();
@@ -310,4 +310,14 @@ function invokeReconnectWsMethod(object $object, string $method, array $argument
     $reflectionMethod->setAccessible(true);
 
     return $reflectionMethod->invokeArgs($object, $arguments);
+}
+
+/**
+ * A client that keeps voice sessions in an array, as DiscordPHP did before 10.66, whichever DiscordPHP is
+ * installed. {@see \Discord\Voice\VoiceSessions} handles both; these tests are about the voice gateway.
+ * Not final: the tests mock it.
+ */
+class DiscordForReconnectTest extends Discord
+{
+    public array $voice_sessions = [];
 }

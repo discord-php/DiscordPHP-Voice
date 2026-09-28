@@ -37,6 +37,7 @@ use Discord\Voice\Rtp\UDP;
 use Discord\Voice\SessionDescription;
 use Discord\Voice\Speaking;
 use Discord\Voice\VoiceClient;
+use Discord\Voice\VoiceSessions;
 use Discord\WebSockets\Op;
 use Discord\WebSockets\Payload;
 use Discord\WebSockets\VoicePayload;
@@ -277,7 +278,7 @@ final class WS implements GatewayCoordinatorHost
         if (! $this->sentLoginFrame) {
             $this->handleSendingOfLoginFrame();
             $this->sentLoginFrame = true;
-        } elseif ($this->vc->reconnecting && isset($this->data['token'], $this->discord->voice_sessions[$this->vc->channel->guild_id])) {
+        } elseif ($this->vc->reconnecting && isset($this->data['token']) && null !== VoiceSessions::sessionId($this->discord, $this->vc->channel->guild_id)) {
             $this->handleResume();
         } else {
             $this->discord->getLogger()->debug('existing voice session or data not found, re-sending identify', ['guild_id' => $this->vc->channel->guild_id]);
@@ -725,11 +726,10 @@ final class WS implements GatewayCoordinatorHost
         // Don't reconnect on a critical opcode or if closed by user.
         if (in_array($op, Op::getCriticalVoiceCloseCodes()) || $this?->vc->userClose) {
             $this->discord->logger->warning('received critical opcode - not reconnecting', ['op' => $op, 'reason' => $reason]);
-            $this->discord->voice_sessions[$this->vc->channel->guild_id] = null;
+            VoiceSessions::invalidate($this->discord, $this->vc->channel->guild_id);
             if ($op === Op::CLOSE_INVALID_SESSION) {
                 $this->discord->logger->debug('sessions', ['voice_sessions' => $this->discord->voice_sessions]);
             }
-            $this->vc->voice_sessions[$this->vc->channel->guild_id] = null;
             // prevent race conditions
             if ($this->vc->ready) {
                 $this->vc->close();
@@ -765,7 +765,7 @@ final class WS implements GatewayCoordinatorHost
         }
 
         // Only a reconnect may resume; initial connects already have the VOICE_STATE_UPDATE session id.
-        if ($this->vc->reconnecting && isset($this->data['token'], $this->discord->voice_sessions[$this->vc->channel->guild_id])) {
+        if ($this->vc->reconnecting && isset($this->data['token']) && null !== VoiceSessions::sessionId($this->discord, $this->vc->channel->guild_id)) {
             $this->handleResume();
             $this->sentLoginFrame = true;
             $this->vc->sentLoginFrame = true;
@@ -779,9 +779,9 @@ final class WS implements GatewayCoordinatorHost
             'token' => $this->data['token'],
             'max_dave_protocol_version' => $this->maxDaveProtocolVersion,
         ];
-        if (isset($this->discord->voice_sessions[$this->vc->channel->guild_id])) {
-            $this->data['session'] = $this->discord->voice_sessions[$this->vc->channel->guild_id];
-            $data['session_id'] = $this->data['session'];
+        if (null !== $sessionId = VoiceSessions::sessionId($this->discord, $this->vc->channel->guild_id)) {
+            $this->data['session'] = $sessionId;
+            $data['session_id'] = $sessionId;
         }
 
         $payload = VoicePayload::new(Op::VOICE_IDENTIFY, $data);
@@ -800,7 +800,7 @@ final class WS implements GatewayCoordinatorHost
     {
         $data = [
             'server_id' => $this->vc->channel->guild_id,
-            'session_id' => $this->discord->voice_sessions[$this->vc->channel->guild_id],
+            'session_id' => VoiceSessions::sessionId($this->discord, $this->vc->channel->guild_id),
             'token' => $this->data['token'],
             'max_dave_protocol_version' => $this->maxDaveProtocolVersion,
         ];
