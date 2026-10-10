@@ -247,6 +247,54 @@ it('Manager removes the server gateway listener after ready fires', function ():
 });
 
 // ---------------------------------------------------------------------------
+// Test 5 – Manager::joinChannel($channel) with no client falls back to the
+//          Manager's own, so the documented one-argument call joins and resolves.
+// ---------------------------------------------------------------------------
+it('Manager joinChannel uses its own client when none is passed', function (): void {
+    Runtime::configureCallbacks(availabilityOverride: true);
+
+    $sent = [];
+    $discord = makeDiscordForLifecycleTest($this, $sent);
+    $channel = makeChannelForLifecycleTest($this, 'guild-lc5');
+    $manager = new Manager($discord);
+    $discord->voice = $manager;
+
+    $promise = $manager->joinChannel($channel);
+    $client = $manager->clients['guild-lc5'];
+
+    $resolved = null;
+    $rejected = null;
+    $promise->then(
+        function ($value) use (&$resolved): void {
+            $resolved = $value;
+        },
+        function ($reason) use (&$rejected): void {
+            $rejected = $reason;
+        },
+    );
+
+    // The DNS config came from the Manager's client, and the voice state update went out through it.
+    expect($client->data['dnsConfig'])->toBe('8.8.8.8');
+    expect($sent)->toHaveCount(1);
+    $encoded = json_decode(json_encode($sent[0]), true);
+    expect($encoded['d'])->toBe([
+        'guild_id' => 'guild-lc5',
+        'channel_id' => 'chan-guild-lc5',
+        'self_mute' => false,
+        'self_deaf' => true,
+    ]);
+
+    // The gateway listeners are on the Manager's client too: only serverUpdate() ties 'ready' to the promise.
+    $serverUpdatePart = makeVoiceServerUpdateForLifecycleTest('guild-lc5', 'tok', 'ep.discord.gg');
+    $discord->emit(Event::VOICE_SERVER_UPDATE, [$serverUpdatePart, $discord]);
+
+    $client->emit('ready', [$client]);
+
+    expect($rejected)->toBeNull('promise must not reject on ready');
+    expect($resolved)->toBe($client, 'promise must resolve with the VoiceClient');
+});
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 

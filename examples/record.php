@@ -40,43 +40,42 @@ $discord->on('init', function (Discord $discord): void {
         return;
     }
 
+    // Resolves with the VoiceClient once it is ready.
     $discord->voice->joinChannel($channel)->then(
         function (VoiceClient $vc) use ($discord): void {
-            $vc->on('ready', function () use ($vc, $discord): void {
-                echo 'VoiceClient ready, starting recording...' . PHP_EOL;
+            echo 'VoiceClient ready, starting recording...' . PHP_EOL;
 
-                // Begin capturing audio from all speaking users.
-                $vc->record();
+            // Begin capturing audio from all speaking users.
+            $vc->record();
 
-                // channel-pcm fires for every decoded PCM frame received from a user.
-                // $pcm is raw 16-bit stereo 48 kHz PCM bytes.
-                $vc->on('channel-pcm', function (string $pcm): void {
-                    // Handle the PCM data — write to a file, pipe into an encoder, etc.
-                    echo sprintf('Received %d bytes of PCM' . PHP_EOL, strlen($pcm));
-                });
+            // channel-pcm fires for every decoded PCM frame received from a user.
+            // $pcm is raw 16-bit stereo 48 kHz PCM bytes.
+            $vc->on('channel-pcm', function (string $pcm): void {
+                // Handle the PCM data — write to a file, pipe into an encoder, etc.
+                echo sprintf('Received %d bytes of PCM' . PHP_EOL, strlen($pcm));
+            });
 
-                // channel-opus fires with the raw Opus packet before decoding.
-                // Use this if you want to forward Opus directly without re-encoding.
-                // $vc->on('channel-opus', function (string $userId, string $opus): void { ... });
+            // channel-opus fires with the raw Opus packet before decoding.
+            // Use this if you want to forward Opus directly without re-encoding.
+            // $vc->on('channel-opus', function (string $userId, string $opus): void { ... });
 
-                // --- Alternative: automatic per-user WAV files ---
-                // use Discord\Voice\Recording\RecordingFormat;
-                //
-                // $vc->record(
-                //     RecordingFormat::WAV,
-                //     fn(string $userId) => __DIR__ . "/recording_{$userId}.wav"
-                // );
-                // // channel-pcm still fires; stopRecording() finalizes the WAV files automatically.
+            // --- Alternative: automatic per-user WAV files ---
+            // use Discord\Voice\Recording\RecordingFormat;
+            //
+            // $vc->record(
+            //     RecordingFormat::WAV,
+            //     fn(string $userId) => __DIR__ . "/recording_{$userId}.wav"
+            // );
+            // // channel-pcm still fires; stopRecording() finalizes the WAV files automatically.
 
-                $recordSeconds = (int) (getenv('RECORD_SECONDS') ?: 10);
-                echo sprintf('Recording for %d seconds...' . PHP_EOL, $recordSeconds);
+            $recordSeconds = (int) (getenv('RECORD_SECONDS') ?: 10);
+            echo sprintf('Recording for %d seconds...' . PHP_EOL, $recordSeconds);
 
-                // Stop recording after the configured duration.
-                $discord->getLoop()->addTimer($recordSeconds, function () use ($vc): void {
-                    $vc->stopRecording();
-                    echo 'Recording stopped.' . PHP_EOL;
-                    $vc->disconnect();
-                });
+            // Stop recording after the configured duration.
+            $discord->getLoop()->addTimer($recordSeconds, function () use ($vc): void {
+                $vc->stopRecording();
+                echo 'Recording stopped.' . PHP_EOL;
+                $vc->disconnect();
             });
 
             $vc->on('error', function (\Throwable $e): void {

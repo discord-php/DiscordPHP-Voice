@@ -29,8 +29,8 @@ require __DIR__ . '/../vendor/autoload.php';
 // ---------------------------------------------------------------------------
 // Pattern 1: Sequential queue — play tracks one after another using recursion.
 //
-// Each call plays the first track, then registers a one-shot 'end' listener
-// that calls playQueue() again with the remaining tracks.
+// playFile()'s promise resolves when the track has finished playing, so each
+// call plays the first track and then calls playQueue() with the rest.
 // ---------------------------------------------------------------------------
 function playQueue(VoiceClient $vc, array $tracks): void
 {
@@ -45,44 +45,31 @@ function playQueue(VoiceClient $vc, array $tracks): void
     echo 'Now playing: ' . $track . PHP_EOL;
 
     $vc->playFile($track)->then(
-        null,
+        function () use ($vc, $tracks): void {
+            playQueue($vc, $tracks);
+        },
         function (\Throwable $e): void {
             echo 'Playback error: ' . $e->getMessage() . PHP_EOL;
         }
     );
-
-    // The third argument `true` makes this a one-shot listener — it fires once
-    // for the current track and is automatically removed afterwards.
-    $vc->on('end', function () use ($vc, $tracks): void {
-        playQueue($vc, $tracks);
-    }, true);
 }
 
 // ---------------------------------------------------------------------------
 // Pattern 2: Skip the current track and immediately play a replacement.
 //
-// stop() is synchronous and void — it inserts silence frames and emits 'end'.
-// Register a one-shot 'end' listener *before* calling stop() so the new track
-// starts as soon as playback fully drains.
+// stop() is synchronous and void — it inserts silence frames and resets the
+// speaking state, so the replacement track can start straight away.
+// The stopped track's playFile() promise is left pending, so a Pattern 1
+// queue does not carry on after the skip.
 // ---------------------------------------------------------------------------
 function skipTo(VoiceClient $vc, string $nextTrack): void
 {
-    if ($vc->speaking === VoiceClient::NOT_SPEAKING) {
-        // Nothing is playing; start the new track directly.
-        startTrack($vc, $nextTrack);
-
-        return;
+    if ($vc->speaking !== VoiceClient::NOT_SPEAKING) {
+        echo 'Skipping current track...' . PHP_EOL;
+        $vc->stop();
     }
 
-    echo 'Skipping current track...' . PHP_EOL;
-
-    // Listen for the 'end' event that stop() will trigger, then play the
-    // replacement track. The one-shot flag prevents stale listeners piling up.
-    $vc->on('end', function () use ($vc, $nextTrack): void {
-        startTrack($vc, $nextTrack);
-    }, true);
-
-    $vc->stop();
+    startTrack($vc, $nextTrack);
 }
 
 function startTrack(VoiceClient $vc, string $track): void
@@ -107,7 +94,7 @@ function safePlay(VoiceClient $vc, string $track): void
 {
     $vc->playFile($track)->then(
         function (): void {
-            echo 'Playback started.' . PHP_EOL;
+            echo 'Playback finished.' . PHP_EOL;
         },
         function (\Throwable $e): void {
             if ($e instanceof AudioAlreadyPlayingException) {
@@ -115,9 +102,9 @@ function safePlay(VoiceClient $vc, string $track): void
                 // track using the pattern above instead of calling playFile() directly.
                 echo 'Already playing — stop the current track before starting a new one.' . PHP_EOL;
             } elseif ($e instanceof ClientNotReadyException) {
-                // The VoiceClient has not yet completed its handshake. Wait for the
-                // 'ready' event emitted by VoiceClient before calling playFile().
-                echo 'Client not ready yet — wait for the ready event.' . PHP_EOL;
+                // The VoiceClient is not connected: joinChannel() has not resolved
+                // yet, or the client has since closed.
+                echo 'Client not ready — play from the joinChannel() promise.' . PHP_EOL;
             } else {
                 echo 'Unexpected playback error: ' . $e->getMessage() . PHP_EOL;
             }
@@ -145,32 +132,29 @@ $discord->on('init', function (Discord $discord): void {
         return;
     }
 
+    // Resolves with the VoiceClient once it is ready.
     $discord->voice->joinChannel($channel)->then(
         function (VoiceClient $vc) use ($discord): void {
-            echo 'Joined voice channel, waiting for ready...' . PHP_EOL;
+            echo 'VoiceClient ready.' . PHP_EOL;
 
-            $vc->on('ready', function () use ($vc, $discord): void {
-                echo 'VoiceClient ready.' . PHP_EOL;
+            $tracks = [
+                __DIR__ . '/audio1.mp3',
+                __DIR__ . '/audio2.mp3',
+                __DIR__ . '/audio3.mp3',
+            ];
 
-                $tracks = [
-                    __DIR__ . '/audio1.mp3',
-                    __DIR__ . '/audio2.mp3',
-                    __DIR__ . '/audio3.mp3',
-                ];
+            // --- Pattern 1: play the queue sequentially ---
+            playQueue($vc, $tracks);
 
-                // --- Pattern 1: play the queue sequentially ---
-                playQueue($vc, $tracks);
+            // --- Pattern 2: skip to a different track after 5 seconds ---
+            $discord->getLoop()->addTimer(5, function () use ($vc): void {
+                skipTo($vc, __DIR__ . '/interruption.mp3');
+            });
 
-                // --- Pattern 2: skip to a different track after 5 seconds ---
-                $discord->getLoop()->addTimer(5, function () use ($vc): void {
-                    skipTo($vc, __DIR__ . '/interruption.mp3');
-                });
-
-                // --- Pattern 3: attempt to play while already playing (demonstrates
-                //     AudioAlreadyPlayingException handling) after 6 seconds ---
-                $discord->getLoop()->addTimer(6, function () use ($vc): void {
-                    safePlay($vc, __DIR__ . '/audio4.mp3');
-                });
+            // --- Pattern 3: attempt to play while already playing (demonstrates
+            //     AudioAlreadyPlayingException handling) after 6 seconds ---
+            $discord->getLoop()->addTimer(6, function () use ($vc): void {
+                safePlay($vc, __DIR__ . '/audio4.mp3');
             });
 
             $vc->on('error', function (\Throwable $e): void {

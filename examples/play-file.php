@@ -46,30 +46,22 @@ $discord->on('init', function (Discord $discord): void {
         return;
     }
 
-    // Join the voice channel. Returns a promise that resolves with a VoiceClient.
+    // Join the voice channel. Returns a promise that resolves with a VoiceClient once it is ready.
     $discord->voice->joinChannel($channel)->then(
         function (VoiceClient $vc): void {
-            echo 'Joined voice channel, waiting for ready...' . PHP_EOL;
+            echo 'Joined voice channel, playing file...' . PHP_EOL;
 
-            $vc->on('ready', function () use ($vc): void {
-                echo 'VoiceClient ready, playing file...' . PHP_EOL;
-
-                // Play a local file or a URL (ffmpeg must be installed).
-                $vc->playFile(__DIR__ . '/audio.mp3')->then(
-                    function (): void {
-                        echo 'Playback started.' . PHP_EOL;
-                    },
-                    function (\Throwable $e): void {
-                        echo 'Failed to start playback: ' . $e->getMessage() . PHP_EOL;
-                    }
-                );
-            });
-
-            // Emitted when the current track finishes playing.
-            $vc->on('end', function () use ($vc): void {
-                echo 'Playback ended.' . PHP_EOL;
-                $vc->disconnect();
-            });
+            // Play a local file or a URL (ffmpeg must be installed).
+            // The promise resolves when the file has finished playing.
+            $vc->playFile(__DIR__ . '/audio.mp3')->then(
+                function () use ($vc): void {
+                    echo 'Playback ended.' . PHP_EOL;
+                    $vc->disconnect();
+                },
+                function (\Throwable $e): void {
+                    echo 'Playback failed: ' . $e->getMessage() . PHP_EOL;
+                }
+            );
 
             $vc->on('error', function (\Throwable $e): void {
                 echo 'Voice error: ' . $e->getMessage() . PHP_EOL;

@@ -77,7 +77,7 @@ final class Manager
      * Handles the creation of a new voice client and joins the specified channel.
      *
      * @param \Discord\Parts\Channel\Channel                    $channel
-     * @param \Discord\Discord                                  $discord
+     * @param \Discord\Discord|null                             $discord        Defaults to the client this manager was constructed with.
      * @param array|\Discord\Repository\AbstractRepository|null $voice_sessions `$discord->voice_sessions`, handed to the voice client as given.
      *                                                                          Sessions are read from `$discord->voice_sessions` itself, through {@see VoiceSessions}.
      * @param bool                                              $mute
@@ -91,9 +91,11 @@ final class Manager
      * @return \React\Promise\PromiseInterface
      *
      * @since 8.3.0 `$voice_sessions` is no longer taken by reference, and may be DiscordPHP's voice session repository.
+     * @since 8.3.0 `$discord` is optional, so `$discord->voice->joinChannel($channel)` works.
      */
-    public function joinChannel(Channel $channel, Discord $discord, array|AbstractRepository|null $voice_sessions = null, bool $mute = false, bool $deaf = true): PromiseInterface
+    public function joinChannel(Channel $channel, ?Discord $discord = null, array|AbstractRepository|null $voice_sessions = null, bool $mute = false, bool $deaf = true): PromiseInterface
     {
+        $discord ??= $this->discord;
         $deferred = new Deferred();
 
         try {
