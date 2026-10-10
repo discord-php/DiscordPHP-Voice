@@ -59,6 +59,8 @@ function playQueue(VoiceClient $vc, array $tracks): void
 //
 // stop() is synchronous and void — it inserts silence frames and resets the
 // speaking state, so the replacement track can start straight away.
+// The stopped track's playFile() promise is left pending, so a Pattern 1
+// queue does not carry on after the skip.
 // ---------------------------------------------------------------------------
 function skipTo(VoiceClient $vc, string $nextTrack): void
 {

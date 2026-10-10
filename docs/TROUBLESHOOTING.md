@@ -318,6 +318,8 @@ $vc->playFile('/path/to/first.mp3')->then(function () use ($vc) {
 });
 ```
 
+Only a file that plays to the end resolves its promise. `stop()` and `close()` end playback without settling it, so a chain like this one does not continue past a stopped track.
+
 ---
 
 ## ClientNotReadyException — client not ready
