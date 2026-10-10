@@ -66,12 +66,10 @@ Use the bundled Pest runner for local validation. `composer unit` runs the defau
 $discord->on('init', function (Discord $discord) {
     $channel = $discord->getChannel('YOUR_CHANNEL_ID');
 
+    // Resolves once the voice client is ready, so playback can start straight away.
     $discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) {
-        $vc->on('ready', function () use ($vc) {
-            $vc->playFile('/path/to/audio.mp3');
-        });
-
-        $vc->on('end', function () use ($vc) {
+        // Resolves when the file has finished playing.
+        $vc->playFile('/path/to/audio.mp3')->then(function () use ($vc) {
             $vc->disconnect();
         });
     });
@@ -83,18 +81,16 @@ $discord->on('init', function (Discord $discord) {
 ```php
 // Raw PCM events — handle audio yourself
 $discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) use ($discord) {
-    $vc->on('ready', function () use ($vc, $discord) {
-        $vc->record();
+    $vc->record();
 
-        // Fires with raw 16-bit stereo 48 kHz PCM for each decoded Opus frame.
-        $vc->on('channel-pcm', function (string $pcm) {
-            // write $pcm to a file, pipe to an encoder, etc.
-        });
+    // Fires with raw 16-bit stereo 48 kHz PCM for each decoded Opus frame.
+    $vc->on('channel-pcm', function (string $pcm) {
+        // write $pcm to a file, pipe to an encoder, etc.
+    });
 
-        $discord->getLoop()->addTimer(10, function () use ($vc) {
-            $vc->stopRecording();
-            $vc->disconnect();
-        });
+    $discord->getLoop()->addTimer(10, function () use ($vc) {
+        $vc->stopRecording();
+        $vc->disconnect();
     });
 });
 ```
@@ -104,16 +100,14 @@ use Discord\Voice\Recording\RecordingFormat;
 
 // Automatic per-user WAV files — no manual file handling needed
 $discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) use ($discord) {
-    $vc->on('ready', function () use ($vc, $discord) {
-        $vc->record(
-            RecordingFormat::WAV,
-            fn(string $userId) => "/tmp/recording_{$userId}.wav"
-        );
+    $vc->record(
+        RecordingFormat::WAV,
+        fn(string $userId) => "/tmp/recording_{$userId}.wav"
+    );
 
-        $discord->getLoop()->addTimer(10, function () use ($vc) {
-            $vc->stopRecording(); // finalizes and closes all WAV files
-            $vc->disconnect();
-        });
+    $discord->getLoop()->addTimer(10, function () use ($vc) {
+        $vc->stopRecording(); // finalizes and closes all WAV files
+        $vc->disconnect();
     });
 });
 ```
@@ -132,16 +126,14 @@ Having issues? See [**docs/TROUBLESHOOTING.md**](docs/TROUBLESHOOTING.md) for so
 
 ## Exceptions
 
-All library exceptions implement the [`VoiceException`](src/Discord/Voice/Exceptions/VoiceException.php) marker interface, so you can catch any voice error with a single handler:
+All library exceptions implement the [`VoiceException`](src/Discord/Voice/Exceptions/VoiceException.php) marker interface, so you can catch any voice error with a single handler. `joinChannel()` and the `play*()` methods report failures by rejecting their promise, so handle them there:
 
 ```php
 use Discord\Voice\Exceptions\VoiceException;
 
-try {
-    $manager->joinChannel($channel);
-} catch (VoiceException $e) {
+$discord->voice->joinChannel($channel)->catch(function (VoiceException $e) {
     echo "Voice error: " . $e->getMessage();
-}
+});
 ```
 
 Common exceptions include `LibDaveNotFoundException`, `EnterChannelDeniedException`, `CantSpeakInChannelException`, `FFmpegNotFoundException`, and `LibSodiumNotFoundException`.

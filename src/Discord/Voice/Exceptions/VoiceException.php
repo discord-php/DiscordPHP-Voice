@@ -21,11 +21,9 @@ namespace Discord\Voice\Exceptions;
  * Consumers can catch any library-thrown exception with a single catch block:
  *
  * ```php
- * try {
- *     $discord->voice->joinChannel($channel);
- * } catch (VoiceException $e) {
+ * $discord->voice->joinChannel($channel)->catch(function (VoiceException $e) {
  *     // handles all voice library errors
- * }
+ * });
  * ```
  *
  * @since 10.19.0

@@ -23,18 +23,16 @@ Common errors and how to fix them.
 
 ## Catch Any Voice Exception
 
-All library exceptions implement the `VoiceException` marker interface. You can catch any voice-related error with a single handler instead of listing every exception type:
+All library exceptions implement the `VoiceException` marker interface. You can catch any voice-related error with a single handler instead of listing every exception type. `joinChannel()` and the `play*()` methods report failures by rejecting their promise rather than throwing, so attach the handler to the promise:
 
 ```php
 use Discord\Voice\Exceptions\VoiceException;
 
-try {
-    $manager->joinChannel($channel)->then(function ($client) {
-        // ...
-    });
-} catch (VoiceException $e) {
+$discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) {
+    // ...
+})->catch(function (VoiceException $e) {
     echo 'Voice error: ' . $e->getMessage() . PHP_EOL;
-}
+});
 ```
 
 Individual exception classes (`LibDaveNotFoundException`, `EnterChannelDeniedException`, etc.) remain available for fine-grained handling when needed.
@@ -305,24 +303,18 @@ If the channel has a user limit set and is full, the bot also needs the **Move M
 Stop the current audio before starting new playback:
 
 ```php
-$vc->on('ready', function () use ($vc) {
-    $vc->playFile('/path/to/first.mp3');
+$vc->playFile('/path/to/first.mp3');
 
-    // To play a second file, stop the first:
-    $vc->stop();
-    $vc->playFile('/path/to/second.mp3');
-});
+// To play a second file, stop the first:
+$vc->stop();
+$vc->playFile('/path/to/second.mp3');
 ```
 
-Or queue tracks by listening to the `end` event:
+Or queue tracks: `playFile()`'s promise resolves when the file has finished playing:
 
 ```php
-$vc->on('ready', function () use ($vc) {
-    $vc->playFile('/path/to/first.mp3');
-});
-
-$vc->on('end', function () use ($vc) {
-    $vc->playFile('/path/to/second.mp3');
+$vc->playFile('/path/to/first.mp3')->then(function () use ($vc) {
+    return $vc->playFile('/path/to/second.mp3');
 });
 ```
 
@@ -334,18 +326,16 @@ $vc->on('end', function () use ($vc) {
 
 **How to fix it:**
 
-Always start playback inside the `ready` event:
+Start playback once `joinChannel()`'s promise resolves: it resolves only after the voice client is ready.
 
 ```php
 $discord->voice->joinChannel($channel)->then(function (VoiceClient $vc) {
-    $vc->on('ready', function () use ($vc) {
-        // Safe to call playback methods here:
-        $vc->playFile('/path/to/audio.mp3');
-    });
+    // Safe to call playback methods here:
+    $vc->playFile('/path/to/audio.mp3');
 });
 ```
 
-Do not call `playFile()`, `record()`, or similar methods directly inside the `join()` promise callback — wait for `ready`.
+Do not wait for the client's `ready` event inside that callback: it has already been emitted by the time the promise resolves, so a listener added there never fires. The exception is also raised once the client has closed.
 
 ---
 
