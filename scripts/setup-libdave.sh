@@ -36,7 +36,7 @@ detect_os_arch
 # ---------------------------------------------------------------------------
 # Configuration (all overridable via environment)
 # ---------------------------------------------------------------------------
-LIBDAVE_VERSION="${LIBDAVE_VERSION:-v1.1.1/cpp}"
+LIBDAVE_VERSION="${LIBDAVE_VERSION:-v1.2.1/cpp}"
 LIBDAVE_ASSET="${LIBDAVE_ASSET:-libdave-${DETECTED_OS}-${DETECTED_ARCH}-boringssl.zip}"
 LIBDAVE_BASE_URL="${LIBDAVE_BASE_URL:-https://github.com/discord/libdave/releases/download}"
 LIBDAVE_DEST_DIR="${LIBDAVE_DEST_DIR:-.cache/libdave}"

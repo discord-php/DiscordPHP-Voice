@@ -59,6 +59,22 @@ HEADER);
     $this->assertStringNotContainsString('DECLARE_OPAQUE_HANDLE', $result);
 });
 
+it('expands namespaced opaque handle macros used by libdave 1.2', function (): void {
+    $header = createTempHeader(<<<'HEADER'
+#define DAVE_DECLARE_OPAQUE_HANDLE(x) typedef struct x##_s* x
+
+DAVE_DECLARE_OPAQUE_HANDLE(DAVESessionHandle);
+DAVE_DECLARE_OPAQUE_HANDLE(DAVEDecryptorHandle);
+HEADER);
+
+    $result = Runtime::loadHeaderDefinitions($header);
+
+    $this->assertNotNull($result);
+    $this->assertStringContainsString('typedef struct DAVESessionHandle_s* DAVESessionHandle;', $result);
+    $this->assertStringContainsString('typedef struct DAVEDecryptorHandle_s* DAVEDecryptorHandle;', $result);
+    $this->assertStringNotContainsString('DAVE_DECLARE_OPAQUE_HANDLE', $result);
+});
+
 it('strips DAVE_EXPORT from function declarations', function (): void {
     $header = createTempHeader(<<<'HEADER'
 #define DAVE_EXPORT __attribute__((visibility("default")))

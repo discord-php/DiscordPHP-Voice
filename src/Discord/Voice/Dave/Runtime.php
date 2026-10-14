@@ -957,7 +957,7 @@ CDEF;
     /**
      * Reads and preprocesses the dave.h C header into FFI-compatible declarations.
      *
-     * Handles: preprocessor directives, DAVE_EXPORT attribute, DECLARE_OPAQUE_HANDLE
+     * Handles: preprocessor directives, DAVE_EXPORT attribute, opaque-handle
      * macro expansion, extern "C" blocks, and C doc comments.
      */
     public static function loadHeaderDefinitions(string $headerPath): ?string
@@ -1002,9 +1002,10 @@ CDEF;
                 continue;
             }
 
-            // Expand DECLARE_OPAQUE_HANDLE(Name) → typedef struct Name_s* Name
+            // Expand DECLARE_OPAQUE_HANDLE(Name) or DAVE_DECLARE_OPAQUE_HANDLE(Name)
+            // → typedef struct Name_s* Name
             $expanded = preg_replace(
-                '/DECLARE_OPAQUE_HANDLE\(\s*(\w+)\s*\)\s*;/',
+                '/^(?:DAVE_)?DECLARE_OPAQUE_HANDLE\(\s*(\w+)\s*\)\s*;$/',
                 'typedef struct ${1}_s* ${1};',
                 $trimmed
             );
