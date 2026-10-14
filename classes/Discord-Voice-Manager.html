@@ -534,7 +534,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Manager.php"><a href="files/src-discord-voice-manager.html"><abbr title="src/Discord/Voice/Manager.php">Manager.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">165</span>
+    <span class="phpdocumentor-element-found-in__line">167</span>
 
     </aside>
 
@@ -583,7 +583,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Manager.php"><a href="files/src-discord-voice-manager.html"><abbr title="src/Discord/Voice/Manager.php">Manager.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">95</span>
+    <span class="phpdocumentor-element-found-in__line">96</span>
 
     </aside>
 
@@ -591,7 +591,7 @@
 
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-                    <span class="phpdocumentor-signature__name">joinChannel</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\Parts\Channel\Channel">Channel</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$channel</span></span><span class="phpdocumentor-signature__argument"><span>, </span><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\Discord">Discord</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$discord</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">array&lt;string|int, mixed&gt;|<abbr title="\Discord\Repository\AbstractRepository">AbstractRepository</abbr>|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$voice_sessions</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$mute</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">false</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$deaf</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">true</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><abbr title="\React\Promise\PromiseInterface">PromiseInterface</abbr></span></code>
+                    <span class="phpdocumentor-signature__name">joinChannel</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\Parts\Channel\Channel">Channel</abbr>&nbsp;</span><span class="phpdocumentor-signature__argument__name">$channel</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type"><abbr title="\Discord\Discord">Discord</abbr>|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$discord</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">array&lt;string|int, mixed&gt;|<abbr title="\Discord\Repository\AbstractRepository">AbstractRepository</abbr>|null&nbsp;</span><span class="phpdocumentor-signature__argument__name">$voice_sessions</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">null</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$mute</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">false</span><span> ]</span></span><span class="phpdocumentor-signature__argument"><span>[</span><span>, </span><span class="phpdocumentor-signature__argument__type">bool&nbsp;</span><span class="phpdocumentor-signature__argument__name">$deaf</span><span> = </span><span class="phpdocumentor-signature__argument__default-value">true</span><span> ]</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type"><abbr title="\React\Promise\PromiseInterface">PromiseInterface</abbr></span></code>
 
     <div class="phpdocumentor-label-line">
         </div>
@@ -608,10 +608,12 @@
             </dd>
                     <dt class="phpdocumentor-argument-list__entry">
                 <span class="phpdocumentor-argument-list__argument__name">$discord</span>
-                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\Discord">Discord</abbr></span>
-                            </dt>
+                : <span class="phpdocumentor-argument-list__argument__type"><abbr title="\Discord\Discord">Discord</abbr>|null</span>
+                 = <span class="phpdocumentor-argument-list__argument__default-value">null</span>            </dt>
             <dd class="phpdocumentor-argument-list__definition">
-                
+                    <section class="phpdocumentor-description"><p>Defaults to the client this manager was constructed with.</p>
+</section>
+
             </dd>
                     <dt class="phpdocumentor-argument-list__entry">
                 <span class="phpdocumentor-argument-list__argument__name">$voice_sessions</span>
@@ -674,6 +676,12 @@ Sessions are read from <code class="prettyprint">$discord-&gt;voice_sessions</co
 </section>
 
                                     </dd>
+                            <dd class="phpdocumentor-tag-list__definition">
+                                            <span class="phpdocumentor-tag-link">8.3.0</span>
+                                                                                                            <section class="phpdocumentor-description"><p><code class="prettyprint">$discord</code> is optional, so <code class="prettyprint">$discord-&gt;voice-&gt;joinChannel($channel)</code> works.</p>
+</section>
+
+                                    </dd>
                         </dl>
 
         
@@ -698,7 +706,7 @@ Sessions are read from <code class="prettyprint">$discord-&gt;voice_sessions</co
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Manager.php"><a href="files/src-discord-voice-manager.html"><abbr title="src/Discord/Voice/Manager.php">Manager.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">208</span>
+    <span class="phpdocumentor-element-found-in__line">210</span>
 
     </aside>
 
@@ -750,7 +758,7 @@ Sessions are read from <code class="prettyprint">$discord-&gt;voice_sessions</co
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Manager.php"><a href="files/src-discord-voice-manager.html"><abbr title="src/Discord/Voice/Manager.php">Manager.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">241</span>
+    <span class="phpdocumentor-element-found-in__line">243</span>
 
     </aside>
 
@@ -816,7 +824,7 @@ Sessions are read from <code class="prettyprint">$discord-&gt;voice_sessions</co
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Manager.php"><a href="files/src-discord-voice-manager.html"><abbr title="src/Discord/Voice/Manager.php">Manager.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">192</span>
+    <span class="phpdocumentor-element-found-in__line">194</span>
 
     </aside>
 
@@ -861,7 +869,7 @@ Sessions are read from <code class="prettyprint">$discord-&gt;voice_sessions</co
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Manager.php"><a href="files/src-discord-voice-manager.html"><abbr title="src/Discord/Voice/Manager.php">Manager.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">181</span>
+    <span class="phpdocumentor-element-found-in__line">183</span>
 
     </aside>
 

@@ -128,7 +128,7 @@
         <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Discord/Voice/Exceptions/VoiceException.php"><a href="files/src-discord-voice-exceptions-voiceexception.html"><abbr title="src/Discord/Voice/Exceptions/VoiceException.php">VoiceException.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">33</span>
+    <span class="phpdocumentor-element-found-in__line">31</span>
 
     </aside>
 
@@ -136,11 +136,9 @@
 
 
     <section class="phpdocumentor-description"><p>Consumers can catch any library-thrown exception with a single catch block:</p>
-<pre class="prettyprint"><code class="language-php">try {
-    $discord-&gt;voice-&gt;joinChannel($channel);
-} catch (VoiceException $e) {
+<pre class="prettyprint"><code class="language-php">$discord-&gt;voice-&gt;joinChannel($channel)-&gt;catch(function (VoiceException $e) {
     // handles all voice library errors
-}
+});
 </code></pre>
 </section>
 
