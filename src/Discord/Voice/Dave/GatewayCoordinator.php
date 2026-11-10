@@ -263,7 +263,7 @@ class GatewayCoordinator
         $transitionId = $tp !== null ? $tp->transitionId : 0;
         $commitWelcome = $tp !== null ? $tp->payload : '';
 
-        $result = Runtime::processCommit($daveState->session, $commitWelcome);
+        $result = Runtime::processCommit($daveState->session, $commitWelcome, $daveState->recognizedUsersIncludingSelf());
         if ($result !== null && ! ($result['failed'] ?? true) && ! ($result['ignored'] ?? false)) {
             $this->prepareDaveMediaTransition(
                 $transitionId,
@@ -312,7 +312,7 @@ class GatewayCoordinator
         $tp = TransitionPayload::parse($data->payload);
         $transitionId = $tp !== null ? $tp->transitionId : 0;
         $commit = $tp !== null ? $tp->payload : '';
-        $result = Runtime::processCommit($daveState->session, $commit);
+        $result = Runtime::processCommit($daveState->session, $commit, $daveState->recognizedUsersIncludingSelf());
 
         if ($result === null || ($result['failed'] ?? true)) {
             $this->handleInvalidDaveTransition($transitionId, true);
