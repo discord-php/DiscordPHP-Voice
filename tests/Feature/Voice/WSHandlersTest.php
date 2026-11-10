@@ -643,3 +643,15 @@ function makeHandlersSpeaking(string $userId, ?int $ssrc, bool $isSpeaking): Spe
 
     return $speaking;
 }
+
+it('successful resume preserves the selected transport without sending Select Protocol again', function (): void {
+    $sentPayloads = [];
+    $ws = makeWsForHandlersTest($this, $sentPayloads);
+    setHandlersFactoryReturn($ws, (object) []);
+    $ws->mode = 'aead_xchacha20_poly1305_rtpsize';
+
+    invokeHandlersMethod($ws, 'handleResumed', [new Payload(Op::VOICE_RESUMED, [])]);
+
+    expect($sentPayloads)->toBeEmpty();
+    expect($ws->mode)->toBe('aead_xchacha20_poly1305_rtpsize');
+});

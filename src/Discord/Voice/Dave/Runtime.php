@@ -42,6 +42,11 @@ CDEF;
 
     protected static ?FFI $ffi = null;
 
+    private static bool $statefulRecognizedUsers = false;
+
+    /** @var \WeakMap<SessionHandle, list<string>>|null */
+    private static ?\WeakMap $recognizedUsers = null;
+
     protected static ?string $lastLoadError = null;
 
     private static ?string $lastDestroyError = null;
@@ -155,6 +160,8 @@ CDEF;
     {
         self::$loaded = false;
         self::$ffi = null;
+        self::$statefulRecognizedUsers = false;
+        self::$recognizedUsers = null;
         self::$lastLoadError = null;
         self::$lastDestroyError = null;
         self::$frameEncryptor = null;
@@ -415,16 +422,15 @@ CDEF;
         [$buffer, $length] = self::makeOutputByteBuffer();
 
         try {
+            self::synchronizeRecognizedUsers($ffi, $session, $recognizedUserIds);
+            $recognizedArguments = self::$statefulRecognizedUsers ? [] : [$recognizedPointers, count($recognizedUserIds)];
             self::call(
                 $ffi,
                 'daveSessionProcessProposals',
                 $session->raw(),
                 $proposalPointer,
                 $proposalLength,
-                $recognizedPointers,
-                count($recognizedUserIds),
-                FFI::addr($buffer[0]),
-                FFI::addr($length[0])
+                ...[...$recognizedArguments, FFI::addr($buffer[0]), FFI::addr($length[0])]
             );
 
             return self::takeOutputBytes($buffer, $length);
@@ -435,8 +441,12 @@ CDEF;
         }
     }
 
-    /** Feeds an MLS commit to `$session`; returns `['failed' => bool, 'ignored' => bool]`, or null on failure. */
-    public static function processCommit(SessionHandle $session, string $commit): ?array
+    /**
+     * Feeds an MLS commit to `$session`; returns `['failed' => bool, 'ignored' => bool]`, or null on failure.
+     *
+     * @param list<string>|null $recognizedUserIds Current signaling roster, required by production callers for libdave 1.3 validation.
+     */
+    public static function processCommit(SessionHandle $session, string $commit, ?array $recognizedUserIds = null): ?array
     {
         if (is_callable(self::$processCommitCallback)) {
             return (self::$processCommitCallback)($session, $commit);
@@ -453,6 +463,9 @@ CDEF;
         }
 
         try {
+            if ($recognizedUserIds !== null) {
+                self::synchronizeRecognizedUsers($ffi, $session, $recognizedUserIds);
+            }
             $result = self::call($ffi, 'daveSessionProcessCommit', $session->raw(), $commitPointer, $commitLength);
             if (FFI::isNull($result)) {
                 return null;
@@ -494,16 +507,17 @@ CDEF;
         [$recognizedPointers, $recognizedBuffers] = self::makeStringPointerArray($recognizedUserIds);
 
         try {
+            self::synchronizeRecognizedUsers($ffi, $session, $recognizedUserIds);
+            $recognizedArguments = self::$statefulRecognizedUsers ? [] : [$recognizedPointers, count($recognizedUserIds)];
             $result = self::call(
                 $ffi,
                 'daveSessionProcessWelcome',
                 $session->raw(),
                 $welcomePointer,
                 $welcomeLength,
-                $recognizedPointers,
-                count($recognizedUserIds)
+                ...$recognizedArguments
             );
-            if (FFI::isNull($result)) {
+            if ($result === null || FFI::isNull($result)) {
                 return false;
             }
 
@@ -515,6 +529,30 @@ CDEF;
 
             return false;
         }
+    }
+
+    /**
+     * Synchronizes the current signaling roster before any MLS operation (libdave 1.3+).
+     *
+     * @param list<string> $userIds
+     */
+    private static function synchronizeRecognizedUsers(FFI $ffi, SessionHandle $session, array $userIds): void
+    {
+        if (! self::$statefulRecognizedUsers) {
+            return;
+        }
+
+        $userIds = array_values(array_unique(array_map('strval', $userIds)));
+        self::$recognizedUsers ??= new \WeakMap();
+        $previous = self::$recognizedUsers[$session] ?? [];
+        foreach (array_diff($previous, $userIds) as $userId) {
+            self::call($ffi, 'daveSessionRemoveRecognizedUser', $session->raw(), $userId);
+        }
+        foreach (array_diff($userIds, $previous) as $userId) {
+            self::call($ffi, 'daveSessionAddRecognizedUser', $session->raw(), $userId);
+        }
+        // Native recognition persists across Init/Reset, just as this snapshot does.
+        self::$recognizedUsers[$session] = $userIds;
     }
 
     /** The serialised MLS key package for `$session`, or null. */
@@ -853,6 +891,7 @@ CDEF;
 
         try {
             $definitions = self::resolveDefinitions($libraryPath);
+            self::$statefulRecognizedUsers = str_contains($definitions, 'daveSessionAddRecognizedUser(');
 
             self::$ffi = FFI::cdef(
                 $definitions,

@@ -137,3 +137,36 @@ function requireNativeDaveRuntimeFfi(?string $libraryPath): void
         TestCase::markTestSkipped('Native libdave runtime not available for this test run: '.(Runtime::getLastLoadError() ?? 'unknown error'));
     }
 }
+
+it('processes proposals using the installed native session signature', function () use (&$nativeFfiOriginalDavePath): void {
+    requireNativeDaveRuntimeFfi($nativeFfiOriginalDavePath);
+    $session = Runtime::createSession();
+    $this->assertNotNull($session);
+    try {
+        $this->assertTrue(Runtime::initializeSession($session, 1, 123, '111'));
+        $this->assertNull(Runtime::buildMlsCommitWelcomeWithSession($session, "\x00", ['111', '222']));
+        $this->assertNull(Runtime::getLastLoadError(), 'Malformed MLS data must reach libdave without an FFI argument error.');
+    } finally {
+        $session->destroy();
+    }
+});
+
+it('processes welcome using the installed native session signature', function () use (&$nativeFfiOriginalDavePath): void {
+    requireNativeDaveRuntimeFfi($nativeFfiOriginalDavePath);
+    $session = Runtime::createSession();
+    $this->assertNotNull($session);
+    try {
+        $this->assertTrue(Runtime::initializeSession($session, 1, 123, '111'));
+        $this->assertFalse(Runtime::processWelcome($session, "\x00", ['111', '222']));
+        $this->assertNull(Runtime::getLastLoadError(), 'Malformed MLS data must reach libdave without an FFI argument error.');
+        // Exercise removal before commit validation, then re-add after a native reset.
+        $this->assertNotNull(Runtime::processCommit($session, "\x00", ['111']));
+        $this->assertNull(Runtime::getLastLoadError());
+        $this->assertTrue(Runtime::resetSession($session));
+        $this->assertTrue(Runtime::initializeSession($session, 1, 123, '111'));
+        $this->assertFalse(Runtime::processWelcome($session, "\x00", ['111', '333']));
+        $this->assertNull(Runtime::getLastLoadError());
+    } finally {
+        $session->destroy();
+    }
+});
